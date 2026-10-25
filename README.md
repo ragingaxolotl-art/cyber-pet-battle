@@ -9,7 +9,8 @@ A real-time, keyboard-controlled **computer-opponent practice release**, using t
 ## Controls
 
 - Left/right arrows move; up jumps; down crouches.
-- Q W E A S D Z X trigger eight slots in the current attack set.
+- Q W E A S D Z X trigger eight slots in the current attack set. The eight default normal physical attacks cost no energy, including at zero energy. Power moves retain their costs. Teacher-authored designs retain their explicitly authored costs.
+- Controls appear in staggered QWE / ASD / ZX rows on the left, Space below, and the arrow cluster on the right.
 - Space cycles sets. Cooldowns belong to attacks and persist across set changes.
 - Escape pauses/resumes. Leaving the tab pauses and clears held keys.
 - On-screen attack buttons are also usable. Click Start/Resume to focus the arena.

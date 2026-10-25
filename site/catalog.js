@@ -5,7 +5,7 @@ const definitions=[
  ['up','Sky summon','up_summon_side',20,30,120],['down','Summon below','down_summon_side',22,32,100],['gather','Gather energy','gather_power_side',0,0,1],['release','Release power','release_power_side',18,22,50],['channel','Channel power','channel_power_side',16,20,70]
 ];
 export function defaultCatalog(){return definitions.map(([id,name,motion,base,cost,range],i)=>{
- const a=freshAttack(i===11?'projectile':i===6?'area':'melee');Object.assign(a,{id:'attack_'+id,name,motion,base,cost,startup:i===6?30:14,recovery:22,cooldown:60,scaling:i<8?'strength':'intelligence',box:{x:16,y:-55,w:range,h:48}});
+ const a=freshAttack(i===11?'projectile':i===6?'area':'melee');Object.assign(a,{id:'attack_'+id,name,motion,base,cost:i<8?0:cost,startup:i===6?30:14,recovery:22,cooldown:60,scaling:i<8?'strength':'intelligence',box:{x:16,y:-55,w:range,h:48}});
  if(i===11)a.impactTrigger='contact';
  if(i===8||i===9) a.delivery='area';
  if(i===10)Object.assign(a,{delivery:'self',payload:'energy',base:18,cooldown:180});return a;
