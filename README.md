@@ -8,11 +8,12 @@ A real-time, keyboard-controlled **computer-opponent practice release**, using t
 
 ## Controls
 
-- Left/right arrows move; up jumps; down crouches.
+- Left/right arrows move; up jumps; down crouches. Double-tap a horizontal arrow within 260 ms and hold the second press to sprint at 1.8× normal movement speed. Release to stop sprinting. Speed training still affects both speeds. Guard, crouch, jumping, attacks, hitstun, pause and focus loss cancel or prevent sprinting.
+- Both fighters always face their opponent, including after crossing sides. Retreat plays movement backward. Already-fired projectiles keep their launch direction.
 - Q W E A S D Z X trigger eight slots in the current attack set. The eight default normal physical attacks cost no energy, including at zero energy. Power moves retain their costs. Teacher-authored designs retain their explicitly authored costs.
 - Controls appear in staggered QWE / ASD / ZX rows on the left, Space below, and the arrow cluster on the right.
 - Space cycles sets. Cooldowns belong to attacks and persist across set changes.
-- Hold either Shift key to guard for free in any set; release it to attack. Imported pets need saved Block artwork. Guard slows movement and prevents jumping while held.
+- Tap either Shift key (release within 180 ms) to dodge; hold longer to block in any set. Both are free. Dodge is a short backward step, has a 0.75-second cooldown and an invulnerable window from simulation frames 2–13. Blocking slows movement and prevents jumping/attacking while held. Imported pets need their exact saved Dodge or Block artwork for the corresponding action.
 - The first Physical set is permanent; teacher-bank and design imports add further sets without replacing it.
 - Escape pauses/resumes. Leaving the tab pauses and clears held keys.
 - On-screen attack buttons are also usable. Click Start/Resume to focus the arena.
