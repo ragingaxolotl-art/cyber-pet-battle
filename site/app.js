@@ -4,7 +4,7 @@ import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js';
 import {visualFrame,visualOpacity,pathSample} from './shared/attack-motion.js';
 import {posePlayback} from './shared/pose-timing.js';
 import {readBackup} from './shared/backups.js';
-import {accountClient} from './account.js';
+import {accountClient} from './account.js?v=20261025-4';
 import {createClassroomBank} from './shared/attack-bank.js';
 const $=id=>document.getElementById(id),canvas=$('arena'),ctx=canvas.getContext('2d'),account=accountClient();
 let attacks=defaultCatalog(),pet=null,arena,keys=new Set(),images=new Map(),refs={},effects={},effectImages=new Map(),last=0,accumulator=0,loadGeneration=0;
