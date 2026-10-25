@@ -39,3 +39,5 @@
  #rotate{width:94%;margin-left:3%;padding:7px 3px;font-size:9px}
  #rotate kbd{padding:0 6px;margin-right:4px}
 }
+
+.guard-hint{margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:10px;color:var(--dim)}.guard-hint kbd{padding:0 14px;min-height:32px}.guard-hint.active kbd{color:var(--lime);border-color:var(--lime);background:#35432d}

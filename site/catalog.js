@@ -20,3 +20,6 @@ export function mappedAttack(pet,attack){const result=structuredClone(attack);if
  if(plan&&Number.isInteger(plan.impact_frame)&&plan.impact_frame>=1&&plan.impact_frame<=count){result.poseImpact=plan.impact_frame;}
  return result;
 }
+
+// Physical attacks occupy a permanent first deck, independent of teacher banks.
+export function withPhysicalDeck(authored){const physical=defaultCatalog().slice(0,8),reserved=new Set(physical.map(a=>a.id));return [...physical,...authored.filter(a=>!reserved.has(a.id))];}
