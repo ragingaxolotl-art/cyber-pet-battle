@@ -1,0 +1,7 @@
+export const API='https://cyber-pet-classroom-settings.ragingaxolotl.chatgpt.site/student-backups';
+// Memory-only credentials, fixed HTTPS destination, read-only requests.
+export function accountClient(request=fetch,now=Date.now){let credentials=null,expires=0;
+ const headers=()=>{if(!credentials||now()>=expires){credentials=null;throw Error('Sign in again to load a pet.');}return {'X-Student-Id':credentials.id,'X-Student-Pin':credentials.pin};};
+ async function get(path=''){const response=await request(API+path,{headers:headers(),cache:'no-store',credentials:'omit',redirect:'error'});if(!response.ok){if(response.status===401)credentials=null;let message='Could not load your backup.';try{message=(await response.json()).error||message;}catch{}throw Error(message);}return response;}
+ return {async signIn(id,pin){if(!/^[a-z0-9_-]{3,32}$/.test(id)||!/^\d{6,12}$/.test(pin))throw Error('Enter your classroom username and 6–12 digit PIN.');credentials={id,pin};expires=now()+15*60*1000;try{return await (await get()).json();}catch(e){credentials=null;throw e;}},async download(revision){if(!Number.isInteger(revision)||revision<1||revision>999999999)throw Error('Invalid backup revision.');const r=await get('/revisions/'+revision),hash=r.headers.get('X-Backup-SHA256');if(!/^[a-f0-9]{64}$/.test(hash||''))throw Error('Backup checksum is missing.');const buffer=await r.arrayBuffer();if(buffer.byteLength>32*1024*1024)throw Error('Backup is too large.');return {buffer,hash};},signOut(){credentials=null;expires=0;}};
+}
