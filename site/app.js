@@ -1,3 +1,4 @@
+import {installHonours} from './honours-ui.js';
 import {artworkDirection} from './shared/display.js';
 import {preparePetPlacement,petPlacement} from './shared/pet-placement.js';
 import {installWorkshop} from './workshop.js?v=lab1';
@@ -16,9 +17,10 @@ let workshop=null,decks=null,training=true;
 let attacks=defaultCatalog().slice(0,8),pet=null,arena,keys=new Set(),images=new Map(),refs={},effects={},effectImages=new Map(),last=0,accumulator=0,loadGeneration=0;
 const sprint=new SprintInput(),defenseInput=new DefenseInput();
 const status=text=>$('status').textContent=text;
+const honours=installHonours({getPet:()=>pet,getArena:()=>arena,pause:()=>pause(),status});
 function pause(){if(!arena)return;arena.paused=true;keys.clear();sprint.clear();defenseInput.clear();showOverlay();}
 function reset(){arena=new Arena(fighter(pet?.name||'Practice fighter',pet?petStats(pet):defaultStats(),pet),fighter(training?'Training dummy':'Sparring partner',pet?petStats(pet):defaultStats()),attacks,{training,decks});keys.clear();sprint.clear();defenseInput.clear();$('stats').replaceChildren();for(const [name,value] of Object.entries(arena.fighters[0].stats)){const label=document.createElement('span'),n=document.createElement('strong');label.textContent=name.toUpperCase();n.textContent=value;label.append(n);$('stats').append(label);}const note=document.createElement('span');note.textContent=pet?'Saved training levels · temporary care modifiers not included':'Practice training levels';$('stats').append(note);$('mode').textContent=pet?'Connected pet · '+pet.name+' · practice only':'Practice artwork · no saved progress changes';showOverlay();renderSlots();}
-function showOverlay(){const visible=arena.paused;$('overlay').hidden=!visible;$('overlayTitle').textContent=arena.winner?(arena.winner==='Draw'?'A draw.':arena.winner+' wins!'):arena.frame?'Take a breath.':'Ready when you are.';$('overlayText').textContent=arena.winner?'Try another round. Your saved pet progress is unchanged.':pet?'Your saved compiler artwork is ready. Locked moves need their required animation.':'Try the controls with a practice fighter, or connect your own pet.';$('start').textContent=arena.winner?'Play again →':arena.frame?'Resume →':'Start practice →';$('pause').textContent=arena.paused?'Resume':'Pause';}
+function showOverlay(){if(arena.winnerIndex!==null)honours.finished(arena);const visible=arena.paused;$('overlay').hidden=!visible;$('overlayTitle').textContent=arena.winner?(arena.winnerIndex===-1?'A draw.':arena.winner+' wins!'):arena.frame?'Take a breath.':'Ready when you are.';$('overlayText').textContent=arena.winner?'Try another round. Your saved pet progress is unchanged.':pet?'Your saved compiler artwork is ready. Locked moves need their required animation.':'Try the controls with a practice fighter, or connect your own pet.';$('start').textContent=arena.winner?'Play again →':arena.frame?'Resume →':'Start practice →';$('pause').textContent=arena.paused?'Resume':'Pause';}
 function start(){if(arena.winner)reset();arena.paused=false;keys.clear();sprint.clear();defenseInput.clear();accumulator=0;showOverlay();canvas.focus();}
 $('start').onclick=start;$('pause').onclick=()=>arena.paused?start():pause();$('restart').onclick=()=>{reset();start();};
 function rotate(){arena.rotate();renderSlots();}$('rotate').onclick=()=>{rotate();canvas.focus();};

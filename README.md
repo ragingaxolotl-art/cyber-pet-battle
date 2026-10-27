@@ -71,3 +71,14 @@ Skill trees contain 30 starter skills across ten elements. Flip between trees, l
 Purchases and mappings persist per pet **in this browser**, with portable battle-profile export/import. They do not sync to classroom cloud backups, and this client-side practice economy is not a trusted competitive ledger. Back up a profile before clearing browser data. On another browser, load the matching current pet backup before importing its battle profile. Anonymous demo credit is separate from connected-pet profiles.
 
 Verification: 29 Node tests cover existing controls plus tree validation, dummy facing/recovery, caps, progression thresholds, prerequisite/spending rules, mapping ownership and stale-tab saves. Browser checks cover purchase→mapping→reload→set-cycle→attack and dummy wall recovery.
+
+
+## Achievement expansion — October 27, 2026
+
+The Honours cabinet has seven ribbons and three trophies for completed computer
+sparring with a loaded pet. Awards are cosmetic and stored per pet in this browser;
+the export button creates an archival JSON copy. No cloud sync/import or combat,
+XP, Silver or skill-point rewards. Training dummies and samples do not qualify.
+See site/achievements.js for thresholds and tests/achievements.test.mjs for checks.
+Artwork is copied unchanged from the user’s reserved PixelLab library; see
+site/assets/honours/ATTRIBUTION.txt. Published through the normal Battle Arena deployment workflow.
