@@ -1,6 +1,6 @@
 export const REACTION={wallHold:15,downHold:35,getUp:26,drag:.84};
 export function beginReaction(f,attack,direction,frame){
- f.cast=null;f.guarding=false;f.moving=false;f.sprinting=false;f.vx=direction*attack.knockback*(1-REACTION.drag);
+ f.pulseMotion=null;f.cast=null;f.guarding=false;f.moving=false;f.sprinting=false;f.vx=direction*attack.knockback*(1-REACTION.drag);
  f.needsFall=attack.launchHeight>0||['sweep_hit_side','ground_slam_side'].includes(attack.motion);
  f.reaction=attack.launchHeight>0?'airborne':'hurt';f.reactionStart=frame;f.reactionUntil=frame+Math.max(8,attack.hitstun);
  if(attack.launchHeight>0)f.vy=-Math.sqrt(2*.48*attack.launchHeight);

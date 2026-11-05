@@ -2,7 +2,7 @@
 
 Separate GitHub Pages site: https://ragingaxolotl-art.github.io/cyber-pet-battle/
 
-Canonical checkout: `/Volumes/Cyber Pet Workspace/cyber-pet-battle`.
+Canonical combat development checkout: `/Volumes/Cyber Pet Combat/cyber-pet-battle` (November 5). The original checkout remains preserved. See [local upgrade scope](docs/combat-upgrade.md).
 
 A real-time, keyboard-controlled **training and computer-sparring release**, using the existing Cyber Pet dojo artwork. This does not replace the main Godot care game or Attack Studio.
 
