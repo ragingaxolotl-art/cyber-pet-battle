@@ -1,8 +1,9 @@
-import {KEYS,defaultCatalog,availability} from './catalog.js?v=20261105-combat-v2';
-import {validateAttack} from './shared/combat-model.js?v=20261105-combat-v2';
-import {checkPlayableTree,bankTree,STUDIO_TREE_KEY} from './skill-trees.js?v=20261105-combat-v2';
-import {ProfileStore,freshProfile,syncCredit,trainingCredit,pointsForXP,xpForPoints,balance,spentPoints,purchaseReason,buySkill,allowedAttackIds,saveSet,validateProfile} from './progression.js?v=20261105-combat-v2';
-import {LoadoutDrafts} from './loadout-drafts.js?v=20261105-combat-v2';
+import {attackChecks} from './attack-checks.js?v=20261105-combat-compat';
+import {KEYS,defaultCatalog,availability} from './catalog.js?v=20261105-combat-compat';
+import {validateAttack} from './shared/combat-model.js?v=20261105-combat-compat';
+import {checkPlayableTree,bankTree,STUDIO_TREE_KEY} from './skill-trees.js?v=20261105-combat-compat';
+import {ProfileStore,freshProfile,syncCredit,trainingCredit,pointsForXP,xpForPoints,balance,spentPoints,purchaseReason,buySkill,allowedAttackIds,saveSet,validateProfile} from './progression.js?v=20261105-combat-compat';
+import {LoadoutDrafts} from './loadout-drafts.js?v=20261105-combat-compat';
 const $=id=>document.getElementById(id),el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 const TREE_STORAGE='cyber-pet-battle-tree-v1';
 export async function installWorkshop({getPet,pause,changed,status,testAttack}){
@@ -57,7 +58,7 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack}){
    const card=el('article'),canvas=el('canvas'),name=el('h3',a.name);card.className='move-choice';canvas.width=100;canvas.height=88;canvas.setAttribute('aria-label',a.name+' effect');paintEffect(canvas,{effectId:a.visuals[0]?.effectId});
    const detail=el('p',`${a.element} · ${a.cost} base energy · ${a.hitEvents?.length||a.hitLimit} hit(s)`),requirement=el('p',problem||'Ready · '+a.motion.replaceAll('_',' '));
    const assign=el('button','Assign to '+KEYS[selectedKey]);assign.disabled=!!problem||!committed()||blocked;assign.onclick=()=>{const set=drafts.read(committed());if(!drafts.drafts.has(set.id))drafts.change(committed());set.slots[selectedKey]=a.id;drafts.change(set);persistDraft();renderMapping();};
-   const test=el('button','Test this move');test.disabled=!!problem;test.onclick=()=>{$('mappingDialog').close();testAttack?.(a);status('Move test: press Q. Your loadout draft is preserved. Restart restores normal sets.');};card.append(canvas,name,detail,requirement,assign,test);root.append(card);
+   const test=el('button','Test this move');test.disabled=!!problem;test.onclick=()=>{$('mappingDialog').close();testAttack?.(a);status('Move test: press Q. Your loadout draft is preserved. Restart restores normal sets.');};card.append(canvas,name,detail,requirement,assign,test,attackChecks(a));root.append(card);
   }
   if(!root.children.length)root.append(el('p','No learned attacks match. Change the filter or learn a move in Skill trees.'));
  }

@@ -7,6 +7,6 @@
 - Keep all real student data and local saves out of Git. The copied ZIP fixtures are existing anonymous tests.
 - Preserve artwork attribution. `workspace-copy-manifest.json` records exact original paths and verified hashes.
 - Favor readable, small modules and documented classroom balance. Maintain existing attacks and saved data compatibility.
-- The current authorized work is the November 5 combat/editor audit: reliability fixes, safe loadout editing, clearer workflow, and the contact-relative five-hit projectile milestone. Advanced clash/cancel/branching systems remain deferred.
+- The November 5 overall goal authorizes continuing the combat/editor audit, behavior parity, versioned bank round trips, UI/UX improvements and prioritized advanced combat mechanics. Implement and verify bounded milestones; document incomplete features explicitly.
 - Run both JavaScript test suites and shared parity tests. Browser UI verification must be reported separately from source/headless tests.
 - Local Node: `/Volumes/Cyber Pet Combat/tools/node/bin/node`.

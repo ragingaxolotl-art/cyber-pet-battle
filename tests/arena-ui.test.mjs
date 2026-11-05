@@ -23,7 +23,7 @@ test('Arena initializes and loadout edits survive switching, closing, save, dele
  const file={size:2048,text:async()=>JSON.stringify({format:'cyber-pet-combat-design',version:2,attacks:[attack]})};
  $('attackFile').files=[file];await $('attackFile').onchange({target:$('attackFile')});
  await $('skillTrees').click();const learn=$('treeSkills').querySelectorAll('button').find(b=>b.textContent.startsWith('Learn ·'));assert.ok(learn);await learn.click();assert.match($('treeStatus').textContent,/Learned Electrical barrage/);
- await $('closeSkills').click();await $('mapAttacks').click();$('moveSearch').value='Electrical barrage';$('moveSearch').oninput();const pick=$('movePicker').querySelectorAll('button').find(b=>b.textContent==='Test this move');assert.ok(pick);await pick.click();assert.match($('setName').textContent,/Electrical barrage/);
+ await $('closeSkills').click();await $('mapAttacks').click();$('moveSearch').value='Electrical barrage';$('moveSearch').oninput();assert.match($('movePicker').textContent,/Save this sequence locally/);const pick=$('movePicker').querySelectorAll('button').find(b=>b.textContent==='Test this move');assert.ok(pick);await pick.click();assert.match($('setName').textContent,/Electrical barrage/);assert.equal($('moveTestChecks').hidden,false);assert.match($('moveTestChecks').textContent,/Damage is authored per hit/);
  await $('attackSlots').children[0].click();for(let i=0;i<110;i++)await $('stepFrame').click();assert.match($('dummyStats').textContent,/5 hits · 28 damage/);
  $('defenseMode').value='separate';$('defenseMode').onchange();assert.match($('guardHint').textContent,/C blocks/);
 });

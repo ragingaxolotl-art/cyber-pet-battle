@@ -1,12 +1,23 @@
-export const REACTION={wallHold:15,downHold:35,getUp:26,drag:.84};
+import {RECOVERY_TIMING} from './shared/recovery-timing.js?v=20261105-combat-compat';
+import {sampleLegacyMotion} from './shared/legacy-motion.js?v=20261105-combat-compat';
+export const REACTION={wallHold:RECOVERY_TIMING.wall,downHold:RECOVERY_TIMING.down,getUp:RECOVERY_TIMING.getUp,drag:.84};
 export function beginReaction(f,attack,direction,frame){
- f.pulseMotion=null;f.cast=null;f.guarding=false;f.moving=false;f.sprinting=false;f.vx=direction*attack.knockback*(1-REACTION.drag);
- f.needsFall=attack.launchHeight>0||['sweep_hit_side','ground_slam_side'].includes(attack.motion);
- f.reaction=attack.launchHeight>0?'airborne':'hurt';f.reactionStart=frame;f.reactionUntil=frame+Math.max(8,attack.hitstun);
- if(attack.launchHeight>0)f.vy=-Math.sqrt(2*.48*attack.launchHeight);
+ f.pulseMotion=null;f.cast=null;f.guarding=false;f.moving=false;f.sprinting=false;f.vx=0;f.vy=0;
+ f.legacyMotion={x:f.x,y:f.y,start:frame,attack:{...attack},direction,wall:false};
+ f.needsFall=!!attack.floorSlam&&attack.pushAxis!=='x'&&attack.launchHeight>0;f.reaction=(attack.pushAxis!=='x'&&attack.launchHeight>0)||f.y<0?'airborne':'hurt';
+ f.reactionStart=frame;f.reactionUntil=frame+Math.max(8,attack.hitstun);
  f.lastHit=frame;f.stun=Math.max(f.stun,frame+attack.hitstun);
+
 }
 export function advanceReaction(f,frame,emit){
+ if(f.legacyMotion){
+  const motion=f.legacyMotion,a=motion.attack,sample=sampleLegacyMotion(motion,a,motion.direction,frame-motion.start,35,925);
+  f.x=sample.x;f.y=sample.y;f.vx=0;f.vy=0;
+  if(sample.wall&&a.wallSlam&&!motion.wall){motion.wall=true;f.reaction='wall';f.reactionStart=frame;emit('WALL HIT',f);}
+  if(sample.done){f.legacyMotion=null;if((a.floorSlam&&a.pushAxis!=='x'&&a.launchHeight>0)||motion.wall)knockDown(f,frame,emit);else f.reaction=frame>=f.reactionUntil?'standing':'hurt';}
+  else f.stun=Math.max(f.stun,frame+1);
+  return true;
+ }
  if(f.reaction==='standing')return;
  if(f.reaction==='wall'&&frame>=f.reactionUntil){f.reaction='airborne';f.vy=1;f.needsFall=true;}
  if(f.reaction==='down'&&frame>=f.reactionUntil){f.reaction='getting_up';f.reactionStart=frame;f.reactionUntil=frame+REACTION.getUp;}

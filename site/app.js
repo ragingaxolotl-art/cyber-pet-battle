@@ -1,18 +1,19 @@
-import {installHonours} from './honours-ui.js?v=20261105-combat-v2';
-import {artworkDirection} from './shared/display.js?v=20261105-combat-v2';
-import {preparePetPlacement,petPlacement} from './shared/pet-placement.js?v=20261105-combat-v2';
-import {installWorkshop} from './workshop.js?v=20261105-combat-v2';
-import {reactionMotion} from './reactions.js?v=20261105-combat-v2';
-import {SprintInput,DefenseInput} from './keyboard.js?v=20261105-combat-v2';
-import {Arena,fighter,RULES} from './engine.js?v=20261105-combat-v2';
-import {KEYS,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261105-combat-v2';
-import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261105-combat-v2';
-import {visualFrame,visualOpacity,pathSample} from './shared/attack-motion.js?v=20261105-combat-v2';
-import {posePlayback} from './shared/pose-timing.js?v=20261105-combat-v2';
-import {readBackup} from './shared/backups.js?v=20261105-combat-v2';
-import {accountClient} from './account.js?v=20261105-combat-v2';
-import {createClassroomBank} from './shared/attack-bank.js?v=20261105-combat-v2';
-import {shapePoints} from './shared/hitbox-shapes.js?v=20261105-combat-v2';
+import {attackChecks} from './attack-checks.js?v=20261105-combat-compat';
+import {installHonours} from './honours-ui.js?v=20261105-combat-compat';
+import {artworkDirection} from './shared/display.js?v=20261105-combat-compat';
+import {preparePetPlacement,petPlacement} from './shared/pet-placement.js?v=20261105-combat-compat';
+import {installWorkshop} from './workshop.js?v=20261105-combat-compat';
+import {reactionMotion} from './reactions.js?v=20261105-combat-compat';
+import {SprintInput,DefenseInput} from './keyboard.js?v=20261105-combat-compat';
+import {Arena,fighter,RULES} from './engine.js?v=20261105-combat-compat';
+import {KEYS,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261105-combat-compat';
+import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261105-combat-compat';
+import {visualFrame,visualOpacity,pathSample} from './shared/attack-motion.js?v=20261105-combat-compat';
+import {posePlayback} from './shared/pose-timing.js?v=20261105-combat-compat';
+import {readBackup} from './shared/backups.js?v=20261105-combat-compat';
+import {accountClient} from './account.js?v=20261105-combat-compat';
+import {createClassroomBank} from './shared/attack-bank.js?v=20261105-combat-compat';
+import {shapePoints} from './shared/hitbox-shapes.js?v=20261105-combat-compat';
 const $=id=>document.getElementById(id),canvas=$('arena'),ctx=canvas.getContext('2d'),account=accountClient();
 let workshop=null,decks=null,training=true;
 let attacks=defaultCatalog().slice(0,8),pet=null,arena,keys=new Set(),images=new Map(),refs={},effects={},effectImages=new Map(),last=0,accumulator=0,loadGeneration=0;
@@ -20,7 +21,7 @@ const sprint=new SprintInput(),defenseInput=new DefenseInput();
 const status=text=>$('status').textContent=text;
 const honours=installHonours({getPet:()=>pet,getArena:()=>arena,pause:()=>pause(),status});
 function pause(){if(!arena)return;arena.paused=true;keys.clear();sprint.clear();defenseInput.clear();showOverlay();}
-function reset(){arena=new Arena(fighter(pet?.name||'Practice fighter',pet?petStats(pet):defaultStats(),pet),fighter(training?'Training dummy':'Sparring partner',pet?petStats(pet):defaultStats()),attacks,{training,decks});keys.clear();sprint.clear();defenseInput.clear();$('stats').replaceChildren();for(const [name,value] of Object.entries(arena.fighters[0].stats)){const label=document.createElement('span'),n=document.createElement('strong');label.textContent=name.toUpperCase();n.textContent=value;label.append(n);$('stats').append(label);}const note=document.createElement('span');note.textContent=pet?'Saved training levels · temporary care modifiers not included':'Practice training levels';$('stats').append(note);$('mode').textContent=pet?'Connected pet · '+pet.name+' · practice only':'Practice artwork · no saved progress changes';showOverlay();renderSlots();}
+function reset(){$('moveTestChecks').replaceChildren();$('moveTestChecks').hidden=true;arena=new Arena(fighter(pet?.name||'Practice fighter',pet?petStats(pet):defaultStats(),pet),fighter(training?'Training dummy':'Sparring partner',pet?petStats(pet):defaultStats()),attacks,{training,decks});keys.clear();sprint.clear();defenseInput.clear();$('stats').replaceChildren();for(const [name,value] of Object.entries(arena.fighters[0].stats)){const label=document.createElement('span'),n=document.createElement('strong');label.textContent=name.toUpperCase();n.textContent=value;label.append(n);$('stats').append(label);}const note=document.createElement('span');note.textContent=pet?'Saved training levels · temporary care modifiers not included':'Practice training levels';$('stats').append(note);$('mode').textContent=pet?'Connected pet · '+pet.name+' · practice only':'Practice artwork · no saved progress changes';showOverlay();renderSlots();}
 function showOverlay(){if(arena.winnerIndex!==null)honours.finished(arena);const visible=arena.paused;$('overlay').hidden=!visible;$('overlayTitle').textContent=arena.winner?(arena.winnerIndex===-1?'A draw.':arena.winner+' wins!'):arena.frame?'Take a breath.':'Ready when you are.';$('overlayText').textContent=arena.winner?'Try another round. Your saved pet progress is unchanged.':pet?'Your saved compiler artwork is ready. Locked moves need their required animation.':'Try the controls with a practice fighter, or connect your own pet.';$('start').textContent=arena.winner?'Play again →':arena.frame?'Resume →':'Start practice →';$('pause').textContent=arena.paused?'Resume':'Pause';}
 function start(){if(arena.winner)reset();arena.paused=false;keys.clear();sprint.clear();defenseInput.clear();accumulator=0;showOverlay();canvas.focus();}
 $('start').onclick=start;$('pause').onclick=()=>arena.paused?start():pause();$('restart').onclick=()=>{reset();start();};
@@ -59,7 +60,7 @@ $('resetDummy').onclick=()=>{arena.resetDummy();status('Dummy reset. No XP is aw
 $('knockdownTest').onclick=()=>{arena.testDummyReaction(false);start();};
 $('wallTest').onclick=()=>{arena.testDummyReaction(true);start();};
 reset();requestAnimationFrame(loop);
-try{workshop=await installWorkshop({getPet:()=>pet,pause,status,testAttack:a=>{training=true;$('arenaMode').value='training';arena=new Arena(fighter(pet?.name||'Practice fighter',pet?petStats(pet):defaultStats(),pet),fighter('Training dummy',pet?petStats(pet):defaultStats()),[a],{training:true,decks:[{id:'preview',name:'Move test · '+a.name,slots:[a,null,null,null,null,null,null,null]}]});arena.fighters[1].x=arena.fighters[0].x+100;renderSlots();start();},changed:data=>{attacks=data.attacks;decks=data.decks;reset();loadEffects(attacks).catch(()=>status('Some attack effects could not load.'));}});$('mapAttacks').disabled=false;$('skillTrees').disabled=false;}catch(e){status('Skill trees could not load: '+e.message);}
+try{workshop=await installWorkshop({getPet:()=>pet,pause,status,testAttack:a=>{$('moveTestChecks').replaceChildren(attackChecks(a,{expanded:true}));$('moveTestChecks').hidden=false;training=true;$('arenaMode').value='training';arena=new Arena(fighter(pet?.name||'Practice fighter',pet?petStats(pet):defaultStats(),pet),fighter('Training dummy',pet?petStats(pet):defaultStats()),[a],{training:true,decks:[{id:'preview',name:'Move test · '+a.name,slots:[a,null,null,null,null,null,null,null]}]});arena.fighters[1].x=arena.fighters[0].x+100;renderSlots();start();},changed:data=>{attacks=data.attacks;decks=data.decks;reset();loadEffects(attacks).catch(()=>status('Some attack effects could not load.'));}});$('mapAttacks').disabled=false;$('skillTrees').disabled=false;}catch(e){status('Skill trees could not load: '+e.message);}
 
 try{refs=await (await fetch('references.json')).json();for(const url of new Set(['assets/arena.png',...Object.values(refs).map(r=>r.url)])){const image=await loadImage(url);if(image)images.set(url,image);}}catch{status('Some practice artwork could not load. Reload to try again.');}
 
