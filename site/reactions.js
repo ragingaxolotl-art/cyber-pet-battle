@@ -1,5 +1,5 @@
-import {RECOVERY_TIMING} from './shared/recovery-timing.js?v=20261105-combat-trees';
-import {sampleLegacyMotion} from './shared/legacy-motion.js?v=20261105-combat-trees';
+import {RECOVERY_TIMING} from './shared/recovery-timing.js?v=20261106-matchup';
+import {sampleLegacyMotion} from './shared/legacy-motion.js?v=20261106-matchup';
 export const REACTION={wallHold:RECOVERY_TIMING.wall,downHold:RECOVERY_TIMING.down,getUp:RECOVERY_TIMING.getUp,drag:.84};
 export function beginReaction(f,attack,direction,frame){
  f.pulseMotion=null;f.cast=null;f.guarding=false;f.moving=false;f.sprinting=false;f.vx=0;f.vy=0;

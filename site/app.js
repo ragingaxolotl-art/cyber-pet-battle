@@ -1,19 +1,20 @@
-import {attackChecks} from './attack-checks.js?v=20261105-combat-trees';
-import {installHonours} from './honours-ui.js?v=20261105-combat-trees';
-import {artworkDirection} from './shared/display.js?v=20261105-combat-trees';
-import {preparePetPlacement,petPlacement} from './shared/pet-placement.js?v=20261105-combat-trees';
-import {installWorkshop} from './workshop.js?v=20261105-combat-trees';
-import {reactionMotion} from './reactions.js?v=20261105-combat-trees';
-import {SprintInput,DefenseInput} from './keyboard.js?v=20261105-combat-trees';
-import {Arena,fighter,RULES} from './engine.js?v=20261105-combat-trees';
-import {KEYS,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261105-combat-trees';
-import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261105-combat-trees';
-import {visualFrame,visualOpacity,pathSample} from './shared/attack-motion.js?v=20261105-combat-trees';
-import {posePlayback} from './shared/pose-timing.js?v=20261105-combat-trees';
-import {readBackup} from './shared/backups.js?v=20261105-combat-trees';
-import {accountClient} from './account.js?v=20261105-combat-trees';
-import {createClassroomBank} from './shared/attack-bank.js?v=20261105-combat-trees';
-import {shapePoints} from './shared/hitbox-shapes.js?v=20261105-combat-trees';
+import {installMatchup} from './matchup.js?v=20261106-matchup';
+import {attackChecks} from './attack-checks.js?v=20261106-matchup';
+import {installHonours} from './honours-ui.js?v=20261106-matchup';
+import {artworkDirection} from './shared/display.js?v=20261106-matchup';
+import {preparePetPlacement,petPlacement} from './shared/pet-placement.js?v=20261106-matchup';
+import {installWorkshop} from './workshop.js?v=20261106-matchup';
+import {reactionMotion} from './reactions.js?v=20261106-matchup';
+import {SprintInput,DefenseInput} from './keyboard.js?v=20261106-matchup';
+import {Arena,fighter,RULES} from './engine.js?v=20261106-matchup';
+import {KEYS,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261106-matchup';
+import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261106-matchup';
+import {visualFrame,visualOpacity,pathSample} from './shared/attack-motion.js?v=20261106-matchup';
+import {posePlayback} from './shared/pose-timing.js?v=20261106-matchup';
+import {readBackup} from './shared/backups.js?v=20261106-matchup';
+import {accountClient} from './account.js?v=20261106-matchup';
+import {createClassroomBank} from './shared/attack-bank.js?v=20261106-matchup';
+import {shapePoints} from './shared/hitbox-shapes.js?v=20261106-matchup';
 const $=id=>document.getElementById(id),canvas=$('arena'),ctx=canvas.getContext('2d'),account=accountClient();
 let workshop=null,decks=null,training=true;
 let attacks=defaultCatalog().slice(0,8),pet=null,arena,keys=new Set(),images=new Map(),refs={},effects={},effectImages=new Map(),last=0,accumulator=0,loadGeneration=0;
@@ -76,3 +77,5 @@ for(const id of ['defenseMode','blockKey','dodgeKey'])$(id).onchange=()=>{pause(
 if(['127.0.0.1','localhost'].includes(new URL(location.href).hostname)){const link=document.querySelector('a[href="https://ragingaxolotl-art.github.io/cyber-pet-play/attack-studio/design.html"]');if(link)link.href='/studio/design.html';}
 $('navPlay').onclick=()=>document.querySelector('.arena-shell').scrollIntoView({behavior:'smooth'});
 $('navMoves').onclick=()=>$('mapAttacks').click();$('navPet').onclick=()=>$('connect').click();
+
+installMatchup({getAttacks:()=>attacks,pause});
