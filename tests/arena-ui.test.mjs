@@ -25,5 +25,11 @@ test('Arena initializes and loadout edits survive switching, closing, save, dele
  await $('skillTrees').click();const learn=$('treeSkills').querySelectorAll('button').find(b=>b.textContent.startsWith('Learn ·'));assert.ok(learn);await learn.click();assert.match($('treeStatus').textContent,/Learned Electrical barrage/);
  await $('closeSkills').click();await $('mapAttacks').click();$('moveSearch').value='Electrical barrage';$('moveSearch').oninput();assert.match($('movePicker').textContent,/Save this sequence locally/);const pick=$('movePicker').querySelectorAll('button').find(b=>b.textContent==='Test this move');assert.ok(pick);await pick.click();assert.match($('setName').textContent,/Electrical barrage/);assert.equal($('moveTestChecks').hidden,false);assert.match($('moveTestChecks').textContent,/Damage is authored per hit/);
  await $('attackSlots').children[0].click();for(let i=0;i<110;i++)await $('stepFrame').click();assert.match($('dummyStats').textContent,/5 hits · 28 damage/);
+ const treeAttack={...structuredClone(attack),id:'attack_tree_barrage',name:'Tree barrage'};
+ const tree={format:'cyber-pet-attack-skill-tree',version:2,nodes:[{id:'tree-barrage',name:'Tree barrage',description:'Anonymous tree test',branch:'Electric',effectId:'',state:'ready',requirement:'all',requires:[],cost:0,x:0,y:0,attack:treeAttack}]};
+ $('treeFile').files=[{size:4096,text:async()=>JSON.stringify(tree)}];await $('treeFile').onchange({target:$('treeFile')});
+ await $('skillTrees').click();const learnTree=$('treeSkills').querySelectorAll('button').find(b=>b.textContent.startsWith('Learn ·'));assert.ok(learnTree);await learnTree.click();assert.match($('treeStatus').textContent,/Learned Tree barrage/);
+ await $('closeSkills').click();await $('mapAttacks').click();$('moveSearch').value='Tree barrage';$('moveSearch').oninput();await $('movePicker').querySelectorAll('button').find(b=>b.textContent==='Test this move').click();
+ await $('attackSlots').children[0].click();for(let i=0;i<110;i++)await $('stepFrame').click();assert.match($('dummyStats').textContent,/5 hits · 28 damage/);
  $('defenseMode').value='separate';$('defenseMode').onchange();assert.match($('guardHint').textContent,/C blocks/);
 });
