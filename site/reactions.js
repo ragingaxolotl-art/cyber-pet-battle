@@ -1,20 +1,22 @@
-import {RECOVERY_TIMING} from './shared/recovery-timing.js?v=20261106-matchup';
-import {sampleLegacyMotion} from './shared/legacy-motion.js?v=20261106-matchup';
+import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261106-recovery';
+import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261106-recovery';
 export const REACTION={wallHold:RECOVERY_TIMING.wall,downHold:RECOVERY_TIMING.down,getUp:RECOVERY_TIMING.getUp,drag:.84};
 export function beginReaction(f,attack,direction,frame){
+ const recoveryEnd=legacyRecoveryEnd(f,attack,frame);
  f.pulseMotion=null;f.cast=null;f.guarding=false;f.moving=false;f.sprinting=false;f.vx=0;f.vy=0;
- f.legacyMotion={x:f.x,y:f.y,start:frame,attack:{...attack},direction,wall:false};
- f.needsFall=!!attack.floorSlam&&attack.pushAxis!=='x'&&attack.launchHeight>0;f.reaction=(attack.pushAxis!=='x'&&attack.launchHeight>0)||f.y<0?'airborne':'hurt';
- f.reactionStart=frame;f.reactionUntil=frame+Math.max(8,attack.hitstun);
- f.lastHit=frame;f.stun=Math.max(f.stun,frame+attack.hitstun);
+ f.legacyMotion=hasLegacyMotion(f,attack)?{x:f.x,y:f.y,start:frame,attack:{...attack},direction,wall:false}:null;
+ f.needsFall=!!attack.floorSlam&&(f.y<0||(attack.pushAxis!=='x'&&attack.launchHeight>0));f.reaction=(attack.pushAxis!=='x'&&attack.launchHeight>0)||f.y<0?'airborne':'hurt';
+ f.reactionStart=frame;f.reactionUntil=frame+attack.hitstun;
+ if(!f.legacyMotion&&attack.hitstun===0)f.reaction='standing';
+ f.lastHit=frame;f.stun=Math.max(f.stun,recoveryEnd);
 
 }
 export function advanceReaction(f,frame,emit){
  if(f.legacyMotion){
   const motion=f.legacyMotion,a=motion.attack,sample=sampleLegacyMotion(motion,a,motion.direction,frame-motion.start,35,925);
   f.x=sample.x;f.y=sample.y;f.vx=0;f.vy=0;
-  if(sample.wall&&a.wallSlam&&!motion.wall){motion.wall=true;f.reaction='wall';f.reactionStart=frame;emit('WALL HIT',f);}
-  if(sample.done){f.legacyMotion=null;if((a.floorSlam&&a.pushAxis!=='x'&&a.launchHeight>0)||motion.wall)knockDown(f,frame,emit);else f.reaction=frame>=f.reactionUntil?'standing':'hurt';}
+  if(sample.wall&&a.wallSlam&&!motion.wall){motion.wall=true;f.stun=Math.max(f.stun,legacyRecoveryEnd(motion,a,motion.start,true));f.reaction='wall';f.reactionStart=frame;emit('WALL HIT',f);}
+  if(sample.done){f.legacyMotion=null;if(f.needsFall||motion.wall)knockDown(f,frame,emit);else f.reaction=frame>=f.reactionUntil?'standing':'hurt';}
   else f.stun=Math.max(f.stun,frame+1);
   return true;
  }

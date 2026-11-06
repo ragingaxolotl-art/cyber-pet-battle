@@ -21,3 +21,13 @@ test('active knockdown blocks attacks and dodge as well as walking',()=>{
  const {p,arena}=setup(),a={...freshAttack(),startup:0};p.reaction='down';p.reactionUntil=20;p.stun=0;
  assert.equal(arena.attack(p,a),false);assert.match(arena.dodge(p),/Finish/);arena.tick(new Set(['ArrowRight','Shift']));assert.equal(p.moving,false);assert.equal(p.guarding,false);
 });
+
+for(const hitstun of [0,1,4,12])test(`stationary hit honors ${hitstun} frames without flight delay`,()=>{
+ const {p,arena}=setup(),a={...freshAttack(),knockback:0,launchHeight:0,hitstun,flightFrames:120};beginReaction(p,a,1,0);assert.equal(p.legacyMotion,null);
+ if(hitstun===0)assert.equal(p.reaction,'standing');
+ for(let frame=1;frame<=Math.max(1,hitstun);frame++){arena.tick();assert.equal(p.reaction,frame<hitstun?'hurt':'standing');}
+});
+test('suppressed-axis displacement does not create a flight lock',()=>{
+ const {p}=setup();beginReaction(p,{...freshAttack(),pushAxis:'y',knockback:100,launchHeight:0,hitstun:3},1,0);assert.equal(p.legacyMotion,null);
+ beginReaction(p,{...freshAttack(),pushAxis:'x',knockback:0,launchHeight:100,hitstun:3},1,0);assert.equal(p.legacyMotion,null);
+});
