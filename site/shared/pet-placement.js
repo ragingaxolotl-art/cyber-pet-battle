@@ -1,5 +1,5 @@
-import {stableArtwork,stableFrame} from './stable-artwork.js?v=20261106-bank';
-import {framePlacement} from './display.js?v=20261106-bank';
+import {stableArtwork,stableFrame} from './stable-artwork.js?v=20261106-hitboxes';
+import {framePlacement} from './display.js?v=20261106-hitboxes';
 const valid=(v,min,max,fallback)=>Number.isFinite(v)&&v>=min&&v<=max?v:fallback;
 // Canvas readback happens once when artwork is loaded, never in the render loop.
 export function preparePetPlacement(data,measure=measureImage){

@@ -107,3 +107,23 @@ Stationary hits no longer receive an unrelated flightFrames lock or minimum eigh
 ## Arena classroom bank compatibility — November 6
 
 Arena now uses the same version-2 bank protocol as Studio. Anonymous UI coverage loads a classroom sequence, learns it, and runs five hits for 28 damage. Both suites pass (133 Arena, 1101 Studio). Browser visual QA remains unavailable. Multiple-hitbox groundwork is not integrated or part of this release.
+
+## Multiple hitboxes — local integration in progress
+
+Timed damage attacks now resolve hitboxGroups in both the Studio model and Arena engine. Group contacts are snapshotted before resolution; overlapping boxes in a group share hit limits and intervals. Separate groups have independent counts. Eleven targeted checks cover grouping, both facings, delayed windows, block and dodge. Full suites passed after runtime integration (138 Arena, 1101 Studio); three further defense/window tests then passed.
+
+Not published or exposed in the editor yet. Required next: versioned format/capability negotiation, editor selection/geometry controls and drawing all active boxes, UI tests, sequence/contact integration, and live release validation. Current local validator explicitly rejects groups combined with contact-triggered attacks or hit sequences; this is an interim constraint, not completion of the report.
+
+### Local group authoring and versioned transport
+
+The Studio inspector now creates groups, duplicates boxes within a group or into an independent group, edits shape/geometry/windows/rehit rules, moves boxes between groups, deletes boxes, and returns to a selected ordinary box. Changes use existing undo/history and version-3 local saving. Both previews draw active group geometry. Workflow coverage exercises edit, save, reassignment, deletion and undo; it is DOM-harness coverage, not visual browser QA. Current suites: 1105 Studio and 145 Arena passing.
+
+Version-3 project/bank roundtrips preserve geometry and reject groups mislabeled as v1/v2. Skill-tree version selection and validation are updated but still need a dedicated v3 roundtrip workflow check. Classroom reads negotiate capabilities; v2 servers remain usable, and v3 writes are blocked before PUT unless the server advertises support. Production server v3 support is still pending. No group release has been published. Next: backend support, tree/reload workflows, direct canvas editing, contact-sequence integration, diagnostics, and publication/live verification.
+
+### Classroom v3 server published
+
+Classroom service version 52 (fb3e2e57c71ccec7a7f7f58a5855e3268f037d4c) deployed successfully. Live capabilities advertise bank/attack versions 1, 2, 3 with revision protection. Four server tests and production build passed. Updated from current hosted source first to preserve unrelated changes. No real classroom bank writes or student-data changes were performed. Front-end group release remains unpublished.
+
+### Group canvas and reload verification
+
+Canvas selection/drag/resize now edits the selected active group box and shows its handles. The DOM workflow test reopens a saved v3 project and verifies drag and resize persistence. Both skill-tree models pass v3 geometry roundtrip and older-version rejection checks. Full suites pass: 1106 Studio, 146 Arena. Group diagnostics now explain shared limits versus independent damage and version-3 transport. Visual browser QA and frontend publication remain outstanding.

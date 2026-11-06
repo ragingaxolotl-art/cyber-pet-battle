@@ -40,7 +40,7 @@ test('Arena initializes and loadout edits survive switching, closing, save, dele
  };
  try{
  await $('teacherBank').click();$('teacherPassword').value='test-only';await $('bankForm').onsubmit({preventDefault(){}});
- assert.equal($('teacherPassword').value,'');assert.equal($('bankDialog').open,false);assert.equal(requests.length,3);
+ assert.equal($('teacherPassword').value,'');assert.equal($('bankDialog').open,false);assert.equal(requests.length,4);
  await $('skillTrees').click();await $('treeSkills').querySelectorAll('button').find(b=>b.textContent.startsWith('Learn ·')).click();
  await $('closeSkills').click();await $('mapAttacks').click();$('moveSearch').value='Classroom barrage';$('moveSearch').oninput();await $('movePicker').querySelectorAll('button').find(b=>b.textContent==='Test this move').click();
  await $('attackSlots').children[0].click();for(let i=0;i<110;i++)await $('stepFrame').click();assert.match($('dummyStats').textContent,/5 hits · 28 damage/);

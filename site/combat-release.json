@@ -1,19 +1,24 @@
 {
-  "release": "20261106-bank",
+  "release": "20261106-hitboxes",
   "attackDefinitionVersions": [
     1,
-    2
+    2,
+    3
   ],
   "sequenceTransport": "project-download",
   "classroomBankVersions": [
     1,
-    2
+    2,
+    3
   ],
   "cloudSequencePublishing": true,
   "skillTreeSequencePublishing": true,
   "skillTreeVersions": [
     1,
-    2
+    2,
+    3
   ],
-  "twoAttackComparison": true
+  "twoAttackComparison": true,
+  "multipleHitboxes": "timed-damage",
+  "groupSequenceSupport": false
 }

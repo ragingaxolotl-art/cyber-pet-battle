@@ -1,4 +1,4 @@
-import {HONOURS,HonourStore,freshHonours} from './achievements.js?v=20261106-bank';
+import {HONOURS,HonourStore,freshHonours} from './achievements.js?v=20261106-hitboxes';
 export function installHonours({getPet,getArena,pause,status}){
  const $=id=>document.getElementById(id);let store;
  const storage=()=>store||(store=new HonourStore(localStorage));
