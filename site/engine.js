@@ -1,9 +1,9 @@
-import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261106-recovery';
-import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261106-recovery';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261106-recovery';
-import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261106-recovery';
-import {availability,mappedAttack} from './catalog.js?v=20261106-recovery';
-import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261106-recovery';
+import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261106-bank';
+import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261106-bank';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261106-bank';
+import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261106-bank';
+import {availability,mappedAttack} from './catalog.js?v=20261106-bank';
+import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261106-bank';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:600};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
 export class Arena{

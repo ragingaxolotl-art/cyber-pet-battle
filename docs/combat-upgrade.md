@@ -103,3 +103,7 @@ Compare two attacks now includes move selection, offset, distance, six training 
 
 ### Recovery parity milestone (local, verified)
 Stationary hits no longer receive an unrelated flightFrames lock or minimum eight-frame stun. Suppressed-axis displacement does not create a flight lock. Studio and Arena share legacyRecoveryEnd, incorporating authored hitstun, actual displacement/airborne travel and floor/wall knockdown recovery. Studio snapshots expose canAct and incoming-hit checks use the same lock. Exact tests cover zero/short hitstun, ordinary and floor-slam launches, long hitstun, both wall directions with aligned stage bounds, and five repeated airborne contacts. All 28 legacy-motion cases pass. This proves the tested motion/recovery cases, not universal simulation parity: the scenes still have different stage widths, Studio stationary starting-height handling and sequence interruption/recovery combinations need broader coverage. The recovery changes remain unpublished pending the next release. Previously completed two-attack comparison is published as 20261106-matchup (commit 5f5c14482e9ba5a8646e4df51e6c1aca3d324930); 36 live files matched and downloaded workflow checks passed.
+
+## Arena classroom bank compatibility — November 6
+
+Arena now uses the same version-2 bank protocol as Studio. Anonymous UI coverage loads a classroom sequence, learns it, and runs five hits for 28 damage. Both suites pass (133 Arena, 1101 Studio). Browser visual QA remains unavailable. Multiple-hitbox groundwork is not integrated or part of this release.

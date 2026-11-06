@@ -1,5 +1,5 @@
-import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261106-recovery';
-import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261106-recovery';
+import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261106-bank';
+import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261106-bank';
 export const REACTION={wallHold:RECOVERY_TIMING.wall,downHold:RECOVERY_TIMING.down,getUp:RECOVERY_TIMING.getUp,drag:.84};
 export function beginReaction(f,attack,direction,frame){
  const recoveryEnd=legacyRecoveryEnd(f,attack,frame);

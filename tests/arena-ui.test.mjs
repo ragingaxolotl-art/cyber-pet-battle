@@ -31,6 +31,20 @@ test('Arena initializes and loadout edits survive switching, closing, save, dele
  await $('skillTrees').click();const learnTree=$('treeSkills').querySelectorAll('button').find(b=>b.textContent.startsWith('Learn ·'));assert.ok(learnTree);await learnTree.click();assert.match($('treeStatus').textContent,/Learned Tree barrage/);
  await $('closeSkills').click();await $('mapAttacks').click();$('moveSearch').value='Tree barrage';$('moveSearch').oninput();await $('movePicker').querySelectorAll('button').find(b=>b.textContent==='Test this move').click();
  await $('attackSlots').children[0].click();for(let i=0;i<110;i++)await $('stepFrame').click();assert.match($('dummyStats').textContent,/5 hits · 28 damage/);
+ const originalFetch=globalThis.fetch,requests=[];
+ const bankAttack={...structuredClone(attack),id:'attack_classroom_barrage',name:'Classroom barrage'};
+ globalThis.fetch=async(url,options={})=>{
+ if(!String(url).includes('/attack-bank'))return originalFetch(url,options);
+ requests.push({url,options});assert.equal(options.headers['X-Attack-Bank-Version'],'2');
+ return new Response(JSON.stringify(String(url).endsWith('/connect')?{token:'anonymous-test-session'}:String(url).endsWith('/disconnect')?{}:{bank:{format:'cyber-pet-attack-bank',version:2,attacks:[bankAttack]},revision:3}),{status:200});
+ };
+ try{
+ await $('teacherBank').click();$('teacherPassword').value='test-only';await $('bankForm').onsubmit({preventDefault(){}});
+ assert.equal($('teacherPassword').value,'');assert.equal($('bankDialog').open,false);assert.equal(requests.length,3);
+ await $('skillTrees').click();await $('treeSkills').querySelectorAll('button').find(b=>b.textContent.startsWith('Learn ·')).click();
+ await $('closeSkills').click();await $('mapAttacks').click();$('moveSearch').value='Classroom barrage';$('moveSearch').oninput();await $('movePicker').querySelectorAll('button').find(b=>b.textContent==='Test this move').click();
+ await $('attackSlots').children[0].click();for(let i=0;i<110;i++)await $('stepFrame').click();assert.match($('dummyStats').textContent,/5 hits · 28 damage/);
+ }finally{globalThis.fetch=originalFetch;}
  const savedBeforeComparison=[...env.storage.entries()];await $('openMatchup').click();assert.equal($('matchupDialog').open,true);await $('runMatchup').click();assert.match($('matchupSummary').textContent,/frames simulated/);assert.ok($('matchupLog').children.length);assert.deepEqual([...env.storage.entries()],savedBeforeComparison);$('matchupFrame').value=10;$('matchupFrame').oninput();assert.match($('matchupFrameLabel').textContent,/Frame 10/);$('matchupDistance').value=90;await $('saveMatchup').click();$('matchupDistance').value=200;await $('loadMatchup').click();assert.equal($('matchupDistance').value,'90');assert.match($('matchupSummary').textContent,/Scenario restored/);await $('closeMatchup').click();assert.equal($('matchupDialog').open,false);
  $('defenseMode').value='separate';$('defenseMode').onchange();assert.match($('guardHint').textContent,/C blocks/);
 });

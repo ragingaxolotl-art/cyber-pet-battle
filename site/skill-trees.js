@@ -1,5 +1,5 @@
-import {freshAttack,validateAttack} from './shared/combat-model.js?v=20261106-recovery';
-import {validateTree} from './shared/skill-tree-model.js?v=20261106-recovery';
+import {freshAttack,validateAttack} from './shared/combat-model.js?v=20261106-bank';
+import {validateTree} from './shared/skill-tree-model.js?v=20261106-bank';
 export const STUDIO_TREE_KEY='cyber-pet-attack-skill-tree-v1';
 export function checkPlayableTree(tree,effectIds){
  validateTree(tree,new Set([...effectIds,'']),validateAttack);
