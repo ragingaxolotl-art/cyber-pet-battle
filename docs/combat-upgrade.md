@@ -159,3 +159,21 @@ The DOM workflow test passes creation, property edits, version-4 save, invalid-w
 Sites deployment appgdep_6aee89f603d48191ad75aae059d499b6 succeeded from bff9b4108c6b58f60364a3861e0d6370afcb701a. Server now validates defenseWindows in version-4 banks, rejects invalid windows and mislabeled older containers, and enforces client-version protection during reads and atomic revision updates. Six server tests and production build passed. Existing authentication, origin checks, body limits and revision protection remain. No real bank records or student data were changed. Publication evidence is in release-staging/classroom-armor-v4/publication.json.
 
 Additional Arena armor interaction tests pass (23 armor cases total): grouped duplicate geometry consumes one charge, independent groups consume distinct hits, guard/dodge preserve charges, simultaneous trade works in both actor orders, and overlapping windows consume budgets in list order. Frontend diagnostics, release preparation and live frontend verification are still required before claiming armor is available to users. Browser visual QA remains outstanding.
+
+### Invulnerability runtime — local groundwork
+
+While Studio armor deployment 42329301514 remains active, Arena now locally resolves defenseWindows of kind invulnerability. Eligible damage/push contacts are rejected without consuming armor budgets; status on rejected damage does not apply. Sequence contact reports Invulnerable and cancels attachment, consistent with existing dodge/contact cancellation. Five new tests cover both actor orders, ordinary/sequence contact, expiry and delivery filters; existing 23 armor tests still pass. Full suites: 186 Arena, 1121 Studio passing.
+
+This is not a complete invulnerability feature: Studio preview, inspector kind selection, timeline labels, diagnostics and server support remain unfinished. Classroom writes containing invulnerability require an advertised defenseKinds capability, so the current armor-only server is not sent unsupported data. Older v4 clients reject unknown defense kinds during validation. Nothing from this invulnerability work is published. The paired armor verifier now compares Arena hashes to release commit 31214407b8f3aad8e0d2bcdebe32ac4f59bb35eb rather than evolving local source; frozen release tests remain unchanged.
+
+### Invulnerability preview/editor — local
+
+Studio's shared legacy and sequence previews now prevent incoming melee damage and interruption during eligible invulnerability windows, without consuming armor budgets. Two frame-by-frame Arena comparison tests pass. The inspector creates/deletes either defense kind; invulnerability omits armor's hit-limit control. Timeline labels distinguish kinds. The DOM workflow covers invulnerability creation, v4 saving, deletion/undo. Full suites pass: 188 Arena, 1121 Studio. Server defenseKinds capability, compatibility diagnostics, additional boundary coverage and publication remain unfinished; invulnerability is not live.
+
+Studio armor run 42329301514 reached terminal failure: GitHub Pages timed out syncing_files and explicitly canceled deployment. Its build/artifact upload passed. A failed-step-only retry was requested after confirming that terminal state. Continue observing this same run; do not create a duplicate release merely because it takes time. Arena armor and classroom v55 remain verified live.
+
+### Invulnerability release preparation
+
+Classroom version 56 deployed successfully from c6de856fcca22c8053ea6d7e7ae593a7438480a0 (deployment appgdep_6aef314fcc748191a874e31a0488f212). Seven bank API tests and production build passed; live capabilities advertise defenseKinds armor and invulnerability. No real classroom records were changed. Temporary npm was incomplete; a fresh official Node 22.14 runtime in /private/tmp/combat-build-runtime restored the build.
+
+Frontend diagnostics now explain immunity versus armor and the melee-only preview probe. Six transport/diagnostic checks verify explicit server capability gating. Last full suites before release preparation: 1124 Studio and 191 Arena. Preparing 20261107-invulnerability with frozen tests; publication and live verification remain pending. Broader combat/editor goal and visual QA remain unfinished.
