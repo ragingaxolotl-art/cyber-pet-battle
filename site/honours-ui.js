@@ -1,4 +1,4 @@
-import {HONOURS,HonourStore,freshHonours} from './achievements.js?v=20261107-invulnerability';
+import {HONOURS,HonourStore,freshHonours} from './achievements.js?v=20261107-parry';
 export function installHonours({getPet,getArena,pause,status}){
  const $=id=>document.getElementById(id);let store;
  const storage=()=>store||(store=new HonourStore(localStorage));

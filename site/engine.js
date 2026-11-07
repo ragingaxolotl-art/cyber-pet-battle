@@ -1,11 +1,11 @@
-import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable} from './shared/defense-windows.js?v=20261107-invulnerability';
-import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261107-invulnerability';
-import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261107-invulnerability';
-import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261107-invulnerability';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261107-invulnerability';
-import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261107-invulnerability';
-import {availability,mappedAttack} from './catalog.js?v=20261107-invulnerability';
-import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261107-invulnerability';
+import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry} from './shared/defense-windows.js?v=20261107-parry';
+import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261107-parry';
+import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261107-parry';
+import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261107-parry';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261107-parry';
+import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261107-parry';
+import {availability,mappedAttack} from './catalog.js?v=20261107-parry';
+import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261107-parry';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:600};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
 export class Arena{
@@ -84,6 +84,8 @@ export class Arena{
  for(let opportunity=0;opportunity<opportunities&&target.hp>0;opportunity++){
    cast.hits++;cast.lastHit=age;const recipient=support?f:target;
    const defense=recipient.cast;const defAge=defense?this.frame-defense.start:0;const defending=defense&&defAge>=defense.tm.startup&&defAge<defense.tm.startup+defense.tm.active;
+   const parry=!snapshot.evading&&!snapshot.invulnerable&&claimParry(snapshot.defense,a);
+   if(parry){this.parry(f,recipient,parry);continue;}
    if(snapshot.evading||snapshot.invulnerable){if(!snapshot.invulnerable&&recipient===this.fighters[0]&&a.payload==='damage')this.honourMetrics.dodges++;this.emit(snapshot.invulnerable?'INVULNERABLE':'DODGE',recipient.x,recipient.y-70);}
    else {let amount=magnitude(a,f.stats);if(a.payload==='damage')amount=Math.round(amount*snapshot.damageMultiplier);
     if(a.payload==='damage'){const guard=snapshot.guarding&&a.blockable,armored=!guard&&claimArmor(snapshot.defense,a);amount=Math.round(amount*(guard?1-snapshot.guardReduction:1));const absorbed=Math.min(recipient.shield,amount);recipient.shield-=absorbed;amount-=absorbed;recipient.hp=Math.max(0,recipient.hp-amount);recipient.flash=this.frame+8;
@@ -106,6 +108,7 @@ export class Arena{
   for(const event of sequenceOpportunities(a,state,age,snapshot.sequenceContacts?(event=>snapshot.sequenceContacts.has(event.hitboxGroup)):snapshot.contact,target)){
    const guard=snapshot.guarding&&a.blockable;
    if(snapshot.evading||snapshot.invulnerable){hitResult(state,event,age,snapshot.invulnerable?'Invulnerable':'Dodged');state.cancelled=snapshot.invulnerable?'Contact invulnerable; attachment cancelled.':'Contact dodged; attachment cancelled.';this.emit(snapshot.invulnerable?'INVULNERABLE':'DODGE',target.x,target.y-70);continue;}
+   const parry=claimParry(snapshot.defense,a);if(parry){hitResult(state,event,age,'Parried');state.cancelled='Contact parried; attachment cancelled.';this.parry(f,target,parry);continue;}
    const armored=!guard&&claimArmor(snapshot.defense,a);
    const amount=Math.round(event.damage*snapshot.damageMultiplier*(guard?1-snapshot.guardReduction:1)),absorbed=Math.min(target.shield,amount);
    target.shield-=absorbed;const damage=Math.min(target.hp,amount-absorbed);target.hp-=damage;cast.hits++;cast.lastHit=age;
@@ -118,5 +121,6 @@ export class Arena{
   this.lastSequence={attack:a.name,results:state.results.map(r=>({...r})),reason:state.cancelled};
   if(f.cast===cast&&((state.contactFrame===null&&age>=tm.startup+RULES.contactTimeout)||(state.contactFrame!==null&&age>=state.contactFrame+sequenceDuration(a)+tm.recovery)))f.cast=null;
  }
+ parry(attacker,defender,window){beginReaction(attacker,{knockback:0,launchHeight:0,pushAxis:'x',hitstun:window.stun,flightFrames:1,floorSlam:false,wallSlam:false},-attacker.facing,this.frame);this.emit('PARRY',defender.x,defender.y-70);}
  status(f,a){const previous=f.statuses.find(s=>s.type===a.status);const refreshed=refreshStatus(previous,a,this.frame,f.resistance);f.statuses=f.statuses.filter(s=>s.type!==a.status);f.statuses.push(refreshed);}
 }

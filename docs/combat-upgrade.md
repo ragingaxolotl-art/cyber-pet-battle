@@ -177,3 +177,23 @@ Studio armor run 42329301514 reached terminal failure: GitHub Pages timed out sy
 Classroom version 56 deployed successfully from c6de856fcca22c8053ea6d7e7ae593a7438480a0 (deployment appgdep_6aef314fcc748191a874e31a0488f212). Seven bank API tests and production build passed; live capabilities advertise defenseKinds armor and invulnerability. No real classroom records were changed. Temporary npm was incomplete; a fresh official Node 22.14 runtime in /private/tmp/combat-build-runtime restored the build.
 
 Frontend diagnostics now explain immunity versus armor and the melee-only preview probe. Six transport/diagnostic checks verify explicit server capability gating. Last full suites before release preparation: 1124 Studio and 191 Arena. Preparing 20261107-invulnerability with frozen tests; publication and live verification remain pending. Broader combat/editor goal and visual QA remain unfinished.
+
+### Invulnerability Arena live verification
+
+Arena c4220ed0647348e7cce317d6ae0454363457cb60 deployed successfully (run 42380468571). Independent public verification matched 39 files and passed downloaded-code workflows including invulnerability. Studio commit 84c8dba61c850c69659074e73155971994e5d12f, run 42380481229, remains building at last check. Paired verification is still pending.
+
+Found stale release metadata listing bank/tree versions only through 3 despite verified v4 runtime support. Both local manifests now declare 1–4 consistently, with a regression comparing them to attackVersion. This metadata correction is not yet published; frozen release snapshots remain unchanged.
+
+### Verified invulnerability release; parry local development
+
+Paired live verification of 20261107-invulnerability succeeded: 91 files fetched, 89 expected hashes matched, both downloaded-code workflow suites passed, sample effect HTTP 200. Evidence: release-staging/20261107-invulnerability/live-verification.json. This supersedes pending Studio deployment notes. Browser visual QA remains unavailable.
+
+Local parry runtime now uses a frame window, delivery filter, 1–10 per-cast charges and 1–60 frames of attacker interruption. It rejects eligible damage/push contacts, cancels incoming sequences, and does not trigger automatic counterattacks. Shared previews reproduce melee incoming-hit prevention and interruption; seven parry tests cover both actor orders, ordinary/sequence attacks, bounds and frame-by-frame preview parity. Full suites: 205 Arena and 1125 Studio passing. Classroom parry writes require explicit server defenseKinds support and remain blocked by the current server.
+
+Parry inspector/timeline controls, diagnostics, server support, more interaction cases and publication remain outstanding. Automatic counterattack follow-ups still require conditional behavior work. The overall goal remains active: cancels/combos, conditional/projectile expansion, further editor workflows and visual/accessibility QA remain unfinished.
+
+### Parry frontend release preparation
+
+Parry inspector/timeline controls and save/reload/undo workflow pass. Runtime has 14 passing parry tests, including exact boundaries, attack filters, invulnerability precedence and simultaneous independent hit groups exhausting a one-hit budget. This explicitly permits another independent hit on that same frame after the budget is exhausted. Automatic counterattack follow-ups remain unimplemented.
+
+Classroom v57 deployed successfully from 745a0af5c2e73b723de332a0181859d8f49a7fef (deployment appgdep_6aef5a835e788191969352753acad9fc). Eight bank tests and build passed; parry window validation and capability advertisement are enabled. No real classroom data was modified. Preparing frontend 20261107-parry; live frontend verification remains pending.
