@@ -1,10 +1,10 @@
-import {activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261106-hitboxes';
-import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261106-hitboxes';
-import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261106-hitboxes';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261106-hitboxes';
-import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261106-hitboxes';
-import {availability,mappedAttack} from './catalog.js?v=20261106-hitboxes';
-import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261106-hitboxes';
+import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261106-contact-groups';
+import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261106-contact-groups';
+import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261106-contact-groups';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261106-contact-groups';
+import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261106-contact-groups';
+import {availability,mappedAttack} from './catalog.js?v=20261106-contact-groups';
+import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261106-contact-groups';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:600};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
 export class Arena{
@@ -61,8 +61,14 @@ export class Arena{
   const hurt={x:target.x-14,y:target.y-(target.crouch?34:60),w:28,h:target.crouch?34:60};
   const recipient=a.delivery==='self'?f:target,defense=recipient.cast,defAge=defense?this.frame-defense.start:0;
   const defending=defense&&defAge>=defense.tm.startup&&defAge<defense.tm.startup+defense.tm.active;
-  const groupContacts=a.hitboxGroups?activeGroupContacts(a.hitboxGroups,age-tm.startup,hurt,b=>{const world=worldBox({...a,box:b},age,f.stats,cast.facing);return {...world,x:world.x+cast.x,y:world.y+cast.y};}):null;
-  return {f,target,cast,age,groupContacts,damageMultiplier:statusMultiplier(f.statuses,'weaken'),contact:a.delivery==='self'||shapeHitsRectangle(box,hurt),guarding:recipient.guarding||(defending&&defense.a.payload==='block'),guardReduction:defending&&defense.a.payload==='block'?defense.a.blockPercent/100:recipient.guard,evading:a.delivery!=='self'&&((this.frame>=recipient.dodgeStart+RULES.dodgeInvulnerableStart&&this.frame<recipient.dodgeStart+RULES.dodgeInvulnerableEnd)||(defending&&defense.a.payload==='dodge'))};
+  const sequenceFrame=cast.sequence?.contactFrame,groupFrame=a.hitEvents?(sequenceFrame===null?0:age-sequenceFrame):age-tm.startup;
+  const groupTime=a.hitEvents?(sequenceFrame??age):age;
+  const primary=worldBox(a,groupTime,f.stats,cast.facing);
+  const boxes=a.hitboxGroups?activeGroupBoxes(a.hitboxGroups,groupFrame,b=>{const world=worldBox({...a,box:b},groupTime,f.stats,cast.facing);return {...world,x:world.x+box.x-primary.x,y:world.y+box.y-primary.y};}):null;
+  const groupContacts=boxes?a.hitboxGroups.filter(g=>boxes.some(b=>b.groupId===g.id&&shapeHitsRectangle(b,hurt))):null;
+  const sequenceContacts=boxes?new Set(groupContacts.map(g=>g.id)):null;
+
+  return {f,target,cast,age,boxes,groupContacts,sequenceContacts,damageMultiplier:statusMultiplier(f.statuses,'weaken'),contact:a.delivery==='self'||shapeHitsRectangle(box,hurt),guarding:recipient.guarding||(defending&&defense.a.payload==='block'),guardReduction:defending&&defense.a.payload==='block'?defense.a.blockPercent/100:recipient.guard,evading:a.delivery!=='self'&&((this.frame>=recipient.dodgeStart+RULES.dodgeInvulnerableStart&&this.frame<recipient.dodgeStart+RULES.dodgeInvulnerableEnd)||(defending&&defense.a.payload==='dodge'))};
  }
  resolve(f,target,snapshot=this.prepare(f,target)){if(!snapshot)return;const {cast,age}=snapshot;const {a,tm}=cast;
   if(a.hitEvents){this.resolveSequence(f,target,snapshot);return;}
@@ -96,7 +102,7 @@ export class Arena{
   const {cast,age}=snapshot,{a,tm,sequence:state}=cast;
   if(age<tm.startup)return;
   if(target.hp<=0)state.cancelled='Target defeated.';
-  for(const event of sequenceOpportunities(a,state,age,snapshot.contact,target)){
+  for(const event of sequenceOpportunities(a,state,age,snapshot.sequenceContacts?(event=>snapshot.sequenceContacts.has(event.hitboxGroup)):snapshot.contact,target)){
    const guard=snapshot.guarding&&a.blockable;
    if(snapshot.evading){hitResult(state,event,age,'Dodged');state.cancelled='Contact dodged; attachment cancelled.';this.emit('DODGE',target.x,target.y-70);continue;}
    const amount=Math.round(event.damage*snapshot.damageMultiplier*(guard?1-snapshot.guardReduction:1)),absorbed=Math.min(target.shield,amount);

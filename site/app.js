@@ -1,21 +1,21 @@
-import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261106-hitboxes';
-import {installMatchup} from './matchup.js?v=20261106-hitboxes';
-import {attackChecks} from './attack-checks.js?v=20261106-hitboxes';
-import {installHonours} from './honours-ui.js?v=20261106-hitboxes';
-import {artworkDirection} from './shared/display.js?v=20261106-hitboxes';
-import {preparePetPlacement,petPlacement} from './shared/pet-placement.js?v=20261106-hitboxes';
-import {installWorkshop} from './workshop.js?v=20261106-hitboxes';
-import {reactionMotion} from './reactions.js?v=20261106-hitboxes';
-import {SprintInput,DefenseInput} from './keyboard.js?v=20261106-hitboxes';
-import {Arena,fighter,RULES} from './engine.js?v=20261106-hitboxes';
-import {KEYS,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261106-hitboxes';
-import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261106-hitboxes';
-import {visualFrame,visualOpacity,pathSample} from './shared/attack-motion.js?v=20261106-hitboxes';
-import {posePlayback} from './shared/pose-timing.js?v=20261106-hitboxes';
-import {readBackup} from './shared/backups.js?v=20261106-hitboxes';
-import {accountClient} from './account.js?v=20261106-hitboxes';
-import {createClassroomBank} from './shared/attack-bank.js?v=20261106-hitboxes';
-import {shapePoints} from './shared/hitbox-shapes.js?v=20261106-hitboxes';
+import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261106-contact-groups';
+import {installMatchup} from './matchup.js?v=20261106-contact-groups';
+import {attackChecks} from './attack-checks.js?v=20261106-contact-groups';
+import {installHonours} from './honours-ui.js?v=20261106-contact-groups';
+import {artworkDirection} from './shared/display.js?v=20261106-contact-groups';
+import {preparePetPlacement,petPlacement} from './shared/pet-placement.js?v=20261106-contact-groups';
+import {installWorkshop} from './workshop.js?v=20261106-contact-groups';
+import {reactionMotion} from './reactions.js?v=20261106-contact-groups';
+import {SprintInput,DefenseInput} from './keyboard.js?v=20261106-contact-groups';
+import {Arena,fighter,RULES} from './engine.js?v=20261106-contact-groups';
+import {KEYS,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261106-contact-groups';
+import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261106-contact-groups';
+import {visualFrame,visualOpacity,pathSample} from './shared/attack-motion.js?v=20261106-contact-groups';
+import {posePlayback} from './shared/pose-timing.js?v=20261106-contact-groups';
+import {readBackup} from './shared/backups.js?v=20261106-contact-groups';
+import {accountClient} from './account.js?v=20261106-contact-groups';
+import {createClassroomBank} from './shared/attack-bank.js?v=20261106-contact-groups';
+import {shapePoints} from './shared/hitbox-shapes.js?v=20261106-contact-groups';
 const $=id=>document.getElementById(id),canvas=$('arena'),ctx=canvas.getContext('2d'),account=accountClient();
 let workshop=null,decks=null,training=true;
 let attacks=defaultCatalog().slice(0,8),pet=null,arena,keys=new Set(),images=new Map(),refs={},effects={},effectImages=new Map(),last=0,accumulator=0,loadGeneration=0;
@@ -50,7 +50,7 @@ function drawFighter(f,enemy){const x=f.x,y=RULES.ground+f.y;ctx.save();ctx.glob
  if(p.image){if(p.student){const placement=petPlacement(f.pet,p.action,p.name);const bounds=f.pet.placementBounds.get(p.name);ctx.drawImage(p.image,bounds.x,bounds.y,bounds.w,bounds.h,placement.x,placement.y,placement.w,placement.h);}else{const s=p.ref.size,scale=1.4;ctx.drawImage(p.image,p.index*s,0,s,s,-p.ref.anchor[0]*scale,-p.ref.anchor[1]*scale,s*scale,s*scale);}}
  else {ctx.fillStyle=enemy?'#80d9ec':'#c4f46c';ctx.fillRect(-14,-60,28,60);ctx.fillStyle='#172338';ctx.fillRect(3,-50,6,5);}
  ctx.restore();if(f.shield){ctx.strokeStyle='#80d9ec';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y-35,35,48,0,0,Math.PI*2);ctx.stroke();}
- if($('debugBoxes').checked&&f.cast){const c=f.cast,age=arena.frame-c.start;if(age>=c.tm.startup&&(c.impact===null||age<c.impact+c.tm.active)){const b=worldBox(c.a,c.a.impactTrigger==='contact'&&c.impact!==null?Math.min(age,c.impact):age,f.stats,c.facing);ctx.save();ctx.globalAlpha=.2;ctx.fillStyle=enemy?'#80d9ec':'#c4f46c';const target=arena.fighters.find(v=>v!==f);if(c.sequence?.attached&&c.a.projectileMode==='attached'){b.x=target.x-b.w/2-c.x;b.y=target.y-b.h-c.y;}for(const box of (c.a.hitboxGroups?activeGroupBoxes(c.a.hitboxGroups,age-c.tm.startup,box=>worldBox({...c.a,box},age,f.stats,c.facing)):[b])){ctx.globalAlpha=.2;drawCollision({...box,x:c.x+box.x,y:RULES.ground+c.y+box.y});}ctx.restore();}}
+ if($('debugBoxes').checked&&f.cast){const c=f.cast,age=arena.frame-c.start;if(age>=c.tm.startup&&(c.impact===null||age<c.impact+c.tm.active)){const b=worldBox(c.a,c.a.impactTrigger==='contact'&&c.impact!==null?Math.min(age,c.impact):age,f.stats,c.facing);ctx.save();ctx.globalAlpha=.2;ctx.fillStyle=enemy?'#80d9ec':'#c4f46c';const target=arena.fighters.find(v=>v!==f);if(c.sequence?.attached&&c.a.projectileMode==='attached'){b.x=target.x-b.w/2-c.x;b.y=target.y-b.h-c.y;}for(const box of (c.a.hitboxGroups?(arena.prepare(f,target)?.boxes||[]).map(box=>({...box,x:box.x-c.x,y:box.y-c.y})):[b])){ctx.globalAlpha=.2;drawCollision({...box,x:c.x+box.x,y:RULES.ground+c.y+box.y});}ctx.restore();}}
 }
 function render(){$('modeBadge').textContent=training?'TRAINING · unlimited energy · no XP rewards':'SPARRING · energy costs apply';$('guardHint').classList.toggle('active',(arena.fighters[0].guarding||arena.fighters[0].dodgeUntil>arena.frame)&&!arena.paused);ctx.imageSmoothingEnabled=false;const bg=images.get('assets/arena.png');if(bg)ctx.drawImage(bg,0,0,960,450);else{ctx.fillStyle='#193247';ctx.fillRect(0,0,960,450);}const gradient=ctx.createLinearGradient(0,0,0,450);gradient.addColorStop(0,'#0e192544');gradient.addColorStop(1,'#0b172b88');ctx.fillStyle=gradient;ctx.fillRect(0,0,960,450);ctx.fillStyle='#111d2b30';ctx.fillRect(0,RULES.ground+5,960,80);ctx.strokeStyle='#7c98a760';ctx.beginPath();ctx.moveTo(0,RULES.ground+5);ctx.lineTo(960,RULES.ground+5);ctx.stroke();arena.fighters.forEach((f,i)=>{drawFighter(f,!!i);drawEffects(f);if($('debugBoxes').checked){ctx.save();ctx.strokeStyle='#9fe7ff';ctx.lineWidth=1;ctx.strokeRect(f.x-14,RULES.ground+f.y-(f.crouch?34:60),28,f.crouch?34:60);ctx.restore();}});ctx.font='bold 17px monospace';ctx.textAlign='center';for(const e of arena.events){ctx.fillStyle='#f4ffd7';ctx.fillText(e.text,e.x,RULES.ground+e.y-(60-(e.until-arena.frame))*.45);}
  for(const [i,prefix] of ['player','opponent'].entries()){const f=arena.fighters[i];$(prefix+'Name').textContent=f.name;$(prefix+'HP').max=f.maxHP;$(prefix+'HP').value=f.hp;$(prefix+'Health').textContent=Math.ceil(f.hp)+' HP';$(prefix+'Energy').textContent=Math.floor(f.energy)+' / '+f.maxEnergy+' energy';}$('dummyStats').textContent=training?`${arena.metrics.hits} hits · ${arena.metrics.damage} damage · ${arena.metrics.wallHits} wall hits · ${arena.metrics.knockdowns} knockdowns · ${arena.fighters[1].reaction.replace('_',' ')}`:'Computer opponent active';const seconds=Math.floor(arena.frame/60);$('timer').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');const f=arena.fighters[0];[...$('attackSlots').children,...$('fullscreenSlots').children].forEach((b,index)=>{const i=index%8;const a=arena.slots()[i],locked=!a||!!availability(pet,a),cooldown=a?Math.max(0,(f.cooldowns.get(a.id)||0)-arena.frame):0;b.classList.toggle('locked',locked);b.classList.toggle('cooldown',cooldown>0);b.classList.toggle('active',f.cast?.a.id===a?.id&&!!a);b.querySelector('small').textContent=locked?(a?'Art required':'—'):cooldown?(cooldown/60).toFixed(1)+'s':(a.cost===0?'Ready · free':arena.reason(f,a)||'Ready · '+Math.ceil(a.cost*f.cost)+' energy');const why=arena.reason(f,a);b.title=why||a?.name||'Empty slot';b.setAttribute('aria-label',KEYS[i]+': '+(a?.name||'Empty')+' · '+(why||'Ready'));});$('lastAttackResult').textContent=arena.lastSequence?arena.lastSequence.attack+': '+arena.lastSequence.results.map((r,i)=>`${i+1} ${r.result}`).join(' · '):'Test an attack to inspect contacts.';}
