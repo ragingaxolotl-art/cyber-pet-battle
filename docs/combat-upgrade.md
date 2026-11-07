@@ -127,3 +127,35 @@ Classroom service version 52 (fb3e2e57c71ccec7a7f7f58a5855e3268f037d4c) deployed
 ### Group canvas and reload verification
 
 Canvas selection/drag/resize now edits the selected active group box and shows its handles. The DOM workflow test reopens a saved v3 project and verifies drag and resize persistence. Both skill-tree models pass v3 geometry roundtrip and older-version rejection checks. Full suites pass: 1106 Studio, 146 Arena. Group diagnostics now explain shared limits versus independent damage and version-3 transport. Visual browser QA and frontend publication remain outstanding.
+
+## Armor runtime groundwork — local, not released
+
+Added a shared defense-window validator and per-cast hit budgets, plus Arena resolution for ordinary damage, push, and sequence hits. Windows use absolute cast frames with an exclusive end, 1–10 eligible hits, and all/melee/projectile/area filters. Armor takes damage and suppresses the ordinary movement reaction/cast interruption; statuses still apply and defeat still ends the cast. Active defense windows are captured in the simultaneous-hit snapshot. Guarded and dodged contacts do not consume armor. This is only the runtime groundwork, not a completed user-facing armor feature.
+
+Twelve new Arena tests pass: both actor orders with ordinary/sequence hits, budget exhaustion, exact start/end boundaries, category mismatch, lethal damage, secondary status preservation, and invalid window validation. Full suites pass: 166 Arena and 1115 Studio. No browser visual QA was performed. Both applications now validate defense definitions, but Studio preview does not yet simulate them. There are no authoring controls yet. Defense transport is explicitly gated; attackVersion identifies these definitions as version 4, but imports/exports and server negotiation have not enabled version 4. Do not publish this partial implementation.
+
+Next: complete Studio incoming-hit interruption/armor parity, version-4 project/tree/bank support and server capabilities, editor/timeline controls and diagnostics; extend interaction coverage (overlapping groups, guards, simultaneous trades, status stun) before release. Invulnerability, parry/counters, cancels/combo rules, conditional/projectile behavior and broader UI/accessibility work remain unfinished. Last verified live frontend remains 20261106-contact-groups.
+
+### Armor preview and interruption parity — local
+
+Both shared preview implementations now apply armor to the sandbox incoming melee hit. Legacy previews now cancel later contacts after an unprotected incoming hit; current-frame contacts remain eligible for simultaneous trades. Sequence previews also preserve current-frame contact before cancellation. Armor still takes incoming damage and lethal damage cancels the move. A defense window only applies while the cast exists, not throughout the preview's trailing observation frames.
+
+Four added frame-by-frame Arena/preview scenarios cover ordinary and sequence moves, armored and unarmored, with incoming damage before startup. Full suites: 170 Arena and 1115 Studio passing. Existing damage messages remain stable; interruption is a separate diagnostic. The sandbox incoming hit remains a single melee probe, not a substitute for the full two-attack simulator. Broader same-frame and defense interaction cases remain to be tested. Armor authoring, version-4 transport/server support, diagnostics, and release verification are still outstanding; nothing from this armor milestone is published.
+
+### Version-4 armor transport and timeline — local
+
+Both clients now round-trip defenseWindows through version-4 projects, local banks and skill trees. Containers labeled 1–3 reject armor rather than silently dropping its semantics. Classroom reads negotiate v4 when advertised; writes require bank/attack v4 capability and revision protection. The current deployed v3 server is correctly refused before PUT. Six new cross-app transport tests cover preservation, immutable legacy bank upgrade, old-version rejection, v3 server gating, and v4 protocol/revision negotiation. Full suites after transport: 173 Arena and 1118 Studio passing.
+
+Studio timeline now includes imported armor windows in absolute cast frames, with validated move/resize and unchanged damage timing/filter/hit-budget properties. Six targeted timeline tests pass, including the new armor case. Creation/deletion and hit-budget/filter inspector controls, user-workflow coverage, backend v4 deployment and live release verification remain outstanding. Armor is still local, not published. Earlier notes that defense transport is entirely gated describe the prior snapshot; remote saving remains gated by actual server capabilities.
+
+### Armor authoring workflow — local
+
+Studio now has an armor inspector: add up to eight windows, edit absolute start/duration, set 1–10 absorbed reactions, filter all/melee/projectile/area, and delete windows. Labels explain that damage/statuses still apply and overlapping budgets are consumed in list order. Changes validate before mutation and use existing history/recovery. Deleting the final window removes the optional field, allowing an otherwise legacy attack to use its original format version again.
+
+The DOM workflow test passes creation, property edits, version-4 save, invalid-window rejection without data mutation, deletion/undo, and project reload. Full suites pass: 1120 Studio and 173 Arena. This is headless functional coverage, not browser visual or accessibility verification. Classroom backend v4, broader defense interaction tests, compatibility diagnostics, cache/release preparation and live verification remain outstanding. Armor is not published; overall scope remains unfinished.
+
+### Classroom armor server published — version 55
+
+Sites deployment appgdep_6aee89f603d48191ad75aae059d499b6 succeeded from bff9b4108c6b58f60364a3861e0d6370afcb701a. Server now validates defenseWindows in version-4 banks, rejects invalid windows and mislabeled older containers, and enforces client-version protection during reads and atomic revision updates. Six server tests and production build passed. Existing authentication, origin checks, body limits and revision protection remain. No real bank records or student data were changed. Publication evidence is in release-staging/classroom-armor-v4/publication.json.
+
+Additional Arena armor interaction tests pass (23 armor cases total): grouped duplicate geometry consumes one charge, independent groups consume distinct hits, guard/dodge preserve charges, simultaneous trade works in both actor orders, and overlapping windows consume budgets in list order. Frontend diagnostics, release preparation and live frontend verification are still required before claiming armor is available to users. Browser visual QA remains outstanding.
