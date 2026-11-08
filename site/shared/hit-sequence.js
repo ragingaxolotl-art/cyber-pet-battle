@@ -48,18 +48,23 @@ export function resizeHits(events,count,interval,mode='extend') {
   result.forEach((e,i)=>{e.offset=mode==='fit'&&count>1?Math.round(i*Math.max(lastTime,count-1)/(count-1)):i*interval;});
   return result;
 }
-export function sequenceState(){return {contactFrame:null,attached:false,consumed:new Set(),juggleBlocked:new Set(),results:[],cancelled:null};}
+// An explicit start frame schedules melee/area windows even when the first hit misses.
+// Omit it for existing projectile sequences, whose clock starts on contact.
+export function sequenceState(startFrame=null){
+  if(startFrame!==null&&(!Number.isInteger(startFrame)||startFrame<0))throw Error('Sequence start must be a nonnegative frame.');
+  return {startFrame,contactFrame:null,attached:false,consumed:new Set(),juggleBlocked:new Set(),results:[],cancelled:null};
+}
 export function sequenceOpportunities(attack,state,age,overlap,target) {
   if(state.cancelled)return [];
   const touches=event=>typeof overlap==='function'?overlap(event):overlap;
-  if(state.contactFrame===null){if(!touches(attack.hitEvents[0]))return [];state.contactFrame=age;}
-  const elapsed=age-state.contactFrame,ready=[];
+  if(state.startFrame==null&&state.contactFrame===null){if(!touches(attack.hitEvents[0]))return [];state.contactFrame=age;}
+  const elapsed=age-(state.startFrame??state.contactFrame),ready=[];
   for(const event of attack.hitEvents){
     if(state.consumed.has(event.id)||elapsed<event.offset)continue;
     if(elapsed>=event.offset+event.duration){state.consumed.add(event.id);state.results.push({id:event.id,offset:event.offset,frame:null,result:'Missed',reason:state.juggleBlocked?.has(event.id)?'Juggle limit reached while the target was airborne.':'No eligible contact during this hit window.'});continue;}
     if(target.juggleLocked&&target.y<0){state.juggleBlocked??=new Set();state.juggleBlocked.add(event.id);}
     const eligible=!(target.juggleLocked&&target.y<0)&&(event.target==='any'||(event.target==='airborne'?target.y<0:target.y>=0));
-    if(eligible&&(touches(event)||(!event.hitboxGroup&&attack.projectileMode==='attached'&&state.attached))){state.consumed.add(event.id);ready.push(event);}
+    if(eligible&&(touches(event)||(!event.hitboxGroup&&attack.projectileMode==='attached'&&state.attached))){state.contactFrame??=age;state.consumed.add(event.id);ready.push(event);}
   }
   return ready;
 }
