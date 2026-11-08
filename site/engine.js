@@ -1,21 +1,21 @@
-import {CONTACT_TIMEOUT,contactDeadline,castEnd} from './shared/contact-timing.js?v=20261108-cancels';
-import {canCancel} from './shared/cancel-windows.js?v=20261108-cancels';
-import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry} from './shared/defense-windows.js?v=20261108-cancels';
-import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-cancels';
-import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-cancels';
-import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-cancels';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-cancels';
-import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-cancels';
-import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-cancels';
-import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-cancels';
+import {CONTACT_TIMEOUT,contactDeadline,castEnd} from './shared/contact-timing.js?v=20261108-automatic';
+import {canCancel,automaticFollowup,MAX_AUTOMATIC_FOLLOWUPS} from './shared/cancel-windows.js?v=20261108-automatic';
+import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry} from './shared/defense-windows.js?v=20261108-automatic';
+import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-automatic';
+import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-automatic';
+import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-automatic';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-automatic';
+import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-automatic';
+import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-automatic';
+import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-automatic';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:CONTACT_TIMEOUT};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
 export class Arena{
- constructor(player,opponent,attacks,options={}){this.fighters=[player,opponent];opponent.x=700;opponent.facing=-1;this.attacks=attacks;this.frame=0;this.set=0;this.paused=true;this.winner=null;this.winnerIndex=null;this.honourMetrics={guards:0,dodges:0,attacks:new Set()};this.events=[];this.training=options.training===true;this.ai=!this.training;this.metrics={hits:0,damage:0,wallHits:0,knockdowns:0};this.decks=options.decks||null;}
+ constructor(player,opponent,attacks,options={}){this.fighters=[player,opponent];opponent.x=700;opponent.facing=-1;this.attacks=attacks;this.frame=0;this.set=0;this.paused=true;this.winner=null;this.winnerIndex=null;this.honourMetrics={guards:0,dodges:0,attacks:new Set()};this.events=[];this.automaticAttempts=[];this.training=options.training===true;this.ai=!this.training;this.metrics={hits:0,damage:0,wallHits:0,knockdowns:0};this.decks=options.decks||null;}
  slots(){return this.decks?this.decks[this.set].slots:this.attacks.slice(this.set*KEYS.length,(this.set+1)*KEYS.length);}
  rotate(){if(this.paused||this.winner)return;this.set=(this.set+1)%(this.decks?.length||Math.ceil(this.attacks.length/KEYS.length));}
- reason(f,a){if(!a)return 'Empty slot';return availability(f.pet,a)||(f.reaction!=='standing'?'Recovering from a hit':f.dodgeUntil>this.frame?'Finish your dodge':f.guarding?'Lower your guard before attacking':f.cast&&!canCancel(f.cast,a,this.frame-f.cast.start)?'Finish the current move':f.stun>this.frame?'Recovering from a hit':(f.cooldowns.get(a.id)||0)>this.frame?'Cooling down':f.energy<Math.ceil(a.cost*f.cost)?'Not enough energy':'');}
- attack(f,a){if(this.paused||this.winner||this.reason(f,a))return false;this.faceOpponents();a=mappedAttack(f.pet,a);const tm=timing(a,f.stats);if(a.hitEvents)tm.active=sequenceDuration(a);const cost=Math.ceil(a.cost*f.cost);f.energy-=cost;f.cooldowns.set(a.id,this.frame+Math.max(tm.cooldown,tm.startup+tm.active+tm.recovery));f.cast={a,tm,start:this.frame+1,x:f.x,y:f.y,facing:f.facing,groupTracker:createGroupHitTracker(),defenseState:createDefenseState(),outcomes:new Set(),hits:0,lastHit:-999,impact:a.impactTrigger==='contact'?null:tm.startup,sequence:a.hitEvents?sequenceState():null};return true;}
+ reason(f,a,automatic=false){if(!a)return 'Empty slot';return availability(f.pet,a)||(f.reaction!=='standing'?'Recovering from a hit':f.dodgeUntil>this.frame?'Finish your dodge':f.guarding?'Lower your guard before attacking':f.cast&&!canCancel(f.cast,a,this.frame-f.cast.start,automatic)?'Finish the current move':f.stun>this.frame?'Recovering from a hit':(f.cooldowns.get(a.id)||0)>this.frame?'Cooling down':f.energy<Math.ceil(a.cost*f.cost)?'Not enough energy':'');}
+ attack(f,a,automatic=false){if(this.paused||this.winner||this.reason(f,a,automatic))return false;const automaticDepth=automatic?(f.cast?.automaticDepth||0)+1:0;this.faceOpponents();a=mappedAttack(f.pet,a);const tm=timing(a,f.stats);if(a.hitEvents)tm.active=sequenceDuration(a);const cost=Math.ceil(a.cost*f.cost);f.energy-=cost;f.cooldowns.set(a.id,this.frame+Math.max(tm.cooldown,tm.startup+tm.active+tm.recovery));f.cast={a,tm,automaticDepth,start:this.frame+1,x:f.x,y:f.y,facing:f.facing,groupTracker:createGroupHitTracker(),defenseState:createDefenseState(),outcomes:new Set(),hits:0,lastHit:-999,impact:a.impactTrigger==='contact'?null:tm.startup,sequence:a.hitEvents?sequenceState():null};return true;}
  dodge(f){
   if(this.paused||this.winner)return 'Start or resume the round first';
   const problem=availability(f.pet,{motion:'dodge_side'});
@@ -26,6 +26,7 @@ export class Arena{
  }
  emit(text,x,y){this.events.push({text,x,y,until:this.frame+60});this.events=this.events.slice(-12);}
  tick(input=new Set(),sprintDirection=0){
+  this.automaticAttempts=[];
   if(this.paused||this.winner)return;this.frame++;
   const [p,o]=this.fighters;
   if(this.training){p.energy=p.maxEnergy;o.hp=Math.max(1,o.hp);}
@@ -47,6 +48,17 @@ export class Arena{
   const pending=this.fighters.filter(f=>f.hp>0&&f.cast).map(f=>this.prepare(f,f===p?o:p));
   for(const hit of pending)if(hit)this.resolve(hit.f,hit.target,hit);
   for(const f of this.fighters)if(f.hp<=0)f.cast=null;
+  // Follow-ups start on the next simulation frame, after both sides resolve contact.
+  if(this.fighters.every(f=>f.hp>0))for(const f of this.fighters){
+   const cast=f.cast,window=automaticFollowup(cast,cast?this.frame-cast.start:0,true);if(!window)continue;
+   const available=this.decks?this.decks.flatMap(deck=>deck.slots).filter(Boolean):this.attacks;
+   const next=available.find(a=>a.id===window.attacks[0]);
+   const reason=(cast.automaticDepth||0)>=MAX_AUTOMATIC_FOLLOWUPS?'Automatic chain limit reached (8 transitions)':!next?'Follow-up attack is unavailable or not equipped':this.reason(f,next,true);
+   const started=!reason&&this.attack(f,next,true);
+   this.automaticAttempts.push({fighter:f,cast,windowId:window.id,attackId:window.attacks[0],started:!!started,reason:reason||''});
+   if(started)this.emit('FOLLOW-UP',f.x,f.y-80);
+  }
+
   this.faceOpponents();
   this.events=this.events.filter(e=>e.until>this.frame);
   if(this.training){o.hp=Math.max(1,o.hp);if(o.reaction==='standing'&&this.frame-o.lastHit>60){o.hp=o.maxHP;o.statuses=[];}return;}

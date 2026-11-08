@@ -1,19 +1,30 @@
-import {Arena,fighter} from './engine.js?v=20261108-cancels';
-import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261108-cancels';
+import {Arena,fighter} from './engine.js?v=20261108-automatic';
+import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261108-automatic';
 // Isolated, deterministic comparison: no AI, saves, rewards, or pet-art restrictions.
-export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,placement='center',actionB='attack',followupA=null,followupFrame=12}={}) {
+export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,placement='center',actionB='attack',followupA=null,followupFrame=12,availableAttacks=[]}={}) {
  for(const [value,min,max] of [[distance,0,800],[offset,-180,180],[frames,1,900],[heightA,0,150],[heightB,0,150]])if(!Number.isInteger(value)||value<min||value>max)throw Error('Use a distance of 0–800, offset of −180–180, and duration of 1–900 frames.');
  if(!['center','left','right'].includes(placement)||!['attack','guard','dodge'].includes(actionB))throw Error('Choose a supported position and defensive scenario.');
  if(followupA&&(!Number.isInteger(followupFrame)||followupFrame<0||followupFrame>899))throw Error('Use a follow-up frame from 0 to 899.');
  const followup=followupA?structuredClone(followupA):null;if(followup)validateAttack(followup);
  const defensive=actionB==='attack'?second:{...freshAttack(),name:actionB==='guard'?'Guard for 120 frames':'Evade for 18 frames',payload:actionB==='guard'?'block':'dodge',delivery:'self',startup:0,active:actionB==='guard'?120:18,recovery:0,cost:0,blockPercent:100};
  const moves=[structuredClone(first),structuredClone(defensive)];moves.forEach(a=>validateAttack(a));
- const actors=[fighter('A',statsA),fighter('B',statsB)],arena=new Arena(...actors,moves);actors[0].x=480-distance/2;actors[1].x=480+distance/2;if(placement==='left'){actors[0].x=35;actors[1].x=35+distance;}if(placement==='right'){actors[0].x=925-distance;actors[1].x=925;}actors[0].y=-heightA;actors[1].y=-heightB;arena.ai=false;arena.paused=false;
- const starts=[Math.max(0,-offset),Math.max(0,offset)],rows=[],replay=[],casts=[null,null],started=[false,false];let simultaneous=false,followupCast=null,followupResult=followup?{attempted:false,started:false,cancelled:false,reason:'Test ended before the follow-up attempt.'}:null;
+ if(!Array.isArray(availableAttacks)||availableAttacks.length>256)throw Error('Use at most 256 available comparison attacks.');
+ const pool=new Map();for(const a of [...availableAttacks,...moves,...(followup?[followup]:[])]){validateAttack(a);pool.set(a.id,structuredClone(a));}
+ const actors=[fighter('A',statsA),fighter('B',statsB)],arena=new Arena(...actors,[...pool.values()]);actors[0].x=480-distance/2;actors[1].x=480+distance/2;if(placement==='left'){actors[0].x=35;actors[1].x=35+distance;}if(placement==='right'){actors[0].x=925-distance;actors[1].x=925;}actors[0].y=-heightA;actors[1].y=-heightB;arena.ai=false;arena.paused=false;
+ const starts=[Math.max(0,-offset),Math.max(0,offset)],rows=[],replay=[],automaticCasts=[],automaticFailures=[],failureReasons=new WeakMap(),casts=[null,null],started=[false,false];let simultaneous=false,followupCast=null,followupResult=followup?{attempted:false,started:false,cancelled:false,reason:'Test ended before the follow-up attempt.'}:null;
  for(let step=0;step<frames&&!arena.winner;step++) {
   for(let i=0;i<2;i++)if(step===starts[i]){const reason=arena.reason(actors[i],moves[i]);started[i]=arena.attack(actors[i],moves[i]);casts[i]=actors[i].cast;rows.push({frame:step,actor:i===0?'A':'B',event:started[i]?'Started '+moves[i].name:'Could not start: '+reason});}
   // Run after this frame's contacts, using the same age as the authored cast window.
   const hp=actors.map(f=>f.hp),active=actors.map(f=>f.cast);arena.tick();
+  for(let i=0;i<2;i++){const cast=actors[i].cast;if(cast&&cast!==active[i]&&cast.automaticDepth>0){automaticCasts.push({actor:i===0?'A':'B',frame:step+1,cast});rows.push({frame:step,actor:i===0?'A':'B',event:`Automatic follow-up queued: ${cast.a.name} · starts frame ${step+1}`});}}
+
+  for(const attempt of arena.automaticAttempts){
+   if(attempt.started)continue;
+   let seen=failureReasons.get(attempt.cast);if(!seen){seen=new Map();failureReasons.set(attempt.cast,seen);}
+   if(seen.get(attempt.windowId)===attempt.reason)continue;seen.set(attempt.windowId,attempt.reason);
+   const actor=attempt.fighter===actors[0]?'A':'B',failure={frame:step,actor,attackId:attempt.attackId,windowId:attempt.windowId,reason:attempt.reason};automaticFailures.push(failure);
+   rows.push({frame:step,actor,event:'Automatic follow-up waiting: '+attempt.reason});
+  }
   if(followup&&step===starts[0]+followupFrame){
    const previous=actors[0].cast,reason=arena.reason(actors[0],followup),accepted=arena.attack(actors[0],followup);
    followupCast=accepted?actors[0].cast:null;
@@ -29,7 +40,7 @@ export function compareAttacks(first,second,{distance=50,offset=0,frames=600,sta
   }
  }
  const damage=actors.map(f=>f.maxHP-f.hp),outcome=simultaneous?'Trade: both took damage on the same frame':damage.every(n=>n>0)?'Both fighters took damage':damage[1]>0?'A dealt damage':damage[0]>0?'B dealt damage':'No damage dealt';
- return {outcome,damage,replay,started,contacts:casts.map(c=>c?.hits||0),followup:followupResult?{...followupResult,contacts:followupCast?.hits||0}:null,rows,elapsed:arena.frame,winner:arena.winner,unfinished:actors.some(f=>f.cast||f.statuses.length||f.legacyMotion||f.pulseMotion)};
+ return {outcome,damage,replay,started,automaticFailures,automaticFollowups:automaticCasts.map(({actor,frame,cast})=>({actor,frame,attackId:cast.a.id,name:cast.a.name,contacts:cast.hits,depth:cast.automaticDepth})),contacts:casts.map(c=>c?.hits||0),followup:followupResult?{...followupResult,contacts:followupCast?.hits||0}:null,rows,elapsed:arena.frame,winner:arena.winner,unfinished:actors.some(f=>f.cast||f.statuses.length||f.legacyMotion||f.pulseMotion)};
 }
 export function installMatchup({getAttacks:sourceAttacks,pause}) {
  const $=id=>document.getElementById(id);let result=null,testAttacks=null;const getAttacks=()=>testAttacks||sourceAttacks();
@@ -42,11 +53,11 @@ export function installMatchup({getAttacks:sourceAttacks,pause}) {
 
  function refresh(){const attacks=getAttacks();for(const id of ['matchupA','matchupB','matchupFollowup']){const old=$(id).value;$(id).replaceChildren();if(id==='matchupFollowup')$(id).add(new Option('No follow-up',''));for(const a of attacks)$(id).add(new Option(a.name,a.id));if(attacks.some(a=>a.id===old))$(id).value=old;}}
  $('openMatchup').onclick=()=>{testAttacks=null;pause();refresh();$('matchupDialog').showModal();};$('closeMatchup').onclick=()=>$('matchupDialog').close();
- $('runMatchup').onclick=()=>{try{const list=getAttacks();const config=configuration();result=compareAttacks(list.find(a=>a.id===$('matchupA').value),list.find(a=>a.id===$('matchupB').value),{...config,frames:config.followupId?Math.min(900,Math.max(600,config.followupFrame+Math.max(0,-config.offset)+121)):600,followupA:list.find(a=>a.id===config.followupId)||null});
- $('matchupSummary').textContent=`${result.outcome}. A lost ${result.damage[0]} HP; B lost ${result.damage[1]} HP. ${result.elapsed} frames simulated.${result.followup?` Follow-up: ${result.followup.started?(result.followup.cancelled?'cancel succeeded':'started without cancelling'):(result.followup.attempted?'rejected — '+result.followup.reason:'not attempted')}; ${result.followup.contacts} contacts.`:''}${result.unfinished?' Some effects remain active at the test limit.':''}`;
+ $('runMatchup').onclick=()=>{try{const list=getAttacks();const config=configuration();result=compareAttacks(list.find(a=>a.id===$('matchupA').value),list.find(a=>a.id===$('matchupB').value),{...config,availableAttacks:list,frames:config.followupId?Math.min(900,Math.max(600,config.followupFrame+Math.max(0,-config.offset)+121)):600,followupA:list.find(a=>a.id===config.followupId)||null});
+ $('matchupSummary').textContent=`${result.outcome}. A lost ${result.damage[0]} HP; B lost ${result.damage[1]} HP. ${result.elapsed} frames simulated. ${result.automaticFollowups.length} automatic follow-up(s), ${result.automaticFollowups.reduce((sum,a)=>sum+a.contacts,0)} contacts.${result.followup?` Follow-up: ${result.followup.started?(result.followup.cancelled?'cancel succeeded':'started without cancelling'):(result.followup.attempted?'rejected — '+result.followup.reason:'not attempted')}; ${result.followup.contacts} contacts.`:''}${result.unfinished?' Some effects remain active at the test limit.':''}`;
  $('matchupFrame').max=Math.max(0,result.replay.length-1);$('matchupFrame').value=0;draw();
  const log=$('matchupLog');log.replaceChildren();for(const row of result.rows){const item=document.createElement('li');item.textContent=`Frame ${row.frame} · ${row.actor}: ${row.event}`;log.append(item);}
  }catch(e){$('matchupSummary').textContent=e.message;$('matchupLog').replaceChildren();}};
- return {openStudioTest(data){testAttacks=structuredClone(data.attacks);pause();refresh();$('matchupA').value=data.first;$('matchupB').value=data.first;$('matchupFollowup').value=data.followup;$('matchupFollowupFrame').value=data.frame;$('matchupActionB').value='guard';$('matchupDialog').showModal();$('matchupSummary').textContent='Studio test ready. Choose B’s action and attempt frame, then Run comparison. This does not change your loadouts.';}};
+ return {openStudioTest(data){testAttacks=structuredClone(data.attacks);pause();refresh();$('matchupA').value=data.first;$('matchupB').value=data.first;$('matchupFollowup').value=data.automatic?'':data.followup;$('matchupFollowupFrame').value=data.frame;$('matchupActionB').value='guard';$('matchupDialog').showModal();$('matchupSummary').textContent=(data.automatic?'Automatic Studio test ready; no manual follow-up input is scheduled. ':'Studio test ready. ')+'Choose B’s action and attempt frame, then Run comparison. This does not change your loadouts.';}};
 
 }

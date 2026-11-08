@@ -274,3 +274,41 @@ Paired release 20261108-cancels is live. Arena commit d5a20eb5a0f75e6a7ba4fd60d3
 Live verification fetched 98 files and matched all 96 expected hashes; both downloaded-code workflow test sets passed, including cancel authoring, transport, timeout boundaries, Studio transfer, comparison and C-slot migration. Sample effect returned HTTP 200. Evidence: release-staging/20261108-cancels/live-verification.json. Source suites before release: 249 Arena / 1132 Studio passing. Browser visual/navigation/accessibility QA remains unverified because browser control is unavailable.
 
 This completes publication of manual attack-to-attack cancel windows and their authoring/test/save workflow. It does not implement movement cancels, automatic conditional counterattacks, combo scaling, projectile expansion or the remaining editor/visual QA scope. Next milestone should address conditional follow-ups and their explicit trigger/lifetime rules, preserving existing manual cancels and deterministic simultaneous resolution. Overall goal remains active.
+
+### Automatic follow-up runtime — local groundwork
+
+Automatic cancel windows now choose exactly one named follow-up, evaluate after both fighters’ collision resolutions, and start the replacement cast on the next frame. Manual input does not consume automatic-only windows. Energy, cooldown, reaction, artwork and available/equipped attack checks remain; interruption or defeat prevents a pending automatic transition. Automatic chains stop after eight transitions. The first eligible automatic rule in list order has priority; failed resource/readiness attempts can retry while its window remains open. A new manual cast starts a fresh chain.
+
+Fixed the interrupted parry test by configuring defense before Arena copies the attack, rather than changing the original definition after cast start. Twelve runtime tests pass: hit/block/whiff/parry, next-frame timing, payment, missing/unequipped attacks, both actor orders during interruption, defeat, and chain limits. Full suites: 261 Arena and 1132 Studio passing.
+
+Automatic definitions require version 6; current transport rejects them in older envelopes. This is deliberately unpublished runtime groundwork. Remaining: v6 project/bank/tree transport and server support, editor activation controls and diagnostics, automatic-chain comparison/replay tracking, wider interaction testing, publication and live verification. Existing manual cancel release remains live and unchanged. Broader movement cancels, combo rules, projectile expansion, clashing and UI/visual QA remain active.
+
+### Automatic authoring and v6 local transport — unpublished
+
+Projects, local banks and skill trees now round-trip automatic follow-ups as version 6. Envelopes 1–5 reject automatic behavior. Remote reads negotiate v6 only when advertised; writes to the current v5 classroom server are refused before PUT. Tests cover immutable upgrades, save/load, old-envelope rejection and revision negotiation.
+
+Studio now offers Manual input / Automatic activation per window. Automatic requires one explicit target; enabling it with several selected targets reports a correction instead of deleting references. Save, switching back, and undo preserve behavior/version. Timeline labels and diagnostics distinguish automatic windows and explain priority/chain limits. Full suites pass: 264 Arena / 1135 Studio. Browser visual QA remains unverified.
+
+Still left for this milestone: automatic-chain comparison/replay must include the complete available attack pool and distinguish automatic transitions from manually requested follow-ups; classroom backend v6, additional combined-interaction coverage, publication and live verification. The published v5 manual-cancel release is unchanged. Broader goal remains active.
+
+### Automatic-chain comparison — local, unpublished
+
+Comparison accepts the available attack pool (validated, capped at 256) so follow-up targets beyond the two starting moves can execute. It captures automatic cast transitions after each engine tick, reports queued/start frames, names, chain depth and eventual contacts, and keeps manual-attempt results separate. A transition queued at the test limit reports zero contacts and unfinished activity. Studio transfers now carry activation mode; automatic tests open without a scheduled manual input. Reopening normal comparison still restores the game catalog.
+
+Tests exercise a three-attack chain with 30 total damage, immutable definitions, per-cast contact attribution, unavailable targets, truncated replay and the actual automatic Studio comparison controls. Full suites: 266 Arena / 1135 Studio passing. No automatic follow-up changes are published yet.
+
+Remaining: detailed reasons for automatic follow-up failures/limits in comparison, broader interaction coverage, classroom backend v6, release preparation/publication/live verification. Browser visual/accessibility QA and the broader combat/editor goal remain active.
+
+### Automatic attempt diagnostics — local, unpublished
+
+Arena records each frame’s automatic attempt result, including missing/unequipped targets, resource/readiness failures and the eight-transition cap. Comparison retains structured failure records and logs a reason only when it changes for that cast/window, avoiding repeated messages each frame. Runtime priority and retries are unchanged. The engine only keeps current-frame attempts; the bounded comparison owns its result history.
+
+Added tests for one-time missing-target messages, distinct energy/cooldown causes and chain-limit reporting with eight completed transitions. Full suites: 269 Arena / 1135 Studio passing. These diagnostics describe eligible attempts; they do not yet diagnose every unmet condition or interrupted branch. Updated Studio diagnostics point to the available comparison results.
+
+Next: classroom v6 support, remaining combined-interaction checks, paired release preparation/publication/live verification. Automatic features remain local; v5 manual cancels and C slot remain live. Broader combat/UI scope and visual/accessibility QA remain active.
+
+### Classroom automatic-follow-up support — server published
+
+Classroom Site v59 deployed successfully from 0bf3b121ddd3403096d417870c804c1422cc24cc, deployment appgdep_6af0a671156c819185ed62852317df45. Version-6 banks preserve automatic rules, require one target, reject invalid activation types and reject automatic definitions in older envelopes. Older-client read/overwrite protections and revision compare-and-swap remain intact. Ten in-memory bank API tests and the production build passed; no actual bank records were changed. Evidence: release-staging/classroom-automatic-v6/publication.json.
+
+Remaining: combined-interaction checks, paired frontend version/cache preparation, publication and live verification. The server supports v6; automatic authoring/runtime are still local until frontend release. Browser visual/accessibility QA and broader combat/editor scope remain unfinished.

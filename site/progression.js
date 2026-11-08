@@ -1,4 +1,4 @@
-import {STATS,validateAttack} from './shared/combat-model.js?v=20261108-cancels';
+import {STATS,validateAttack} from './shared/combat-model.js?v=20261108-automatic';
 // Match the main game's saved training curve. Lifetime totals take precedence.
 export const PROGRESSION={firstLevelXP:35,lastLevelXP:650,curvePower:2.15,firstPointXP:100,pointStepXP:25};
 const finite=(n,fallback=0)=>Number.isFinite(n)&&n>=0?n:fallback;
