@@ -46,13 +46,13 @@ export function jugglePreset(count=5,interval=5) {
 // Existing hit values and IDs survive Quick Edit. New hits precede the finisher.
 export function resizeHits(events,count,interval,mode='extend') {
   if (!integer(count,1,10)||!integer(interval,1,25)||!['extend','fit'].includes(mode)) throw Error('Invalid Quick Edit settings.');
-  const result=structuredClone(events),lastTime=events.at(-1).offset;
+  const result=structuredClone(events),firstTime=events[0].offset,lastTime=events.at(-1).offset-firstTime;
   while(result.length<count) {
     const last=result.pop(),sample=result.at(-1)||last;
     result.push({...structuredClone(sample),id:'hit_'+crypto.randomUUID().replaceAll('-',''),reaction:'suspend',damage:3,knockback:0},last);
   }
   while(result.length>count) result.splice(Math.max(0,result.length-2),1);
-  result.forEach((e,i)=>{e.offset=mode==='fit'&&count>1?Math.round(i*Math.max(lastTime,count-1)/(count-1)):i*interval;});
+  result.forEach((e,i)=>{e.offset=firstTime+(mode==='fit'&&count>1?Math.round(i*Math.max(lastTime,count-1)/(count-1)):i*interval);});
   return result;
 }
 // An explicit start frame schedules melee/area windows even when the first hit misses.
