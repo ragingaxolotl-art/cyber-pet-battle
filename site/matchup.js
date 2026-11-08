@@ -1,5 +1,5 @@
-import {Arena,fighter} from './engine.js?v=20261108-persistence';
-import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261108-persistence';
+import {Arena,fighter} from './engine.js?v=20261108-durability';
+import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261108-durability';
 // Isolated, deterministic comparison: no AI, saves, rewards, or pet-art restrictions.
 export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,placement='center',actionB='attack',followupA=null,followupFrame=12,availableAttacks=[]}={}) {
  for(const [value,min,max] of [[distance,0,800],[offset,-180,180],[frames,1,900],[heightA,0,150],[heightB,0,150]])if(!Number.isInteger(value)||value<min||value>max)throw Error('Use a distance of 0–800, offset of −180–180, and duration of 1–900 frames.');
@@ -11,7 +11,7 @@ export function compareAttacks(first,second,{distance=50,offset=0,frames=600,sta
  if(!Array.isArray(availableAttacks)||availableAttacks.length>256)throw Error('Use at most 256 available comparison attacks.');
  const pool=new Map();for(const a of [...availableAttacks,...moves,...(followup?[followup]:[])]){validateAttack(a);pool.set(a.id,structuredClone(a));}
  const actors=[fighter('A',statsA),fighter('B',statsB)],arena=new Arena(...actors,[...pool.values()]);actors[0].x=480-distance/2;actors[1].x=480+distance/2;if(placement==='left'){actors[0].x=35;actors[1].x=35+distance;}if(placement==='right'){actors[0].x=925-distance;actors[1].x=925;}actors[0].y=-heightA;actors[1].y=-heightB;arena.ai=false;arena.paused=false;
- const starts=[Math.max(0,-offset),Math.max(0,offset)],rows=[],replay=[],automaticCasts=[],automaticFailures=[],failureReasons=new WeakMap(),casts=[null,null],started=[false,false];let simultaneous=false,followupCast=null,followupResult=followup?{attempted:false,started:false,cancelled:false,reason:'Test ended before the follow-up attempt.'}:null;
+ const starts=[Math.max(0,-offset),Math.max(0,offset)],rows=[],replay=[],projectileClashes=[],automaticCasts=[],automaticFailures=[],failureReasons=new WeakMap(),casts=[null,null],started=[false,false];let simultaneous=false,followupCast=null,followupResult=followup?{attempted:false,started:false,cancelled:false,reason:'Test ended before the follow-up attempt.'}:null;
  for(let step=0;step<frames&&!arena.winner;step++) {
   for(let i=0;i<2;i++)if(step===starts[i]){const reason=arena.reason(actors[i],moves[i]);started[i]=arena.attack(actors[i],moves[i]);casts[i]=actors[i].cast;rows.push({frame:step,actor:i===0?'A':'B',event:started[i]?'Started '+moves[i].name:'Could not start: '+reason});}
   // Run after this frame's contacts, using the same age as the authored cast window.
@@ -32,7 +32,8 @@ export function compareAttacks(first,second,{distance=50,offset=0,frames=600,sta
    rows.push({frame:step,actor:'A',event:accepted?(followupResult.cancelled?'Cancelled into ':'Started without cancelling: ')+followup.name:'Follow-up rejected: '+followupResult.reason});
   }
 
-  const projectiles=arena.projectiles.entries.map(entity=>{const snapshot=arena.prepareCast(entity.owner,entity.target,entity.cast);return {id:entity.id,actor:entity.owner===actors[0]?'A':'B',name:entity.cast.a.name,remaining:entity.expires-arena.frame,boxes:(snapshot.boxes||[snapshot.box]).map(box=>({...box}))};});
+  for(const clash of arena.lastProjectileClashes){projectileClashes.push({frame:step,...clash});rows.push({frame:step,actor:'A/B',event:'Projectile clash: '+clash.participants.map(p=>(p.owner===0?'A':'B')+' '+p.name+' — '+(p.destroyed?'destroyed':p.remaining+' durability left')).join('; ')});}
+  const projectiles=arena.projectiles.entries.map(entity=>{const snapshot=arena.prepareCast(entity.owner,entity.target,entity.cast);return {id:entity.id,actor:entity.owner===actors[0]?'A':'B',name:entity.cast.a.name,remaining:entity.expires-arena.frame,durability:entity.durability??null,boxes:(snapshot.boxes||[snapshot.box]).map(box=>({...box}))};});
   replay.push({frame:step,projectiles,fighters:actors.map(f=>({x:f.x,y:f.y,hp:f.hp,reaction:f.reaction,casting:f.cast?.a.name||''}))});
   const losses=actors.map((f,i)=>hp[i]-f.hp);if(losses.every(n=>n>0))simultaneous=true;
   for(let i=0;i<2;i++){
@@ -41,7 +42,7 @@ export function compareAttacks(first,second,{distance=50,offset=0,frames=600,sta
   }
  }
  const damage=actors.map(f=>f.maxHP-f.hp),outcome=simultaneous?'Trade: both took damage on the same frame':damage.every(n=>n>0)?'Both fighters took damage':damage[1]>0?'A dealt damage':damage[0]>0?'B dealt damage':'No damage dealt';
- return {outcome,damage,replay,started,automaticFailures,automaticFollowups:automaticCasts.map(({actor,frame,cast})=>({actor,frame,attackId:cast.a.id,name:cast.a.name,contacts:cast.hits,depth:cast.automaticDepth})),contacts:casts.map(c=>c?.hits||0),followup:followupResult?{...followupResult,contacts:followupCast?.hits||0}:null,rows,elapsed:arena.frame,winner:arena.winner,remainingProjectiles:arena.projectiles.entries.length,unfinished:arena.projectiles.entries.length>0||actors.some(f=>f.cast||f.statuses.length||f.legacyMotion||f.pulseMotion)};
+ return {outcome,damage,replay,projectileClashes,started,automaticFailures,automaticFollowups:automaticCasts.map(({actor,frame,cast})=>({actor,frame,attackId:cast.a.id,name:cast.a.name,contacts:cast.hits,depth:cast.automaticDepth})),contacts:casts.map(c=>c?.hits||0),followup:followupResult?{...followupResult,contacts:followupCast?.hits||0}:null,rows,elapsed:arena.frame,winner:arena.winner,remainingProjectiles:arena.projectiles.entries.length,unfinished:arena.projectiles.entries.length>0||actors.some(f=>f.cast||f.statuses.length||f.legacyMotion||f.pulseMotion)};
 }
 export function installMatchup({getAttacks:sourceAttacks,pause}) {
  const $=id=>document.getElementById(id);let result=null,testAttacks=null;const getAttacks=()=>testAttacks||sourceAttacks();

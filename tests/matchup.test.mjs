@@ -22,3 +22,12 @@ test('comparison reports a traveling projectile after owner recovery and snapsho
  assert.notEqual(first,last);assert.ok(last.x>first.x);
  const finished=compareAttacks(projectile,other,{distance:500,frames:90});assert.equal(finished.remainingProjectiles,0);assert.equal(finished.unfinished,false);
 });
+test('authored durability reports clash destruction and survival in comparison',()=>{
+ const a={...move(),delivery:'projectile',projectileLifetime:60,projectileDurability:2,impactTrigger:'contact',projectileSpeed:10,recovery:0,cost:0};
+ const b={...a,id:'attack_clash_b',projectileDurability:1};
+ const result=compareAttacks(a,b,{distance:100,frames:20});
+ assert.equal(result.projectileClashes.length,1);
+ assert.deepEqual(result.projectileClashes[0].participants.map(p=>p.remaining),[1,0]);
+ assert.deepEqual(result.damage,[0,10]);assert.ok(result.rows.some(r=>/Projectile clash.*destroyed/.test(r.event)));
+ assert.ok(result.replay.some(r=>r.projectiles.some(p=>p.durability===1)));
+});

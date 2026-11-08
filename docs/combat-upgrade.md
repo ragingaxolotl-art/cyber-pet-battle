@@ -12,8 +12,8 @@ This overview supersedes the historical status notes below. The overall goal is 
 | Multiple hitboxes | Grouped geometry with shared hit budgets, editor controls and timeline | Rotation, frame anchors and authored hurtboxes |
 | Defense and simultaneous hits | Trades, armor, invulnerability, parry and frame windows tested | Clashing/priority, guard break/crush, throws and richer defensive interactions |
 | Follow-ups | Manual and automatic attack-to-attack windows; hit/block/parry/whiff rules; eight-transition automatic cap | Movement cancels, broader conditional behavior, hitstop/blockstun and combo scaling |
-| Projectile behavior | Cast-owned traveling, contact/attached sequences and movement paths | Independent persistent entities, durability, reflection, absorption, homing, return, splitting, explosion and general piercing rules |
-| Save/load compatibility | Version 1–6 project/bank/tree support; classroom server v59 revision protection; anonymous API tests | Authenticated end-to-end browser save/load with anonymous fixtures; future schema migrations |
+| Projectile behavior | Independent lifetime v7 published in Arena 9ffc42e / Studio 176afb5; 101 live hashes and downloaded-code workflows verified; existing casts preserved | Live Arena projectile visual/interaction checks; durability, reflection, absorption, homing, return, splitting, explosion and general piercing rules |
+| Save/load compatibility | Version 1–7 project/bank/tree support; classroom server v60 revision protection; anonymous API tests | Authenticated end-to-end browser save/load with anonymous fixtures; future schema migrations |
 | Studio authoring | Quick Edit, selected-hit controls, basic/advanced mode, undo/redo, recovery, editable timing tracks | Timeline zoom/locking/hiding/multiselect, property inheritance, reusable behavior blocks, audio/camera tracks and expanded presets |
 | Arena comparison | Two-attack tests, manual/automatic follow-ups, replay, saved scenarios, explicit duration, responsive layout | More scenario diagnostics, arbitrary chain configuration and remaining accessibility audit |
 | Studio-to-Arena handoff | Live browser transfer and successful automatic follow-up checked; cleanup published | Native popup opening not verified by this browser integration |
@@ -512,3 +512,63 @@ Created one unbanked anonymous Stone strike draft through the local Studio UI, g
 Current Studio also contains concurrent workspace/docking changes (studio-workspace.css and a restructured design.html) beyond this persistence task. Preserve them and reconcile against remote before scoped publication; do not bulk-publish or overwrite them blindly. Screenshots were viewed through browser tools but not saved as standalone artifacts. This proves desktop lifetime-control rendering and keyboard edit/recovery only, not mobile, independent VFX in Arena or full browser parity. Targeted persistence UI workflow passes after styling; latest full suites remain 323 Arena / 1148 Studio.
 
 Next: complete remaining browser/runtime release checks, reconcile publication scope with concurrent workspace edits, publish paired clients and verify live files. Server v60 already supports version 7. Overall goal active.
+
+### Persistence clients pushed — deployment in progress
+
+Prepared a reviewed Studio release using published bc7de02 as baseline, overlaying persistence files only. The local workspace import/init and redesigned HTML were excluded from the release copy; canonical local files remain intact. Published CSS includes the full-width lifetime panel. Unrelated skill-tree UI/dataset edits remain local. Source staging: release-staging/20261108-persistence/studio/. Scope and baseline receipts are alongside it.
+
+Arena full release suite: 323 passed. Exact staged Studio release suite: 1143 passed, excluding the five concurrent workspace/dataset tests not represented by this release. Initial staging failed due to omitted review fixtures; linked fixtures and reran successfully. No tests were weakened. Frozen tests in test-snapshot/.
+
+Arena commit 9ffc42ea3c0fa5f65ad81cf70741dfd131d99916 pushed; Pages run 42506293349 in progress. Studio commit 176afb5f4032069ea55c30b42b35ff4bc7911d29 pushed, 56 scoped files, unrelated repository roots preserved; Pages run 42506304706 in progress. Release/cache key 20261108-persistence. Version 7 metadata now advertises independent lifetime. Server v60 already deployed.
+
+Prepared /private/tmp/verify_combat_persistence.py with pinned Arena source hashes, scoped Studio manifest plus sample hash, frozen downloaded-code workflow tests including projectile-format/lifecycle/editor tests. Remaining: poll those exact deployment jobs, run paired verifier, inspect live UI as needed. Do not claim clients live-verified yet. Overall goal active.
+
+### Persistence Arena verified; Studio still deploying
+
+Arena Pages run 42506293349 succeeded. Standalone verification matched all 44 published JS/CSS/HTML/JSON files to 9ffc42ea3c0fa5f65ad81cf70741dfd131d99916, and downloaded-code tests including projectile lifecycle/format/source, comparison, juggle and C-slot workflows passed. Evidence release-staging/20261108-persistence/arena-live/verification.json.
+
+Studio run 42506304706 has a completed build and an in-progress deploy job (overall API status queued). Do not restart. Next poll that handle, then run /private/tmp/verify_combat_persistence.py. Paired live verification and live browser persistence checks remain pending.
+
+### Persistence release fully verified on both live clients
+
+Studio run 42506304706 completed successfully. Paired verifier fetched 103 files, matched 101 expected hashes, passed frozen Arena and Studio workflows against downloaded code (including persistence format, lifecycle, authoring/history and comparison), and fetched sample artwork HTTP 200. Evidence: release-staging/20261108-persistence/live-verification.json with per-file hashes and separate live-test logs.
+
+Published persistence now spans Arena 9ffc42ea3c0fa5f65ad81cf70741dfd131d99916, Studio 176afb5f4032069ea55c30b42b35ff4bc7911d29, classroom server v60. Browser desktop control layout/edit/recovery was checked locally; live browser behavior and narrow-layout checks are not yet verified. Next: live-browser confirmation and further planned projectile mechanics, with explicit ownership/collision rules before reflection/durability. Full editor/combat objective remains active.
+
+### Live Studio persistence controls checked
+
+Opened published design.html?release=20261108-persistence in the in-app browser. Created a new unbanked Stone strike draft and five-hit sequence, enabled independent persistence, and used ArrowUp to change lifetime 120→121. Live diagnostics displayed 121. Explicit UI Undo restored 120 and Redo restored 121. Read-only layout inspection confirmed grid-column 1 / -1 and 247px width in the published inspector; screenshot viewed. No bank sign-in/save or existing-draft modifications were performed. Screenshot was not exported as a standalone file.
+
+This verifies live desktop authoring/history controls, not an authenticated bank roundtrip or all projectile visuals. Next combat extension remains durability/reflection, which requires explicit projectile-vs-projectile/attack collision rules, ownership transfer and bounded rehit policy; existing ordinary fighter trades must remain unchanged. Remaining full goal includes general sequences, expanded combos/defense, editor timeline/workspace improvements and broader accessibility/mobile checks.
+
+### Projectile-interaction geometry — local foundation
+
+Added shared shapesOverlap for every rectangle/ellipse/diamond/triangle pairing, including mirrored triangles. Polygon pairs use separating axes; ellipse/polygon uses unit-circle normalization and segment distance; ellipse pairs use a bounded closest-point solve instead of a polygon approximation. Touch-only boundaries do not connect (ellipse numerical tolerance 1e-12 in normalized squared distance). Existing shapeHitsRectangle remains unchanged, so ordinary fighter hit behavior is preserved.
+
+Twenty regressions cover all pairings and symmetry, separate/touching bounds, corner false positives, containment, crossings, mirrored tips, unequal ellipse radii and diagonal circular tangency. Full suites passed 343 Arena / 1170 Studio; the Studio total includes two additional concurrent workspace tests beyond the previous count, not new persistence scope. Logs /private/tmp/projectile-geometry-arena.txt and /private/tmp/projectile-geometry-studio.txt. Shared source and tests copied to both apps.
+
+This helper is local/unpublished and not yet connected to projectile clashes. Next: deterministic pair collection, per-pair contact tracking/durability resolution, ownership/reflection rules, versioned authoring and preview parity. Persistent-projectile release remains live. Overall objective active.
+
+### Deterministic durability clashes — local runtime only
+
+Added shared ProjectileClashes resolver using authored shape overlap. Both entities must opt into positive integer durability; same-owner/unconfigured sources pass through. Each pair spends one point on entering contact, not every overlapping frame; separation permits recontact. Multiple hitboxes do not multiply pair costs. Contacts are collected before losses/destruction, sorted by stable entity ID, preserving one-to-many simultaneous outcomes without input-order bias. Resolver returns remaining durability and destroyed IDs without mutating input snapshots.
+
+Arena feeds projectile snapshots into the resolver before fighter-hit consequences, removes destroyed sources, emits CLASH and suppresses their fighter damage that frame. Surviving projectiles retain their existing hit behavior. Dummy reset/round end clear pair history. Durability is not yet populated from saved attacks or exposed in Studio; no new format is advertised.
+
+Six shared resolver tests cover equal/unequal durability, sustained contact/separation, multi-contact order, grouped hitboxes, friendly/unconfigured/geometry exclusions and reset. Three actual Arena tests prove equal cancellation, survivor damage and unchanged unconfigured trades. Full suites pass: 352 Arena / 1176 Studio. Logs /private/tmp/clash-arena.txt and /private/tmp/clash-studio.txt. All changes local/unpublished. Next: versioned durability validation/authoring/server support, comparison reporting and preview explanation; reflection still requires owner/target/hit-ledger policy. Overall objective remains active.
+
+### November 8 — local durability authoring milestone (not published)
+
+Projectile clash geometry and simultaneous durability resolution are implemented locally. Opposing projectiles must both opt in; each new contact spends one durability, continuous overlap spends once, and zero removes the projectile before fighter damage. Comparison reports participants and remaining durability. Existing projectiles keep their behavior.
+
+Attack format version 8 adds optional integer `projectileDurability` (1–10), requiring independent lifetime. Studio now exposes clash mode and durability, validates edits, removes clash settings when persistence is disabled, and restores them through undo. Single-attack preview explicitly explains that it cannot test opposing-projectile clashes.
+
+Validation: 353 Arena and 1,177 Studio tests passed, including shared parity, comparison outcomes, versioned project/bank round trips, and editor save/undo/input validation. Browser verification for these new controls has not yet been performed.
+
+Still required before publication: classroom server version-8 capability/validation and anonymous round-trip tests; browser QA; scoped release preparation preserving concurrent workspace UI work; publication and live hash verification. Current verified live release remains `20261108-persistence`. Further report scope (reflection, other projectile behaviors, movement cancels, advanced combat/editor/accessibility improvements) remains open.
+
+### November 8 — classroom durability support published
+
+Classroom server version 61 deployed successfully (source `0761149035cbe6e7caf63a222bb51ae94027ff68`). Live read-only capabilities advertise attack/bank versions 1–8. Twelve anonymous in-memory server tests pass, including version-8 durability round trips, invalid field rejection, revision conflicts and older-client overwrite protection. No real classroom bank was accessed. Evidence: `release-staging/20261108-durability/classroom-server.json`.
+
+Arena/Studio durability changes remain local and tested, not yet published. Next: browser verification, scoped release preserving concurrent workspace edits, deployment and live verification.
