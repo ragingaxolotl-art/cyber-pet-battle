@@ -15,3 +15,12 @@ for(const delivery of ['melee','area'])for(const facing of [1,-1])for(const miss
  assert.equal(arena.metrics.hits,missFirst?2:3);assert.equal(p.cast,null,'fixed sequence completes without waiting for contact');
  assert.equal(sim.hitResults[1].frame,timing(a,stats).startup+8);assert.equal(sim.hitResults[0].result,missFirst?'Missed':'Connected');
 });
+for(const delivery of ['melee','area'])for(const facing of [1,-1])test(`scheduled reactions ${delivery} facing ${facing}`,()=>{
+ const a={...freshAttack(delivery),startup:0,active:11,recovery:3,cost:0,sequenceTiming:'cast',behaviorVersion:2,impactTrigger:'timed',hitEvents:jugglePreset(3,5),box:{x:0,y:-160,w:160,h:160}};
+ const sim=simulate(a,stats,stats,{distance:50,targetHP:1,facing,targetSide:facing});const p=fighter('P',stats),o=fighter('O',stats),arena=new Arena(p,o,[a],{training:true});p.x=450;o.x=450+50*facing;arena.paused=false;arena.attack(p,a);
+ for(let frame=0;frame<60;frame++){
+  arena.tick();const expected=sim.frames[frame].target;
+  assert.equal(o.hp,expected.hp,'damage at '+frame);assert.ok(Math.abs(o.x-450-expected.x)<1e-6,'x at '+frame);assert.ok(Math.abs(o.y-expected.y)<1e-6,'height at '+frame);
+ }
+ assert.equal(arena.metrics.hits,3);assert.ok(sim.frames.some(f=>f.target.y<0));
+});
