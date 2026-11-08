@@ -1089,3 +1089,23 @@ Added frame-by-frame launch and floor-knockdown recovery checks; Arena and previ
 ### November 8 — Arena combo browser verification
 
 Anonymous local Quick jab comparison produced a simultaneous trade: each fighter lost15 HP and each pair reported a one-hit chain. Scrubbing the replay to combat/playback frame8 displayed both active chains and15 HP per fighter. Screenshot /private/tmp/cyber-pet-combo-arena.jpg. Scoped release staging is in progress; this entry does not claim publication.
+
+### November 8 — combo telemetry release verified live
+
+Arena e8241f89e6048bf1090955250b80f9fd3b462cc7 and Studio d8a2e5e37e51e3aad09f5b3cf88a849c66be5623 deployed successfully (Pages42520305448/42520310226). Live hashes verified33 files (10 Arena,23 Studio), and focused downloaded-code checks passed. Full release checks: Arena516, staged Studio1279 passed. Live Arena Quick jab trade displayed independent one-hit/15 HP chains; local Studio guard/non-guard feedback and replay frame8 were verified before release. Evidence: release-staging/20261108-combo-tracking and /private/tmp/cyber-pet-live-combos.jpg. This is telemetry only: damage scaling, hitstun deterioration and counter-hit bonuses remain unimplemented. Next: optional versioned combo balance settings and shared runtime/preview arithmetic, retaining legacy damage when absent. Overall goal remains active.
+
+### November 8 — optional combo scaling runtime foundation (local)
+
+Added validated per-attack comboScaling {step, minimum} percentages and shared direct-damage arithmetic. Missing settings preserve legacy damage. First hit is full power; prior uninterrupted hits reduce later damage to the authored floor, with whole-number rounding. Guard/armor and periodic status damage are excluded; shields apply after scaling. Tracker freezes prior-hit counts at frame start, giving simultaneous contacts equal scaling rather than iteration-order effects. Arena ordinary/sequence resolution and both previews use the helper. Version13 is required by attack-version negotiation and older-envelope validation; version13 containers/server/UI are not yet enabled. Five focused tests pass (arithmetic, validation, gap reset, runtime/preview HP parity, same-frame count stability). Full suites before the final added test: Arena520/Studio1279 passed; all five focused checks passed afterward. Unpublished. Next: cross-cast/group/sequence cases, version13 transport and classroom server, authoring controls/diagnostics, browser QA and release. Counter-hit and hitstun deterioration remain separate unfinished capabilities.
+
+### November 8 — scaling version13 client transport (local)
+
+Both clients accept version13 project/bank/tree envelopes and negotiate version13 bank reads. Arena catalog accepts the format. Three new tests per client cover legacy preservation, bank encode/decode, project/tree roundtrips, old-envelope rejection and no PUT to a server lacking capability. Shared diagnostics explain percentages, pre-frame counts, cross-attack reset semantics, shields and unsupported support payloads. Full suites Arena524/Studio1282 pass. Still unpublished; deployed server65 supports only through version12 and therefore correctly refuses scaling writes. Remaining: editor controls/history tests, cross-cast/group scaling scenarios, version13 server migration, browser QA and paired publication.
+
+### November 8 — scaling authoring controls (local)
+
+Studio now exposes optional reduction-per-prior-hit and minimum-damage percentage controls, first-four-hit percentage examples, neutral defaults, validation, removal and undo. Full DOM test verifies version13 saving and invalid/blank input restoration. Added runtime checks for an automatic follow-up using the earlier unscaled cast’s count, and scheduled sequence HP parity frame by frame. All seven focused scaling checks pass. Full suites before the two added runtime tests: Arena524/Studio1283 passed. Not published; server migration, browser QA, release cache keys/staging and live verification remain. Scaling does not alter reaction timing; deterioration/counter-hit work remains outstanding.
+
+### November 8 — version13 classroom support published
+
+Sites server66 deployed from6151edd1abd47f473522767f6647092e440ab806; deployment appgdep_6af0dd53f7748191869cb0c445d24184 succeeded. Public capabilities verify bank/attack formats1–13. All18 anonymous in-memory bank tests pass, including scaling roundtrip, malformed rules and old-client rejection preserving saved data/revision. No real classroom records were read or written. Evidence: release-staging/20261108-combo-scaling/server-publication.json. Scaling clients remain local; browser QA and paired publication/live verification are next.

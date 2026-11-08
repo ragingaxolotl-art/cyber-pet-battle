@@ -1,4 +1,5 @@
-import {ComboTracker} from './shared/combo-tracker.js?v=20261108-combo-tracking';
+import {scaledComboDamage} from './shared/combo-scaling.js?v=20261108-combo-scaling';
+import {ComboTracker} from './shared/combo-tracker.js?v=20261108-combo-scaling';
 import {contactFeedbackResult} from './shared/contact-feedback.js?v=20261108-impact-timing';
 import {movementCancelWindow,MOVEMENT_CANCEL_RULES} from './shared/movement-cancels.js?v=20261108-movement-cancels';
 import {reflectedProjectileTransform,transformProjectileBox} from './shared/projectile-reflection.js?v=20261108-movement-cancels';
@@ -10,9 +11,9 @@ import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,
 import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-movement-cancels';
 import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-movement-cancels';
 import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-movement-cancels';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-combo-tracking';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-combo-scaling';
 import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-movement-cancels';
-import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-impact-timing';
+import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-combo-scaling';
 import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-movement-cancels';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:CONTACT_TIMEOUT};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,blockstunUntil:0,blockstunReduction:0,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,dashUntil:0,dashReady:0,dashDirection:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
@@ -217,7 +218,7 @@ export class Arena{
    if(parry){this.parry(f,recipient,parry,snapshot.projectile);if(snapshot.projectile)break;continue;}
    if(snapshot.evading||snapshot.invulnerable){if(!snapshot.invulnerable&&recipient===this.fighters[0]&&a.payload==='damage')this.honourMetrics.dodges++;this.emit(snapshot.invulnerable?'INVULNERABLE':'DODGE',recipient.x,recipient.y-70);}
    else {let amount=magnitude(a,cast.projectileStats||f.stats);if(a.payload==='damage')amount=Math.round(amount*snapshot.damageMultiplier);
-    if(a.payload==='damage'){const guard=snapshot.guarding&&a.blockable,armored=!guard&&claimArmor(snapshot.defense,a);amount=Math.round(amount*(guard?1-snapshot.guardReduction:1));const absorbed=Math.min(recipient.shield,amount);recipient.shield-=absorbed;amount-=absorbed;const hpDamage=Math.min(recipient.hp,amount);recipient.hp-=hpDamage;recipient.flash=this.frame+8;
+    if(a.payload==='damage'){const guard=snapshot.guarding&&a.blockable,armored=!guard&&claimArmor(snapshot.defense,a);amount=Math.round(amount*(guard?1-snapshot.guardReduction:1));amount=scaledComboDamage(amount,this.combos.priorHits(f,recipient),a.comboScaling,guard?'block':armored?'armor':'hit');const absorbed=Math.min(recipient.shield,amount);recipient.shield-=absorbed;amount-=absorbed;const hpDamage=Math.min(recipient.hp,amount);recipient.hp-=hpDamage;recipient.flash=this.frame+8;
      this.contactFeedback.push({attack:a,attacker:f,damage:hpDamage,target:recipient,guardReduction:snapshot.guardReduction,outcome:guard?'block':armored?'armor':'hit'});
      cast.outcomes.add(guard?'block':'hit');if(guard&&recipient===this.fighters[0])this.honourMetrics.guards++;if(amount>0&&f===this.fighters[0]&&recipient===this.fighters[1])this.honourMetrics.attacks.add(a.id);if(!guard&&!armored)beginReaction(recipient,a,snapshot.box.facing,this.frame);if(armored)recipient.lastHit=this.frame;if(this.training&&recipient===this.fighters[1]){this.metrics.hits++;this.metrics.damage+=amount;}
      this.emit(guard?'GUARD −'+amount:armored?'ARMOR −'+amount:'−'+amount,recipient.x,recipient.y-70);
@@ -241,7 +242,8 @@ export class Arena{
    const projectileResult=this.projectileDefense(snapshot,target);if(projectileResult){hitResult(state,event,age,projectileResult);break;}
    const parry=claimParry(snapshot.defense,a);if(parry){hitResult(state,event,age,'Parried');state.cancelled='Contact parried; attachment cancelled.';this.parry(f,target,parry,snapshot.projectile);if(snapshot.projectile)break;continue;}
    const armored=!guard&&claimArmor(snapshot.defense,a);
-   const amount=Math.round(event.damage*snapshot.damageMultiplier*(guard?1-snapshot.guardReduction:1)),absorbed=Math.min(target.shield,amount);
+   const rawDamage=Math.round(event.damage*snapshot.damageMultiplier*(guard?1-snapshot.guardReduction:1));
+   const amount=scaledComboDamage(rawDamage,this.combos.priorHits(f,target),a.comboScaling,guard?'block':armored?'armor':'hit'),absorbed=Math.min(target.shield,amount);
    target.shield-=absorbed;const damage=Math.min(target.hp,amount-absorbed);target.hp-=damage;cast.hits++;cast.lastHit=age;
    this.contactFeedback.push({attack:a,attacker:f,damage,target,guardReduction:snapshot.guardReduction,outcome:guard?'block':armored?'armor':'hit'});
    cast.outcomes.add(guard?'block':'hit');hitResult(state,event,age,guard?'Blocked':armored?'Armored':'Connected');this.emit((guard?'GUARD −':armored?'ARMOR −':'−')+damage,target.x,target.y-70);
