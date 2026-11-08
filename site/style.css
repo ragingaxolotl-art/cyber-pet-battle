@@ -71,3 +71,6 @@
 @media(max-width:400px){.matchup-controls{grid-template-columns:1fr}.matchup-actions button{flex:1}}
 
 @media(max-width:650px){.arena-shell:fullscreen #fullscreenSlots{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+.touch-controls{display:none;padding:12px}.touch-controls p{font-size:12px;margin:0 0 8px}.touch-buttons{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.touch-buttons button{min-height:48px;padding:8px 4px;touch-action:none;user-select:none}.touch-buttons button[aria-pressed=true]{background:#c4f46c;color:#112333}
+@media(pointer:coarse),(max-width:650px){.touch-controls{display:block}}
