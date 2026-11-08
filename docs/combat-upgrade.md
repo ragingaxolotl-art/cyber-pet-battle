@@ -358,3 +358,33 @@ Separately corrected stale parry guidance in both shared diagnostics copies: a c
 Creating a new Studio-to-Arena test now cleans expired/malformed entries only under cyber-pet-comparison-transfer:. It preserves current handoffs and does not inspect saved profiles or attack banks. Cleanup snapshots keys before removal so storage index shifts cannot skip entries. Storage adapters without enumeration remain supported. Regression confirms expiry, malformed-data removal, preservation of current transfers/unrelated data and successful consumption of the new test. Shared source copies match. Full suites: 277 Arena / 1135 Studio passing.
 
 This cleanup and the parry guidance correction remain unpublished. Next: paired release of these shared changes and live handoff verification; broader combat and editor scope remains active.
+
+### Shared handoff cleanup release pushed — pending deployment
+
+Studio scoped commit 2b6f6ea9d3d125b75981a202f498cdfd4ae657db (five files; receipt release-staging/20261108-handoff-cleanup/publication.json), Pages run 42503510751 in progress. Arena commit 38e41af4d3b40b75e273dfcb08b41238da61e8a2 includes cleanup, parry explanation and transitive cache updates including workshop; latest Pages run 42503533567 queued behind initial run 42503499094. Source tests before cache-only follow-up: 277 Arena / 1135 Studio pass. Do not restart jobs merely because observation times out.
+
+Remaining for milestone: poll these exact deployments, verify changed published hashes and live handoff behavior. Broader goal remains active. Prepared /private/tmp/verify_studio_handoff.py (hash verification; browser metadata inherited from playback must be replaced with handoff-specific observations before claiming live interaction coverage).
+
+### Handoff release verification in progress
+
+Arena run 42503533567 completed successfully. Verified all 42 published source/data files against 38e41af4d3b40b75e273dfcb08b41238da61e8a2 and ran downloaded-code comparison, transfer cleanup and C-slot tests successfully. Evidence: release-staging/20261108-handoff-cleanup/arena-live/verification.json. Studio run 42503510751 is still building; live browser handoff remains unverified. Corrected the Studio verifier to remove inherited playback-specific claims.
+
+Next combat audit finding: shared hit-sequence.js counts reactions on the target across sequence casts, forces downward/away knockback at ten reactions and refuses further sequence contacts while locked airborne. This is already more than a per-cast cap. Ordinary legacy hits do not participate in this counter; inspect mixed legacy/sequence chains, landing reset and armor before extending global juggle rules. Do not describe general combo protection as complete from sequence-only coverage.
+
+### Handoff release files verified; juggle diagnostics local
+
+Studio run 42503510751 succeeded and all five published changed files match 2b6f6ea9d3d125b75981a202f498cdfd4ae657db. Arena was already verified at 38e41af. Evidence: release-staging/20261108-handoff-cleanup/verification.json and arena-live/verification.json. Actual cross-tab browser handoff remains pending; source/headless transfer coverage is not a substitute for it.
+
+Local shared hit-sequence change records when airborne juggle lock blocks an active hit opportunity and reports that cause when the window expires. Landing within the window still permits contact, and ordinary misses retain their existing explanation. Three new regressions pass; full suites: 280 Arena / 1135 Studio. This does not change juggle balance or extend caps to legacy hits. Unpublished; next release should include this diagnostic after mixed-chain audit. Overall goal remains active.
+
+### Live Studio-to-Arena transfer checked
+
+Used a new unbanked draft on the published Studio, added a follow-up, and clicked Test this follow-up in Arena. The automation browser exposed no popup, so opened the exact generated URL in a controlled tab. Arena consumed the one-use transfer and opened comparison with the selected attacks, frame 0 and guard scenario. Hit-confirm at frame 0 correctly rejected before contact. Changed the test window to Any result / Automatic and transferred again: Arena explicitly scheduled no manual input, then reported one automatic follow-up, one contact and a frame-1 start during a 900-frame comparison.
+
+This verifies real browser storage/definition transfer and comparison behavior. Native popup opening remains unverified in this browser integration. No classroom login or bank writes; the anonymous test draft remains unbanked. Evidence: release-staging/20261108-handoff-cleanup/verification.json. Pending local change: juggle-limit diagnostics (280 Arena / 1135 Studio tests passed). Broader mixed-chain juggling and remaining combat/editor scope remain active.
+
+### Mixed-chain forced landing — local fix
+
+Confirmed ordinary beginReaction replaced pulseMotion even after the target hit its sequence juggle cap. It now preserves forced landing while juggleLocked and airborne; damage remains resolved by the caller. Grounded reactions clear the expired juggle counter/lock and proceed normally. This closes relaunch escape from an already reached sequence cap, but does not introduce a global counter for ordinary-only combos. Studio single-attack preview does not execute mixed attack chains; sequence lock behavior remains shared.
+
+Regression checks force landing at reaction ten, try an ordinary launch, preserve motion/stun, land and allow the next reaction. Additional real-Arena test confirms 10 damage still connects while forced motion is preserved. Full suites passed at 281 Arena / 1135 Studio; the subsequently added real-Arena regression passed individually (five juggle tests total). This and shared juggle-limit diagnostics remain unpublished. Next: finish broader mixed-chain rule review and publish verified changes; larger combat/editor goal remains active.

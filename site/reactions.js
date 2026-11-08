@@ -1,7 +1,11 @@
-import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261108-automatic';
-import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261108-automatic';
+import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261108-juggle-reset';
+import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261108-juggle-reset';
 export const REACTION={wallHold:RECOVERY_TIMING.wall,downHold:RECOVERY_TIMING.down,getUp:RECOVERY_TIMING.getUp,drag:.84};
 export function beginReaction(f,attack,direction,frame){
+ // A completed juggle must reach the floor before another hit can relaunch it.
+ // Damage is resolved by the caller; preserve the forced landing motion here.
+ if(f.juggleLocked&&f.y<0){f.lastHit=frame;return;}
+ if(f.y>=0){f.juggleHits=0;f.juggleLocked=false;}
  const recoveryEnd=legacyRecoveryEnd(f,attack,frame);
  f.pulseMotion=null;f.cast=null;f.guarding=false;f.moving=false;f.sprinting=false;f.vx=0;f.vy=0;
  f.legacyMotion=hasLegacyMotion(f,attack)?{x:f.x,y:f.y,start:frame,attack:{...attack},direction,wall:false}:null;
