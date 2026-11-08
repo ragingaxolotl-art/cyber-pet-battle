@@ -51,3 +51,21 @@
 .workspace-nav{display:flex;gap:12px;margin:16px 0}.storage-note{font-size:13px;color:#b4c7d2}.mode-badge{padding:10px 18px;background:#203832;color:#d7f8ab;font-size:12px;letter-spacing:.04em}.combat-hud{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px}.combat-hud label{display:flex;gap:8px;align-items:center}.combat-hud input{width:auto}#fullscreenSlots{display:none}.arena-shell:fullscreen{overflow:auto;background:#0b172b;display:flex;flex-direction:column;justify-content:center}.arena-shell:fullscreen .stage{min-height:0}.arena-shell:fullscreen canvas{max-height:60vh;object-fit:contain}.arena-shell:fullscreen #fullscreenSlots{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;flex-basis:100%}.arena-shell:fullscreen #fullscreenSlots .attack-slot{grid-column:auto;grid-row:auto;min-height:65px;font-size:12px}.control-settings{margin:12px 0;padding:12px;border:1px solid #365065}.control-settings label{display:inline-flex;align-items:center;gap:8px;margin:12px}#lastAttackResult{font-size:13px;line-height:1.6}
 
 .attack-slot:nth-child(9){grid-column:11/span 4;grid-row:3}
+
+/* Keep setup and replay visible together; stack them on classroom phones. */
+#matchupDialog{width:min(1180px,96vw);max-width:1180px;max-height:94vh;padding:24px;overflow:auto}
+.matchup-layout{display:grid;grid-template-columns:minmax(280px,2fr) minmax(0,3fr);gap:24px;align-items:start}
+.matchup-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.matchup-controls>label{display:flex;flex-direction:column;gap:6px;margin:0;min-width:0}
+.matchup-controls>p,.matchup-controls>details,.matchup-actions{grid-column:1/-1}
+.matchup-controls input,.matchup-controls select{width:100%;min-width:0}
+.matchup-controls p{margin:0;line-height:1.5;color:var(--dim)}
+.matchup-actions{display:flex;gap:8px;flex-wrap:wrap}
+.matchup-results{position:sticky;top:0;min-width:0;padding:16px;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+#matchupCanvas{aspect-ratio:960/300;border:1px solid var(--line);margin:16px 0}
+#matchupSummary{line-height:1.6;min-height:3em}
+#matchupLog{max-height:220px;overflow:auto;padding-left:24px;line-height:1.7}
+#matchupFrame{width:100%}#matchupFrameLabel{display:block;line-height:1.5}
+#closeMatchup{margin-top:16px}select:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+@media(max-width:760px){#matchupDialog{padding:16px}.matchup-layout{grid-template-columns:1fr}.matchup-results{position:static}.matchup-controls{grid-template-columns:1fr 1fr}}
+@media(max-width:400px){.matchup-controls{grid-template-columns:1fr}.matchup-actions button{flex:1}}

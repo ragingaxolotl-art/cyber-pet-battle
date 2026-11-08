@@ -322,3 +322,17 @@ Source suites passed: 275 Arena / 1135 Studio. Live verification fetched 98 file
 Finished: automatic hit/block/parry/whiff follow-ups, authoring controls, eight-transition chain limit, resource checks, comparison replay and eligible-attempt failure explanations, version-6 transport, armor/invulnerability/simultaneous interruption coverage, deployment and live-code verification. The ninth C attack slot remains included.
 
 Next: improve comparison duration for late automatic whiff follow-ups, audit contextual explanations, and perform browser UI/accessibility verification when available. Still left: movement cancels, broader conditional rules, combo/juggle limits, advanced projectile interactions, clashing, animation anchors/hurtboxes, expanded timeline editing and remaining UI/UX audit items. Overall goal remains active.
+
+### Duration and ninth-slot status — live verified
+
+Arena commit 10e786d1514c71f8e9840242ed89e5db88ac8970 deployed successfully in Pages run 42502365709. The earlier eb2f088 deployment failed its test gate because a remounted SSD copy contained the obsolete invalid recovery=800 fixture; f1b4d45 corrects it to a valid contact-timeout projectile. All 276 Arena tests now pass. Studio source was unchanged (last full suite: 1135 passing).
+
+Live verification matched 42 published source/data files and passed downloaded-code comparison/C-slot workflows. Browser interaction confirmed a 30-frame run and truncation warning. Browser inspection discovered index%8 in status rendering, which incorrectly labeled C as Q and misaligned fullscreen statuses. Changed to KEYS.length; browser now reports C: Quick jab, and both keyboard descriptions include C. DOM regression checks ninth-slot labels in both layouts after an engine step.
+
+Evidence: /private/tmp/combat-duration-evidence/verification.json and tests.txt. Canonical SSD repeatedly unmounted during work; release was completed in /private/tmp/combat-duration-release, cloned from GitHub. Reconcile canonical checkout with main before further SSD development. Do not overwrite local work. No filesystem repair was attempted.
+
+Next: widen and organize comparison dialog (live screenshot showed narrow desktop layout and tiny replay); continue Studio browser audit, responsive/accessibility checks and outstanding combat/editor scope. Overall goal remains active.
+
+### Comparison layout — desktop preview checked
+
+Widened comparison to 1180px maximum with setup and replay side by side, a sticky result panel, bounded event log, and stacked layout below 760px. All 276 Arena tests pass. Local browser screenshot confirms the desktop layout; small-screen and published verification remain pending. User confirmed SSD disconnections are due to a fragile cable. Continue in the temporary checkout and sync GitHub; do not write to/repeatedly remount the SSD until connection is stable. Reconcile canonical checkout later without discarding changes.
