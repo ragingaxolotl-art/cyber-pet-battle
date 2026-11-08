@@ -1,7 +1,7 @@
 import {installTouchControls} from './touch-controls.js?v=20261108-movement-cancels';
 import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261108-movement-cancels';
 import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261108-movement-cancels';
-import {installMatchup} from './matchup.js?v=20261108-movement-cancels';
+import {installMatchup} from './matchup.js?v=20261108-impact-timing';
 import {attackChecks} from './attack-checks.js?v=20261108-movement-cancels';
 import {installHonours} from './honours-ui.js?v=20261108-movement-cancels';
 import {artworkDirection} from './shared/display.js?v=20261108-movement-cancels';
@@ -9,14 +9,14 @@ import {preparePetPlacement,petPlacement} from './shared/pet-placement.js?v=2026
 import {installWorkshop} from './workshop.js?v=20261108-movement-cancels';
 import {reactionMotion} from './reactions.js?v=20261108-movement-cancels';
 import {SprintInput,DefenseInput} from './keyboard.js?v=20261108-movement-cancels';
-import {Arena,fighter,RULES} from './engine.js?v=20261108-movement-cancels';
-import {KEYS,physicalCatalog,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261108-movement-cancels';
-import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261108-movement-cancels';
+import {Arena,fighter,RULES} from './engine.js?v=20261108-impact-timing';
+import {KEYS,physicalCatalog,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261108-impact-timing';
+import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261108-impact-timing';
 import {drawAttackEffect} from './effect-renderer.js?v=20261108-movement-cancels';
 import {posePlayback} from './shared/pose-timing.js?v=20261108-movement-cancels';
 import {readBackup} from './shared/backups.js?v=20261108-movement-cancels';
 import {accountClient} from './account.js?v=20261108-movement-cancels';
-import {createClassroomBank} from './shared/attack-bank.js?v=20261108-movement-cancels';
+import {createClassroomBank} from './shared/attack-bank.js?v=20261108-impact-timing';
 import {shapePoints} from './shared/hitbox-shapes.js?v=20261108-movement-cancels';
 const $=id=>document.getElementById(id),canvas=$('arena'),ctx=canvas.getContext('2d'),account=accountClient();
 let workshop=null,decks=null,training=true;

@@ -10,13 +10,13 @@ This overview supersedes the historical entries below. The overall goal is **not
 | Independent hits | Contact-relative projectile sequences; cast-relative melee/area sequences; per-hit damage/reactions, attached/repeated contact and common juggle budget | Richer recovery, hitstun deterioration and expanded event behaviors |
 | Geometry | Multiple grouped hitboxes and shared hit budgets | Rotation, animation anchors and authored hurtboxes |
 | Defense/interactions | Same-frame trades, armor, invulnerability, parry, projectile durability/clashes, reflection and absorption | Wider priority, guard break/crush and throws |
-| Follow-ups | Manual/automatic attack-to-attack windows with conditional outcomes and bounded chains | Movement cancels, hitstop/blockstun, counter-hit and combo scaling |
+| Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Hitstop/blockstun, counter-hit and combo scaling; broader physical-device QA |
 | Projectiles | Independent lifetime and interruption persistence; durability; reflected ownership/geometry; absorption | Homing, return, splitting, explosion and broader piercing/area behavior |
-| Saving | Version1–10 project/bank/tree transport; server v63; revision protection; local recovery; unreadable-response/expired-session handling | Authenticated anonymous browser round trip and future migrations |
-| Authoring | Quick Edit, selected hits, basic/advanced, undo/redo, recovery, timeline zoom, track locking/hiding, atomic multiselect movement, group dragging, same/cross-attack copy/paste, batch hit properties and reaction-block preview/apply | Template live verification; inheritance, movement/conditional blocks, audio/camera and expanded presets |
+| Saving | Version1–11 project/bank/tree transport; server v64; revision protection; local recovery; unreadable-response/expired-session handling | Authenticated anonymous browser round trip and future migrations |
+| Authoring | Quick Edit, selected hits, basic/advanced, undo/redo, recovery, timeline zoom, track locking/hiding, atomic multiselect movement, group dragging, same/cross-attack copy/paste, batch hit properties and reaction-block preview/apply | Inheritance, movement/conditional sequence blocks, audio/camera and expanded presets |
 | Testing | Two-attack comparison, replay, saved scenarios, diagnostics and shared regression cases | Remaining scenario coverage, usability checks and classroom-device playtesting |
 
-Latest recorded full source suites: Arena418 and Studio1252 passed. Studio includes concurrent authoring work; focused release tests provide the scoped evidence below. Counts do not prove browser usability or roadmap completion.
+Latest recorded full source suites: Arena466 and Studio1263 passed; the staged movement release also passed21 focused Studio checks. Studio includes concurrent authoring work; focused release tests provide the scoped evidence below. Counts do not prove browser usability or roadmap completion.
 
 ### Latest delivered milestones and evidence
 
@@ -1001,3 +1001,69 @@ Studio now offers Download for Arena practice alongside review export. It valida
 ### November 8 — positive browser import/comparison and narrow-screen controls
 
 Local browser imported the exact Studio practice download; Arena reported attacks added to trees. Comparison selected Fault-line strike, dash at frame0, distance500 and reported “Movement: cancel succeeded” plus frame0 dash log. Narrow viewport check showed wrapped touch buttons, visible Dash left/right controls and correct no-window feedback when pressed outside an attack. Screenshot /private/tmp/cyber-pet-movement-mobile.jpg; viewport restored. This verifies browser comparison and touch-button dispatch, not physical multitouch or a manually timed successful keyboard/mobile combat cancel. Client release staging/publication and authenticated classroom bank roundtrip remain pending.
+
+### November 8 — movement release deployment underway
+
+Arena646b958 deployed successfully via Pages42517217515; live engine, matchup, movement rules and index match the exact commit. Studiofb6e46b (29 scoped files; other root entries preserved) is uploading through Pages42517220963, still in progress at last check. Staged Studio21 focused tests and Arena466 full tests passed. Full paired live verifier prepared at /private/tmp/verify_movement_release.py; run after Studio succeeds. Release evidence: release-staging/20261108-movement-cancels. Do not claim both clients live before verifying Studio’s same job.
+
+### November 8 — paired movement release live verified
+
+Arena646b958 / Pages42517217515 and Studiofb6e46b / Pages42517220963 both completed successfully. Live hashes matched29 Arena and29 Studio release files. Fifteen focused tests against downloaded Studio code passed. Server64 already supports version11. Evidence: release-staging/20261108-movement-cancels/deployment-status.json, live-file-verification.json and live-movement-tests.txt. Local browser previously verified Studio edit/export, exact-file Arena import, successful dash comparison and narrow-screen controls. Live browser smoke testing and authenticated classroom-bank roundtrip remain outstanding; overall roadmap remains active.
+
+### November 8 — live movement browser smoke passed
+
+Published Arena imported the anonymous practice artifact and comparison reported successful dash cancellation at frame0. Published Studio created a movement window, changed it to Dash/Any result, and updated the timeline label. Screenshot: /private/tmp/cyber-pet-live-movement.jpg. Teacher connection visibly shows signed out; authenticated bank roundtrip remains unverified and no teacher/student bank content was accessed. Paired release browser smoke is complete, with manual combat timing/physical multitouch still additional QA. Next combat work: establish clock semantics and bounded hitstop/blockstun behavior without breaking scheduled/contact timing or movement cancels.
+
+### November 8 — contact feedback foundation (local, inactive)
+
+Audited Arena global-frame timers and Studio preview loops. Added matching contact-feedback validation and order-independent contact aggregation modules: optional hitstop/blockstop0–20 frames, blockstun0–120, simultaneous stop=max, per-target blockstun=max; misses/evades/parries/invulnerability request no ordinary stop. Missing settings retain zero timing changes. This module is not yet imported by runtime/schema/editor and is not published.
+
+Integration plan: keep combat frame frozen during global hitstop while a separate presentation tick consumes stop; do not age projectiles/statuses/cooldowns/windows or regenerate resources during that freeze. Resolve all same-frame contacts before requesting stop. Track blockstun separately from hit stun, retain guarding while locked, reject attacks/movement until expiry, and start its countdown only as combat resumes. Update Studio timelines/replay to distinguish presentation from combat frames; tests must cover scheduled/contact sequences, trades, projectiles, cancels, pause/reset, and zero-setting legacy parity. Version12 client/server transport and controls required before publication. Full Arena469 tests pass.
+
+### November 8 — local Arena hitstop runtime
+
+Arena now aggregates accepted damage/push/sequence contact feedback after full-frame resolution, then freezes combat ticks for the maximum requested hitstop/blockstop. Separate presentationFrame counts active ticks while combat frame stays fixed; physics, resource regeneration, recovery, statuses, projectiles and cancel windows therefore retain their simulation time. Attack/jump/dodge/dash requests during the freeze are rejected. Menu pause preserves remaining stop; dummy reset clears it. Four regressions cover exact duration/state freeze, pause/reset, zero-duration legacy timing and both sides of a trade resolving before maximum stop. Arena473/473 passes. Not published: schema validation/version12, Studio preview clock integration, blockstun runtime, comparison-clock updates and UI still required.
+
+### November 8 — local Arena blockstun runtime
+
+Blocked contacts now impose a separate timed guard lock after all contacts resolve and before automatic follow-ups. It retains guard reduction, blocks movement/action requests, and counts only advancing combat frames after hitstop. Releasing guard during the lock does not remove protection; expiry returns control. Hit recovery/stun supersedes the lock, and dummy reset clears it. Added exact three-frame lock/two-frame stop and resource/action/guard-reset tests. Runtime remains local and incomplete pending Studio preview parity, version12 validation/transport, comparison clock semantics, controls and browser QA.
+
+### November 8 — local comparison combat/playback clocks
+
+Comparison replay now reports separate playback/combat frames. Scheduled movement/follow-up attempts wait through impact pause and execute once at their authored combat frame; starting offsets also use combat time. Replay duration remains a bounded playback limit and unfinished hitstop is reported. Cleared stale projectile clash reports on frozen ticks. Tests cover contact-frame and later movement attempts, no duplicated starts and a test ending during pause; updated UI assertion checks both frame labels. Full suites Arena478/478 and Studio1266/1266 pass. Unpublished; Studio preview parity, version12 persistence, controls and broader timing scenarios remain.
+
+### November 8 — local preview playback snapshots
+
+Shared legacy and sequence previews now annotate accepted outgoing contacts with impact-stop duration and expose a separate presentationFrames array that repeats frozen snapshots. Original frames remain combat-time authoring data, avoiding timing shifts during edits. Matching helper tests cover exact pause expansion, unchanged source snapshots and legacy contact playback length. Arena480 tests pass. This is an intermediate integration: Studio player still needs to consume presentationFrames; incoming-contact stop, blockstun preview state, sequence/guard parity tests, schema/version12 and controls remain required before publishing.
+
+### November 8 — local Studio playback integration, browser verification pending
+
+Studio player now advances presentation snapshots and renders their combat frame; scrubbing remains combat-frame based. Pause/resume retains the playback cursor, reset/scrub/recompute invalidate it, and visual-tail extension explicitly clears impactStop so a final contact cannot repeat pauses across added artwork frames. Existing Studio1268 checks passed. An attempted animation-loop DOM test could not obtain the initialized requestAnimationFrame callback in the simplified harness; it was removed rather than asserted as passing. Browser playback verification is required. Preview blockstun/incoming contacts, parity scenarios, version12 and controls remain incomplete; nothing from this milestone is published.
+
+### November 8 — local blockstun preview parity
+
+Legacy and sequence previews now track blockstunUntil and expose canAct=false during guard lock. A frame-by-frame test compares Arena’s lock against preview presentation snapshots through two stop frames and three blockstun frames. A scheduled two-hit guarded sequence test verifies second-hit extension, exact unlock and unchanged authored offsets. This covers outgoing blocked contacts; incoming test attacks, broader defense interactions and actual player browser verification remain. No publication; version12 transport/editor integration still pending.
+
+### November 8 — preview incoming attacks respect blockstun
+
+Fixed both ordinary and sequence previews allowing a scheduled incoming attack while its source opponent was blockstunned. They now report recovery interruption and permit the attempt at expiry. Matching regressions verify unchanged attacker HP during lock and damage at exact expiry. This does not yet author independent hitstop settings for the synthetic incoming test attack; that existing test input still describes only damage/frame. Next: version12 schema and UI with explicit timing diagnostics, followed by remaining parity/browser verification. Changes remain local and unpublished.
+
+### November 8 — local version12 contact-feedback persistence
+
+Both client schemas now validate contactFeedback, classify it as version12, reject mislabeled older containers, and accept version12 project/bank/tree formats. Arena catalog accepts v12. Classroom clients negotiate v12 reads and refuse unsupported writes before PUT. Matching tests cover bank serialization, unchanged legacy definitions, invalid bounds and mocked capability negotiation. Server remains deployed with version11 support, so contact-feedback classroom saves must remain refused until its migration. This local milestone is not published; editor controls, server upgrade, remaining parity/browser checks and paired release are still required.
+
+### November 8 — local impact timing editor
+
+Studio Defense section now includes a distinct Impact timing section for outgoing attacks: optional hit pause, blocked-hit pause and guard recovery. Controls validate bounded whole frames, use existing undo/history, explain combat vs playback clocks and version12 saving, and allow restoring defaults by removing the property. DOM workflow verified values, v12 save, invalid-value restoration, reset and Undo. Local only; live server still v11. Server migration, browser playback/input checks, remaining timing parity and paired release remain pending.
+
+### November 8 — local impact-timing browser verification
+
+The anonymous version-12 test project loaded in Studio. At quarter-speed playback, combat frame 29 remained visible for approximately 1.399 seconds, matching one normal frame plus 20 hitstop frames (21 / 15 = 1.4 seconds). Playback then advanced to recovery. Reset returned to frame 0. Evidence: `attack-studio-project/impact-timing-browser-qa.json` on the mounted combat workspace. These changes remain local and unpublished. Pause/resume, additional contact parity, diagnostics, classroom server version-12 support, and release verification remain.
+
+### November 8 — impact diagnostics and projectile playback parity (local)
+
+Added shared version-12 impact timing diagnostics, combat-versus-playback clock guidance, guard recovery guidance, and inactive-setting notices for support/unblockable moves. Three diagnostic tests pass in each client. Added four frame-by-frame Arena/preview projectile scenarios covering ordinary and attached attacks on hit/block: combat frame, pause duration, HP, guarded recovery, and eventual projectile removal agree. A blocked first contact correctly cancels attachment, so that case produces one hit. Full suites: Arena 493 passed; Studio 1,276 passed. Diagnostics sources match byte-for-byte. This milestone remains local; browser pause/resume checks, server version-12 support, and publication remain outstanding.
+
+### November 8 — classroom bank version-12 support published
+
+Sites release 65 deployed successfully at https://cyber-pet-classroom-settings.ragingaxolotl.chatgpt.site from source a44379f2faf354a7f3edeedb54607d688c0c6587. Live public capabilities advertise attack/bank formats 1–12. All 17 anonymous in-memory bank tests pass, including impact setting round trips, malformed-input rejection and older-client protection without replacing saved data. No real classroom bank records were read or written. Evidence: release-staging/20261108-impact-timing/server-publication.json. Studio/Arena impact-timing clients remain local and unpublished; browser pause/resume and scoped client release remain.
