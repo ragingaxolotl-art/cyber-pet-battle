@@ -197,3 +197,57 @@ Parry inspector/timeline controls, diagnostics, server support, more interaction
 Parry inspector/timeline controls and save/reload/undo workflow pass. Runtime has 14 passing parry tests, including exact boundaries, attack filters, invulnerability precedence and simultaneous independent hit groups exhausting a one-hit budget. This explicitly permits another independent hit on that same frame after the budget is exhausted. Automatic counterattack follow-ups remain unimplemented.
 
 Classroom v57 deployed successfully from 745a0af5c2e73b723de332a0181859d8f49a7fef (deployment appgdep_6aef5a835e788191969352753acad9fc). Eight bank tests and build passed; parry window validation and capability advertisement are enabled. No real classroom data was modified. Preparing frontend 20261107-parry; live frontend verification remains pending.
+
+### Parry live and cancel runtime groundwork
+
+Paired parry release verification succeeded: 91 files fetched, 89 expected hashes matched, both downloaded-code workflow suites passed, sample effect HTTP 200. Evidence: release-staging/20261107-parry/live-verification.json. This supersedes pending Studio parry notes. Browser visual QA remains unavailable.
+
+Local cancelWindows permit explicit follow-up attack IDs within absolute cast-frame windows and conditions any/hit/block/parry/whiff. Arena preserves art availability, energy, cooldown, stun and recovery checks; failed requests retain the current cast. Actual hit/block results include push attacks. Whiff requires completed active timing without a successful outcome and is restricted to damage/push moves. Successful parry can permit a manual follow-up; this does not implement an automatic counterattack. Sixteen cancel tests pass, including timing boundaries, resource failure, guarded contacts, pushes and parry follow-ups. Full suites: 228 Arena and 1126 Studio passing.
+
+This is runtime groundwork only. Cancel preview/authoring, version-5 project/tree/bank transport, server capability support, diagnostics, dodge/jump/dash cancels and automatic conditional follow-ups remain unfinished. Cancel transport currently rejects the optional field rather than exporting silently ignored behavior. Nothing from cancel work is published.
+
+### Cancel authoring and version-5 local transport — local, unpublished
+
+Version-5 projects, local banks and skill trees now preserve cancelWindows. Older envelopes reject the field; remote writes require advertised v5 support and revision protection. The deployed classroom backend remains v4 and correctly refuses these writes before PUT. This supersedes the earlier note that all cancel transport is gated.
+
+Studio now offers follow-up windows with start/duration, any/hit/block/parry/whiff conditions and 1–16 named allowed attacks. Missing project references remain visible and preserved. Removing the last window removes the optional field. Timeline moves/resizes use absolute cast frames and validated edits. Workflow coverage verifies creation, save/reload, invalid timing, minimum selection, deletion/undo, missing references and immutable timeline changes. Full suites pass: 1130 Studio and 231 Arena.
+
+Still required for this milestone: cancel-aware preview, classroom backend v5, reference/compatibility diagnostics, duplication/reference review, additional runtime edge cases, release preparation and live verification. Browser visual/accessibility QA remains outstanding. Nothing from cancel work is published. Broader conditional/projectile/combination and editor scope remains active.
+
+### Cancel references and diagnostics — local, unpublished
+
+Duplicating a move and synchronizing linked reskins now remap self-follow-up references to the destination move while preserving other named links. Duplicate targets collapse safely. The editor workflow test covers actual duplication; reskin tests cover both synchronization directions without mutating the source. Review-export eligibility no longer labels defense/cancel definitions legacy-compatible.
+
+Diagnostics now describe v5 transfer, manual follow-up conditions and the single-attack preview limitation, identify missing project references without deleting them, and flag impossible whiff conditions on support/defensive payloads. Project context reaches the existing results diagnostics. Full suites pass: 1132 Studio and 231 Arena. This is headless coverage, not visual QA.
+
+Still left before cancel publication: a useful follow-up preview/test workflow, classroom backend v5, runtime whiff/contact edge-case review, release preparation and live verification. Larger combat/editor scope remains active; no cancel changes are live yet.
+
+### Follow-up comparison and replay — local, unpublished
+
+Arena comparison accepts a selected A follow-up and an attempt frame relative to A’s start, after that frame’s contacts. It uses the real engine and reports successful cancellation, an ordinary start without cancelling, rejection reason or no attempt before the test ended. Original and follow-up contacts are reported separately; replay includes the replacement cast. Scenarios save follow-up IDs/timing, preserve old scenario defaults and reject missing saved follow-ups. Corrected outdated UI text claiming armor was unavailable.
+
+Four engine scenarios and a DOM workflow cover real contact/damage, exclusive window end, normal starts, block conditions, negative initial offsets, resource rejection, truncated tests, save/load and missing references. Full suites pass: 236 Arena / 1132 Studio. Visual QA is still outstanding.
+
+Remaining: Studio entry point for follow-up testing, contact-timeout whiff semantics (never-contact casts currently end without a whiff cancel opportunity), classroom backend v5, release preparation and live verification. Single-attack Studio preview still does not execute follow-ups. These changes are local only; broader goal remains active.
+
+### Contact timeout recovery and whiff boundaries — local, unpublished
+
+Contact-triggered moves now accept contact through startup + 600, then enter authored recovery on the following frame if no contact occurred. During that recovery, whiff follow-ups can activate; late overlap cannot trigger a new hit. Zero recovery ends the move immediately after the final contact opportunity. This changes previously missing Arena recovery after timeout and replaces Studio’s inconsistent extra active-duration estimate. Shared contact-timing helpers align ordinary and sequence cast ends and next-cast estimates. Defense snapshots no longer protect on the exclusive cast-end frame.
+
+Eight exact-boundary scenarios cover ordinary and sequence misses, contact on the deadline, late overlap, whiff eligibility, zero recovery, preview next-cast timing and actual incoming damage at defense expiry. Full suites passed: 244 Arena / 1132 Studio. Comparison UI now extends selected follow-up tests past their attempt frame where possible, capped at 900 frames; an initial offset plus a very late attempt can still exceed that cap and is reported as not attempted.
+
+Remaining before cancel release: Studio entry point for testing, classroom backend v5, release preparation and live verification. Single-attack Studio preview does not execute follow-ups; Arena comparison does. Visual/accessibility QA and the broader combat/editor scope remain unfinished. Nothing in this milestone is published.
+
+### C ninth attack slot — published and file-verified
+
+User requested C beside X as another attack slot. Independent Arena release 20261108-c-slot, commit 33f14bf6fc91dd5f3dc3acb7e3b2db3ccb211221, deployment run 42481003261 succeeded. All 36 fetched public HTML/CSS/JS/manifest files matched the tested release. Release suite: 215 tests. Current development suite including unfinished cancels: 247 Arena tests passing. Physical C is free Quick jab; mapper, fullscreen and custom sets expose nine slots. Legacy eight-slot profiles/drafts preserve assignments and append empty C. New profiles use version 2; older clients reject them. Separate defense defaults to F Block/V Dodge, and no longer offers C; Shift combined defense is preserved. No real profiles were accessed. Visual browser QA remains outstanding.
+
+Release was built in /private/tmp/cyber-pet-c-slot-release from the parry commit, excluding cancel work. The primary Arena checkout still has its earlier HEAD plus all local changes; remote main is now 33f14bf. Before the next publication, reconcile the release commit with development without discarding unpublished cancel work. Evidence: release-staging/20261108-c-slot/live-verification.json. Studio handoff and classroom v5 remain unfinished; overall goal stays active.
+
+### Studio-to-Arena follow-up testing — local, unpublished
+
+Each Studio follow-up window now has a Test this follow-up in Arena link. It transfers only project attack definitions, first attack ID, the first allowed follow-up ID and the window start frame. A new Arena tab opens an isolated comparison with adjustable opponent and timing; it does not import into learned moves, saved sets or pet profiles. Reopening ordinary comparison restores the current game catalog. No automatic battle starts.
+
+Same-origin, one-use browser storage transfer validates attack definitions/references, limits payloads to 2 MiB and 256 attacks, and expires after ten minutes. The URL contains only a random transfer ID. Missing or expired transfers show an actionable error. Studio click coverage verifies the real link and payload; Arena tests cover consumption, invalid origins/references, expiry and comparison storage isolation. Full suites pass: 249 Arena and 1132 Studio. Browser navigation/visual QA remains unverified; these are functional headless checks.
+
+Remaining for cancel release: classroom backend v5, reconcile the independently published C-slot commit with local development, prepare paired cache/version metadata, publish and verify live. Studio single-attack playback still does not chain attacks; the new link uses Arena’s comparison instead. Overall conditional/projectile/combo/UI scope remains active. C-slot release is live; this handoff and other cancel changes are not published.

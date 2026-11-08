@@ -1,3 +1,4 @@
+import {consumeComparisonTransfer} from './shared/comparison-transfer.js';
 import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261107-parry';
 import {installMatchup} from './matchup.js?v=20261107-parry';
 import {attackChecks} from './attack-checks.js?v=20261107-parry';
@@ -8,7 +9,7 @@ import {installWorkshop} from './workshop.js?v=20261107-parry';
 import {reactionMotion} from './reactions.js?v=20261107-parry';
 import {SprintInput,DefenseInput} from './keyboard.js?v=20261107-parry';
 import {Arena,fighter,RULES} from './engine.js?v=20261107-parry';
-import {KEYS,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261107-parry';
+import {KEYS,physicalCatalog,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261107-parry';
 import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261107-parry';
 import {visualFrame,visualOpacity,pathSample} from './shared/attack-motion.js?v=20261107-parry';
 import {posePlayback} from './shared/pose-timing.js?v=20261107-parry';
@@ -18,7 +19,7 @@ import {createClassroomBank} from './shared/attack-bank.js?v=20261107-parry';
 import {shapePoints} from './shared/hitbox-shapes.js?v=20261107-parry';
 const $=id=>document.getElementById(id),canvas=$('arena'),ctx=canvas.getContext('2d'),account=accountClient();
 let workshop=null,decks=null,training=true;
-let attacks=defaultCatalog().slice(0,8),pet=null,arena,keys=new Set(),images=new Map(),refs={},effects={},effectImages=new Map(),last=0,accumulator=0,loadGeneration=0;
+let attacks=physicalCatalog(),pet=null,arena,keys=new Set(),images=new Map(),refs={},effects={},effectImages=new Map(),last=0,accumulator=0,loadGeneration=0;
 const sprint=new SprintInput(),defenseInput=new DefenseInput();
 const status=text=>$('status').textContent=text;
 const honours=installHonours({getPet:()=>pet,getArena:()=>arena,pause:()=>pause(),status});
@@ -62,7 +63,7 @@ $('resetDummy').onclick=()=>{arena.resetDummy();status('Dummy reset. No XP is aw
 $('knockdownTest').onclick=()=>{arena.testDummyReaction(false);start();};
 $('wallTest').onclick=()=>{arena.testDummyReaction(true);start();};
 reset();requestAnimationFrame(loop);
-try{workshop=await installWorkshop({getPet:()=>pet,pause,status,testAttack:a=>{$('moveTestChecks').replaceChildren(attackChecks(a,{expanded:true}));$('moveTestChecks').hidden=false;training=true;$('arenaMode').value='training';arena=new Arena(fighter(pet?.name||'Practice fighter',pet?petStats(pet):defaultStats(),pet),fighter('Training dummy',pet?petStats(pet):defaultStats()),[a],{training:true,decks:[{id:'preview',name:'Move test · '+a.name,slots:[a,null,null,null,null,null,null,null]}]});arena.fighters[1].x=arena.fighters[0].x+100;renderSlots();start();},changed:data=>{attacks=data.attacks;decks=data.decks;reset();loadEffects(attacks).catch(()=>status('Some attack effects could not load.'));}});$('mapAttacks').disabled=false;$('skillTrees').disabled=false;}catch(e){status('Skill trees could not load: '+e.message);}
+try{workshop=await installWorkshop({getPet:()=>pet,pause,status,testAttack:a=>{$('moveTestChecks').replaceChildren(attackChecks(a,{expanded:true}));$('moveTestChecks').hidden=false;training=true;$('arenaMode').value='training';arena=new Arena(fighter(pet?.name||'Practice fighter',pet?petStats(pet):defaultStats(),pet),fighter('Training dummy',pet?petStats(pet):defaultStats()),[a],{training:true,decks:[{id:'preview',name:'Move test · '+a.name,slots:[a,...Array(KEYS.length-1).fill(null)]}]});arena.fighters[1].x=arena.fighters[0].x+100;renderSlots();start();},changed:data=>{attacks=data.attacks;decks=data.decks;reset();loadEffects(attacks).catch(()=>status('Some attack effects could not load.'));}});$('mapAttacks').disabled=false;$('skillTrees').disabled=false;}catch(e){status('Skill trees could not load: '+e.message);}
 
 try{refs=await (await fetch('references.json')).json();for(const url of new Set(['assets/arena.png',...Object.values(refs).map(r=>r.url)])){const image=await loadImage(url);if(image)images.set(url,image);}}catch{status('Some practice artwork could not load. Reload to try again.');}
 
@@ -71,12 +72,15 @@ $('accountDialog').addEventListener('close',()=>{$('pin').value='';});$('bankDia
 function drawCollision(box){ctx.beginPath();if(box.shape==='ellipse')ctx.ellipse(box.x+box.w/2,box.y+box.h/2,box.w/2,box.h/2,0,0,Math.PI*2);else{const points=shapePoints(box);ctx.moveTo(points[0].x,points[0].y);for(const p of points.slice(1))ctx.lineTo(p.x,p.y);ctx.closePath();}ctx.fill();ctx.globalAlpha=.65;ctx.strokeStyle=ctx.fillStyle;ctx.stroke();}
 $('directSet').onchange=()=>{arena.set=Number($('directSet').value);renderSlots();canvas.focus();};
 $('stepFrame').onclick=()=>{if(!training)return;pause();arena.paused=false;arena.tick();arena.paused=true;showOverlay();render();};
-for(const id of ['blockKey','dodgeKey'])for(const key of ['C','V','B','F','G','R','T','Y','H','J','K','L'])$(id).add(new Option(key,key));
-$('blockKey').value='C';$('dodgeKey').value='V';
+for(const id of ['blockKey','dodgeKey'])for(const key of ['F','V','B','G','R','T','Y','H','J','K','L'])$(id).add(new Option(key,key));
+$('blockKey').value='F';$('dodgeKey').value='V';
 try{const saved=JSON.parse(localStorage.getItem('cyber-pet-defense-controls')||'null');if(saved){for(const id of ['defenseMode','blockKey','dodgeKey'])if([...$(id).options].some(o=>o.value===saved[id]))$(id).value=saved[id];}}catch{}
-for(const id of ['defenseMode','blockKey','dodgeKey'])$(id).onchange=()=>{pause();if($('blockKey').value===$('dodgeKey').value){$('dodgeKey').value=$('blockKey').value==='V'?'C':'V';}try{localStorage.setItem('cyber-pet-defense-controls',JSON.stringify(Object.fromEntries(['defenseMode','blockKey','dodgeKey'].map(id=>[id,$(id).value]))));}catch{}$('guardHint').querySelector('span').textContent=$('defenseMode').value==='combined'?'Tap Shift to dodge · hold to block':$('blockKey').value+' blocks · '+$('dodgeKey').value+' dodges';};
+if($('blockKey').value===$('dodgeKey').value)$('blockKey').value=$('dodgeKey').value==='F'?'B':'F';
+$('guardHint').querySelector('span').textContent=$('defenseMode').value==='combined'?'Tap Shift to dodge · hold to block':$('blockKey').value+' blocks · '+$('dodgeKey').value+' dodges';
+for(const id of ['defenseMode','blockKey','dodgeKey'])$(id).onchange=()=>{pause();if($('blockKey').value===$('dodgeKey').value){$('dodgeKey').value=$('blockKey').value==='V'?'F':'V';}try{localStorage.setItem('cyber-pet-defense-controls',JSON.stringify(Object.fromEntries(['defenseMode','blockKey','dodgeKey'].map(id=>[id,$(id).value]))));}catch{}$('guardHint').querySelector('span').textContent=$('defenseMode').value==='combined'?'Tap Shift to dodge · hold to block':$('blockKey').value+' blocks · '+$('dodgeKey').value+' dodges';};
 if(['127.0.0.1','localhost'].includes(new URL(location.href).hostname)){const link=document.querySelector('a[href="https://ragingaxolotl-art.github.io/cyber-pet-play/attack-studio/design.html"]');if(link)link.href='/studio/design.html';}
 $('navPlay').onclick=()=>document.querySelector('.arena-shell').scrollIntoView({behavior:'smooth'});
 $('navMoves').onclick=()=>$('mapAttacks').click();$('navPet').onclick=()=>$('connect').click();
 
-installMatchup({getAttacks:()=>attacks,pause});
+const matchup=installMatchup({getAttacks:()=>attacks,pause});
+try{const transfer=consumeComparisonTransfer(location.hash);if(transfer)matchup.openStudioTest(transfer);}catch(error){status(error.message);}

@@ -1,16 +1,26 @@
 import {Arena,fighter} from './engine.js?v=20261107-parry';
 import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261107-parry';
 // Isolated, deterministic comparison: no AI, saves, rewards, or pet-art restrictions.
-export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,placement='center',actionB='attack'}={}) {
+export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,placement='center',actionB='attack',followupA=null,followupFrame=12}={}) {
  for(const [value,min,max] of [[distance,0,800],[offset,-180,180],[frames,1,900],[heightA,0,150],[heightB,0,150]])if(!Number.isInteger(value)||value<min||value>max)throw Error('Use a distance of 0–800, offset of −180–180, and duration of 1–900 frames.');
  if(!['center','left','right'].includes(placement)||!['attack','guard','dodge'].includes(actionB))throw Error('Choose a supported position and defensive scenario.');
+ if(followupA&&(!Number.isInteger(followupFrame)||followupFrame<0||followupFrame>899))throw Error('Use a follow-up frame from 0 to 899.');
+ const followup=followupA?structuredClone(followupA):null;if(followup)validateAttack(followup);
  const defensive=actionB==='attack'?second:{...freshAttack(),name:actionB==='guard'?'Guard for 120 frames':'Evade for 18 frames',payload:actionB==='guard'?'block':'dodge',delivery:'self',startup:0,active:actionB==='guard'?120:18,recovery:0,cost:0,blockPercent:100};
  const moves=[structuredClone(first),structuredClone(defensive)];moves.forEach(a=>validateAttack(a));
  const actors=[fighter('A',statsA),fighter('B',statsB)],arena=new Arena(...actors,moves);actors[0].x=480-distance/2;actors[1].x=480+distance/2;if(placement==='left'){actors[0].x=35;actors[1].x=35+distance;}if(placement==='right'){actors[0].x=925-distance;actors[1].x=925;}actors[0].y=-heightA;actors[1].y=-heightB;arena.ai=false;arena.paused=false;
- const starts=[Math.max(0,-offset),Math.max(0,offset)],rows=[],replay=[],casts=[null,null],started=[false,false];let simultaneous=false;
+ const starts=[Math.max(0,-offset),Math.max(0,offset)],rows=[],replay=[],casts=[null,null],started=[false,false];let simultaneous=false,followupCast=null,followupResult=followup?{attempted:false,started:false,cancelled:false,reason:'Test ended before the follow-up attempt.'}:null;
  for(let step=0;step<frames&&!arena.winner;step++) {
   for(let i=0;i<2;i++)if(step===starts[i]){const reason=arena.reason(actors[i],moves[i]);started[i]=arena.attack(actors[i],moves[i]);casts[i]=actors[i].cast;rows.push({frame:step,actor:i===0?'A':'B',event:started[i]?'Started '+moves[i].name:'Could not start: '+reason});}
+  // Run after this frame's contacts, using the same age as the authored cast window.
   const hp=actors.map(f=>f.hp),active=actors.map(f=>f.cast);arena.tick();
+  if(followup&&step===starts[0]+followupFrame){
+   const previous=actors[0].cast,reason=arena.reason(actors[0],followup),accepted=arena.attack(actors[0],followup);
+   followupCast=accepted?actors[0].cast:null;
+   followupResult={attempted:true,started:accepted,cancelled:accepted&&previous===casts[0]&&!!previous,reason:accepted?'':reason||(arena.winner?'Match ended.':'Attack unavailable.')};
+   rows.push({frame:step,actor:'A',event:accepted?(followupResult.cancelled?'Cancelled into ':'Started without cancelling: ')+followup.name:'Follow-up rejected: '+followupResult.reason});
+  }
+
   replay.push({frame:step,fighters:actors.map(f=>({x:f.x,y:f.y,hp:f.hp,reaction:f.reaction,casting:f.cast?.a.name||''}))});
   const losses=actors.map((f,i)=>hp[i]-f.hp);if(losses.every(n=>n>0))simultaneous=true;
   for(let i=0;i<2;i++){
@@ -19,22 +29,24 @@ export function compareAttacks(first,second,{distance=50,offset=0,frames=600,sta
   }
  }
  const damage=actors.map(f=>f.maxHP-f.hp),outcome=simultaneous?'Trade: both took damage on the same frame':damage.every(n=>n>0)?'Both fighters took damage':damage[1]>0?'A dealt damage':damage[0]>0?'B dealt damage':'No damage dealt';
- return {outcome,damage,replay,started,contacts:casts.map(c=>c?.hits||0),rows,elapsed:arena.frame,winner:arena.winner,unfinished:actors.some(f=>f.cast||f.statuses.length||f.legacyMotion||f.pulseMotion)};
+ return {outcome,damage,replay,started,contacts:casts.map(c=>c?.hits||0),followup:followupResult?{...followupResult,contacts:followupCast?.hits||0}:null,rows,elapsed:arena.frame,winner:arena.winner,unfinished:actors.some(f=>f.cast||f.statuses.length||f.legacyMotion||f.pulseMotion)};
 }
-export function installMatchup({getAttacks,pause}) {
- const $=id=>document.getElementById(id);let result=null;
+export function installMatchup({getAttacks:sourceAttacks,pause}) {
+ const $=id=>document.getElementById(id);let result=null,testAttacks=null;const getAttacks=()=>testAttacks||sourceAttacks();
  for(const side of ['A','B'])for(const stat of STATS){const label=document.createElement('label'),input=document.createElement('input');label.textContent=side+' '+stat;input.type='number';input.min=0;input.max=99;input.value=20;input.id='matchup'+side+stat;label.append(input);$('matchupStats').append(label);}
- const configuration=()=>({placement:$('matchupPlacement').value,actionB:$('matchupActionB').value,distance:Number($('matchupDistance').value),offset:Number($('matchupOffset').value),heightA:Number($('matchupHeightA').value),heightB:Number($('matchupHeightB').value),...Object.fromEntries(['A','B'].map(side=>['stats'+side,Object.fromEntries(STATS.map(stat=>[stat,Number($('matchup'+side+stat).value)]))]))});
+ const configuration=()=>({followupId:$('matchupFollowup').value,followupFrame:Number($('matchupFollowupFrame').value),placement:$('matchupPlacement').value,actionB:$('matchupActionB').value,distance:Number($('matchupDistance').value),offset:Number($('matchupOffset').value),heightA:Number($('matchupHeightA').value),heightB:Number($('matchupHeightB').value),...Object.fromEntries(['A','B'].map(side=>['stats'+side,Object.fromEntries(STATS.map(stat=>[stat,Number($('matchup'+side+stat).value)]))]))});
  function draw(){if(!result)return;const shot=result.replay[Number($('matchupFrame').value)];if(!shot)return;const canvas=$('matchupCanvas'),ctx=canvas.getContext('2d');ctx.clearRect(0,0,960,300);ctx.fillStyle='#172331';ctx.fillRect(0,0,960,300);ctx.fillStyle='#aac2d0';ctx.fillRect(0,250,960,2);for(const [i,f] of shot.fighters.entries()){ctx.fillStyle=i?'#f5b46a':'#75d5ef';ctx.fillRect(f.x-14,250+f.y-60,28,60);ctx.fillText((i?'B':'A')+' '+f.hp+' HP',f.x-35,250+f.y-70);} $('matchupFrameLabel').textContent='Frame '+shot.frame+' · '+shot.fighters.map((f,i)=>(i?'B':'A')+': '+(f.casting||f.reaction)).join(' · ');}
  $('matchupFrame').oninput=draw;
  $('saveMatchup').onclick=()=>{try{localStorage.setItem('cyber-pet-matchup-scenario-v1',JSON.stringify({version:1,a:$('matchupA').value,b:$('matchupB').value,options:configuration()}));$('matchupSummary').textContent='Scenario saved on this device.';}catch(e){$('matchupSummary').textContent='Could not save scenario: '+e.message;}};
- $('loadMatchup').onclick=()=>{try{const saved=JSON.parse(localStorage.getItem('cyber-pet-matchup-scenario-v1'));if(saved?.version!==1)throw Error('No saved scenario.');const list=getAttacks(),first=list.find(a=>a.id===saved.a),second=list.find(a=>a.id===saved.b);if(!first||!second)throw Error('A saved attack is unavailable. Import its project or tree first.');compareAttacks(first,second,{...saved.options,frames:1});for(const side of ['A','B']){ $('matchup'+side).value=saved[side.toLowerCase()];$('matchupHeight'+side).value=saved.options['height'+side];for(const stat of STATS)$('matchup'+side+stat).value=saved.options['stats'+side][stat];} $('matchupPlacement').value=saved.options.placement||'center';$('matchupActionB').value=saved.options.actionB||'attack';$('matchupDistance').value=saved.options.distance;$('matchupOffset').value=saved.options.offset;$('matchupSummary').textContent='Scenario restored. Run comparison to update results.';}catch(e){$('matchupSummary').textContent=e.message;}};
+ $('loadMatchup').onclick=()=>{try{const saved=JSON.parse(localStorage.getItem('cyber-pet-matchup-scenario-v1'));if(saved?.version!==1)throw Error('No saved scenario.');const list=getAttacks(),first=list.find(a=>a.id===saved.a),second=list.find(a=>a.id===saved.b);if(!first||!second)throw Error('A saved attack is unavailable. Import its project or tree first.');const followup=saved.options.followupId?list.find(a=>a.id===saved.options.followupId):null;if(saved.options.followupId&&!followup)throw Error('The saved follow-up is unavailable. Import its project or tree first.');compareAttacks(first,second,{...saved.options,followupA:followup,frames:1});$('matchupFollowup').value=saved.options.followupId||'';$('matchupFollowupFrame').value=saved.options.followupFrame??12;for(const side of ['A','B']){ $('matchup'+side).value=saved[side.toLowerCase()];$('matchupHeight'+side).value=saved.options['height'+side];for(const stat of STATS)$('matchup'+side+stat).value=saved.options['stats'+side][stat];} $('matchupPlacement').value=saved.options.placement||'center';$('matchupActionB').value=saved.options.actionB||'attack';$('matchupDistance').value=saved.options.distance;$('matchupOffset').value=saved.options.offset;$('matchupSummary').textContent='Scenario restored. Run comparison to update results.';}catch(e){$('matchupSummary').textContent=e.message;}};
 
- function refresh(){const attacks=getAttacks();for(const id of ['matchupA','matchupB']){const old=$(id).value;$(id).replaceChildren();for(const a of attacks)$(id).add(new Option(a.name,a.id));if(attacks.some(a=>a.id===old))$(id).value=old;}}
- $('openMatchup').onclick=()=>{pause();refresh();$('matchupDialog').showModal();};$('closeMatchup').onclick=()=>$('matchupDialog').close();
- $('runMatchup').onclick=()=>{try{const list=getAttacks();result=compareAttacks(list.find(a=>a.id===$('matchupA').value),list.find(a=>a.id===$('matchupB').value),configuration());
- $('matchupSummary').textContent=`${result.outcome}. A lost ${result.damage[0]} HP; B lost ${result.damage[1]} HP. ${result.elapsed} frames simulated.${result.unfinished?' Some effects remain active at the test limit.':''}`;
+ function refresh(){const attacks=getAttacks();for(const id of ['matchupA','matchupB','matchupFollowup']){const old=$(id).value;$(id).replaceChildren();if(id==='matchupFollowup')$(id).add(new Option('No follow-up',''));for(const a of attacks)$(id).add(new Option(a.name,a.id));if(attacks.some(a=>a.id===old))$(id).value=old;}}
+ $('openMatchup').onclick=()=>{testAttacks=null;pause();refresh();$('matchupDialog').showModal();};$('closeMatchup').onclick=()=>$('matchupDialog').close();
+ $('runMatchup').onclick=()=>{try{const list=getAttacks();const config=configuration();result=compareAttacks(list.find(a=>a.id===$('matchupA').value),list.find(a=>a.id===$('matchupB').value),{...config,frames:config.followupId?Math.min(900,Math.max(600,config.followupFrame+Math.max(0,-config.offset)+121)):600,followupA:list.find(a=>a.id===config.followupId)||null});
+ $('matchupSummary').textContent=`${result.outcome}. A lost ${result.damage[0]} HP; B lost ${result.damage[1]} HP. ${result.elapsed} frames simulated.${result.followup?` Follow-up: ${result.followup.started?(result.followup.cancelled?'cancel succeeded':'started without cancelling'):(result.followup.attempted?'rejected — '+result.followup.reason:'not attempted')}; ${result.followup.contacts} contacts.`:''}${result.unfinished?' Some effects remain active at the test limit.':''}`;
  $('matchupFrame').max=Math.max(0,result.replay.length-1);$('matchupFrame').value=0;draw();
  const log=$('matchupLog');log.replaceChildren();for(const row of result.rows){const item=document.createElement('li');item.textContent=`Frame ${row.frame} · ${row.actor}: ${row.event}`;log.append(item);}
  }catch(e){$('matchupSummary').textContent=e.message;$('matchupLog').replaceChildren();}};
+ return {openStudioTest(data){testAttacks=structuredClone(data.attacks);pause();refresh();$('matchupA').value=data.first;$('matchupB').value=data.first;$('matchupFollowup').value=data.followup;$('matchupFollowupFrame').value=data.frame;$('matchupActionB').value='guard';$('matchupDialog').showModal();$('matchupSummary').textContent='Studio test ready. Choose B’s action and attempt frame, then Run comparison. This does not change your loadouts.';}};
+
 }

@@ -1,19 +1,21 @@
+import {CONTACT_TIMEOUT,contactDeadline,castEnd} from './shared/contact-timing.js';
+import {canCancel} from './shared/cancel-windows.js';
 import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry} from './shared/defense-windows.js?v=20261107-parry';
 import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261107-parry';
 import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261107-parry';
 import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261107-parry';
 import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261107-parry';
 import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261107-parry';
-import {availability,mappedAttack} from './catalog.js?v=20261107-parry';
+import {KEYS,availability,mappedAttack} from './catalog.js?v=20261107-parry';
 import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261107-parry';
-export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:600};
+export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:CONTACT_TIMEOUT};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
 export class Arena{
  constructor(player,opponent,attacks,options={}){this.fighters=[player,opponent];opponent.x=700;opponent.facing=-1;this.attacks=attacks;this.frame=0;this.set=0;this.paused=true;this.winner=null;this.winnerIndex=null;this.honourMetrics={guards:0,dodges:0,attacks:new Set()};this.events=[];this.training=options.training===true;this.ai=!this.training;this.metrics={hits:0,damage:0,wallHits:0,knockdowns:0};this.decks=options.decks||null;}
- slots(){return this.decks?this.decks[this.set].slots:this.attacks.slice(this.set*8,this.set*8+8);}
- rotate(){if(this.paused||this.winner)return;this.set=(this.set+1)%(this.decks?.length||Math.ceil(this.attacks.length/8));}
- reason(f,a){if(!a)return 'Empty slot';return availability(f.pet,a)||(f.reaction!=='standing'?'Recovering from a hit':f.dodgeUntil>this.frame?'Finish your dodge':f.guarding?'Lower your guard before attacking':f.cast?'Finish the current move':f.stun>this.frame?'Recovering from a hit':(f.cooldowns.get(a.id)||0)>this.frame?'Cooling down':f.energy<Math.ceil(a.cost*f.cost)?'Not enough energy':'');}
- attack(f,a){if(this.paused||this.winner||this.reason(f,a))return false;this.faceOpponents();a=mappedAttack(f.pet,a);const tm=timing(a,f.stats);if(a.hitEvents)tm.active=sequenceDuration(a);const cost=Math.ceil(a.cost*f.cost);f.energy-=cost;f.cooldowns.set(a.id,this.frame+Math.max(tm.cooldown,tm.startup+tm.active+tm.recovery));f.cast={a,tm,start:this.frame+1,x:f.x,y:f.y,facing:f.facing,groupTracker:createGroupHitTracker(),defenseState:createDefenseState(),hits:0,lastHit:-999,impact:a.impactTrigger==='contact'?null:tm.startup,sequence:a.hitEvents?sequenceState():null};return true;}
+ slots(){return this.decks?this.decks[this.set].slots:this.attacks.slice(this.set*KEYS.length,(this.set+1)*KEYS.length);}
+ rotate(){if(this.paused||this.winner)return;this.set=(this.set+1)%(this.decks?.length||Math.ceil(this.attacks.length/KEYS.length));}
+ reason(f,a){if(!a)return 'Empty slot';return availability(f.pet,a)||(f.reaction!=='standing'?'Recovering from a hit':f.dodgeUntil>this.frame?'Finish your dodge':f.guarding?'Lower your guard before attacking':f.cast&&!canCancel(f.cast,a,this.frame-f.cast.start)?'Finish the current move':f.stun>this.frame?'Recovering from a hit':(f.cooldowns.get(a.id)||0)>this.frame?'Cooling down':f.energy<Math.ceil(a.cost*f.cost)?'Not enough energy':'');}
+ attack(f,a){if(this.paused||this.winner||this.reason(f,a))return false;this.faceOpponents();a=mappedAttack(f.pet,a);const tm=timing(a,f.stats);if(a.hitEvents)tm.active=sequenceDuration(a);const cost=Math.ceil(a.cost*f.cost);f.energy-=cost;f.cooldowns.set(a.id,this.frame+Math.max(tm.cooldown,tm.startup+tm.active+tm.recovery));f.cast={a,tm,start:this.frame+1,x:f.x,y:f.y,facing:f.facing,groupTracker:createGroupHitTracker(),defenseState:createDefenseState(),outcomes:new Set(),hits:0,lastHit:-999,impact:a.impactTrigger==='contact'?null:tm.startup,sequence:a.hitEvents?sequenceState():null};return true;}
  dodge(f){
   if(this.paused||this.winner)return 'Start or resume the round first';
   const problem=availability(f.pet,{motion:'dodge_side'});
@@ -60,7 +62,7 @@ export class Arena{
   let box=worldBox(a,a.impactTrigger==='contact'&&cast.impact!==null?Math.min(age,cast.impact):age,f.stats,cast.facing);box.x+=cast.x;box.y+=cast.y;
   if(cast.sequence?.attached&&a.projectileMode==='attached')box={...box,x:target.x-box.w/2,y:target.y-box.h};
   const hurt={x:target.x-14,y:target.y-(target.crouch?34:60),w:28,h:target.crouch?34:60};
-  const recipient=a.delivery==='self'?f:target,defense=recipient.cast,defAge=defense?this.frame-defense.start:0;
+  const recipient=a.delivery==='self'?f:target,candidate=recipient.cast,defAge=candidate?this.frame-candidate.start:0,defense=candidate&&defAge<castEnd(candidate.impact,candidate.tm)?candidate:null;
   const defending=defense&&defAge>=defense.tm.startup&&defAge<defense.tm.startup+defense.tm.active;
   const sequenceFrame=cast.sequence?.contactFrame,groupFrame=a.hitEvents?(sequenceFrame===null?0:age-sequenceFrame):age-tm.startup;
   const groupTime=a.hitEvents?(sequenceFrame??age):age;
@@ -76,7 +78,7 @@ export class Arena{
   const box=worldBox(a,a.impactTrigger==='contact'&&cast.impact!==null?Math.min(age,cast.impact):age,f.stats,cast.facing);box.x+=cast.x;box.y+=cast.y;
   const hurt={x:target.x-14,y:target.y-(target.crouch?34:60),w:28,h:target.crouch?34:60};
   const support=a.delivery==='self',contact=snapshot.contact;
-  if(cast.impact===null&&age>=tm.startup&&contact)cast.impact=age;
+  if(cast.impact===null&&age>=tm.startup&&age<=contactDeadline(tm)&&contact)cast.impact=age;
   const impact=cast.impact;
   const active=impact!==null&&age>=impact&&age<impact+tm.active;
  const groups=snapshot.groupContacts?.filter(g=>active&&cast.groupTracker.claim(target,g,age));
@@ -89,38 +91,38 @@ export class Arena{
    if(snapshot.evading||snapshot.invulnerable){if(!snapshot.invulnerable&&recipient===this.fighters[0]&&a.payload==='damage')this.honourMetrics.dodges++;this.emit(snapshot.invulnerable?'INVULNERABLE':'DODGE',recipient.x,recipient.y-70);}
    else {let amount=magnitude(a,f.stats);if(a.payload==='damage')amount=Math.round(amount*snapshot.damageMultiplier);
     if(a.payload==='damage'){const guard=snapshot.guarding&&a.blockable,armored=!guard&&claimArmor(snapshot.defense,a);amount=Math.round(amount*(guard?1-snapshot.guardReduction:1));const absorbed=Math.min(recipient.shield,amount);recipient.shield-=absorbed;amount-=absorbed;recipient.hp=Math.max(0,recipient.hp-amount);recipient.flash=this.frame+8;
-     if(guard&&recipient===this.fighters[0])this.honourMetrics.guards++;if(amount>0&&f===this.fighters[0]&&recipient===this.fighters[1])this.honourMetrics.attacks.add(a.id);if(!guard&&!armored)beginReaction(recipient,a,cast.facing,this.frame);if(armored)recipient.lastHit=this.frame;if(this.training&&recipient===this.fighters[1]){this.metrics.hits++;this.metrics.damage+=amount;}
+     cast.outcomes.add(guard?'block':'hit');if(guard&&recipient===this.fighters[0])this.honourMetrics.guards++;if(amount>0&&f===this.fighters[0]&&recipient===this.fighters[1])this.honourMetrics.attacks.add(a.id);if(!guard&&!armored)beginReaction(recipient,a,cast.facing,this.frame);if(armored)recipient.lastHit=this.frame;if(this.training&&recipient===this.fighters[1]){this.metrics.hits++;this.metrics.damage+=amount;}
      this.emit(guard?'GUARD −'+amount:armored?'ARMOR −'+amount:'−'+amount,recipient.x,recipient.y-70);
      if(!guard&&a.status!=='none')this.status(recipient,a);
     }else if(a.payload==='heal'){recipient.hp=Math.min(recipient.maxHP,recipient.hp+amount);this.emit('+'+amount,recipient.x,recipient.y-70);}
     else if(a.payload==='energy'){recipient.energy=Math.min(recipient.maxEnergy,recipient.energy+amount);this.emit('ENERGY +'+amount,recipient.x,recipient.y-70);}
     else if(a.payload==='shield'){recipient.shield=Math.max(recipient.shield,amount);recipient.shieldUntil=this.frame+a.shieldDuration;this.emit('SHIELD',recipient.x,recipient.y-70);}
-    else if(a.payload==='push'){if(snapshot.guarding&&a.blockable)this.emit('PUSH BLOCKED',recipient.x,recipient.y-70);else if(claimArmor(snapshot.defense,a)){recipient.lastHit=this.frame;this.emit('ARMORED',recipient.x,recipient.y-70);}else beginReaction(recipient,a,cast.facing,this.frame);}
+    else if(a.payload==='push'){cast.outcomes.add(snapshot.guarding&&a.blockable?'block':'hit');if(snapshot.guarding&&a.blockable)this.emit('PUSH BLOCKED',recipient.x,recipient.y-70);else if(claimArmor(snapshot.defense,a)){recipient.lastHit=this.frame;this.emit('ARMORED',recipient.x,recipient.y-70);}else beginReaction(recipient,a,cast.facing,this.frame);}
     if(!['damage','push','block','dodge'].includes(a.payload)&&a.status!=='none')this.status(recipient,a);
    }
   }
-  if(f.cast===cast&&((impact!==null&&age>=impact+tm.active+tm.recovery)||(impact===null&&age>=tm.startup+RULES.contactTimeout)))f.cast=null;
+  if(f.cast===cast&&age>=castEnd(impact,tm))f.cast=null;
  }
  resolveSequence(f,target,snapshot){
   const {cast,age}=snapshot,{a,tm,sequence:state}=cast;
   if(age<tm.startup)return;
   if(target.hp<=0)state.cancelled='Target defeated.';
-  for(const event of sequenceOpportunities(a,state,age,snapshot.sequenceContacts?(event=>snapshot.sequenceContacts.has(event.hitboxGroup)):snapshot.contact,target)){
+  for(const event of (state.contactFrame===null&&age>contactDeadline(tm)?[]:sequenceOpportunities(a,state,age,snapshot.sequenceContacts?(event=>snapshot.sequenceContacts.has(event.hitboxGroup)):snapshot.contact,target))){
    const guard=snapshot.guarding&&a.blockable;
    if(snapshot.evading||snapshot.invulnerable){hitResult(state,event,age,snapshot.invulnerable?'Invulnerable':'Dodged');state.cancelled=snapshot.invulnerable?'Contact invulnerable; attachment cancelled.':'Contact dodged; attachment cancelled.';this.emit(snapshot.invulnerable?'INVULNERABLE':'DODGE',target.x,target.y-70);continue;}
    const parry=claimParry(snapshot.defense,a);if(parry){hitResult(state,event,age,'Parried');state.cancelled='Contact parried; attachment cancelled.';this.parry(f,target,parry);continue;}
    const armored=!guard&&claimArmor(snapshot.defense,a);
    const amount=Math.round(event.damage*snapshot.damageMultiplier*(guard?1-snapshot.guardReduction:1)),absorbed=Math.min(target.shield,amount);
    target.shield-=absorbed;const damage=Math.min(target.hp,amount-absorbed);target.hp-=damage;cast.hits++;cast.lastHit=age;
-   hitResult(state,event,age,guard?'Blocked':armored?'Armored':'Connected');this.emit((guard?'GUARD −':armored?'ARMOR −':'−')+damage,target.x,target.y-70);
+   cast.outcomes.add(guard?'block':'hit');hitResult(state,event,age,guard?'Blocked':armored?'Armored':'Connected');this.emit((guard?'GUARD −':armored?'ARMOR −':'−')+damage,target.x,target.y-70);
    if(this.training&&target===this.fighters[1]){this.metrics.hits++;this.metrics.damage+=damage;}
    if(guard)state.cancelled='Contact blocked; attachment cancelled.';
    else {state.attached=true;if(armored)target.lastHit=this.frame;else {target.cast=null;target.guarding=false;applyPulseReaction(target,event,cast.facing,this.frame);}if(f===this.fighters[0]&&damage>0)this.honourMetrics.attacks.add(a.id);}
   }
   cast.impact=state.contactFrame;
   this.lastSequence={attack:a.name,results:state.results.map(r=>({...r})),reason:state.cancelled};
-  if(f.cast===cast&&((state.contactFrame===null&&age>=tm.startup+RULES.contactTimeout)||(state.contactFrame!==null&&age>=state.contactFrame+sequenceDuration(a)+tm.recovery)))f.cast=null;
+  if(f.cast===cast&&age>=castEnd(state.contactFrame,tm))f.cast=null;
  }
- parry(attacker,defender,window){beginReaction(attacker,{knockback:0,launchHeight:0,pushAxis:'x',hitstun:window.stun,flightFrames:1,floorSlam:false,wallSlam:false},-attacker.facing,this.frame);this.emit('PARRY',defender.x,defender.y-70);}
+ parry(attacker,defender,window){defender.cast?.outcomes.add('parry');beginReaction(attacker,{knockback:0,launchHeight:0,pushAxis:'x',hitstun:window.stun,flightFrames:1,floorSlam:false,wallSlam:false},-attacker.facing,this.frame);this.emit('PARRY',defender.x,defender.y-70);}
  status(f,a){const previous=f.statuses.find(s=>s.type===a.status);const refreshed=refreshStatus(previous,a,this.frame,f.resistance);f.statuses=f.statuses.filter(s=>s.type!==a.status);f.statuses.push(refreshed);}
 }

@@ -8,5 +8,5 @@ export class LoadoutDrafts {
   clear(){this.drafts.clear();this.undo=[];}
   restore(){const previous=this.undo.pop();if(previous)this.drafts.set(previous.id,previous);return previous;}
   save(storage,key){storage.setItem(key,JSON.stringify([...this.drafts.values()]));}
-  load(storage,key,sets){this.clear();try{const list=JSON.parse(storage.getItem(key)||'[]');if(!Array.isArray(list))return;for(const s of list){if(sets.some(v=>v.id===s.id)&&typeof s.name==='string'&&s.name.length<=32&&Array.isArray(s.slots)&&s.slots.length===8&&s.slots.every(v=>v===null||typeof v==='string'))this.drafts.set(s.id,s);}}catch{}}
+  load(storage,key,sets){this.clear();try{const list=JSON.parse(storage.getItem(key)||'[]');if(!Array.isArray(list))return;for(const s of list){if(sets.some(v=>v.id===s.id)&&typeof s.name==='string'&&s.name.length<=32&&Array.isArray(s.slots)&&[8,9].includes(s.slots.length)&&s.slots.every(v=>v===null||typeof v==='string'))this.drafts.set(s.id,{...s,slots:s.slots.length===8?[...s.slots,null]:s.slots});}}catch{}}
 }

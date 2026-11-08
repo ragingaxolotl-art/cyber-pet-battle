@@ -14,11 +14,14 @@ export function estimateSkillXP(data,skill){
 export function trainingCredit(data={}){const recorded=data.lifetime_xp&&STATS.every(k=>typeof data.lifetime_xp[k]==='number'&&Number.isFinite(data.lifetime_xp[k])&&data.lifetime_xp[k]>=0&&data.lifetime_xp[k]<=1e12);const bySkill=Object.fromEntries(STATS.map(k=>[k,recorded?data.lifetime_xp[k]:estimateSkillXP(data,k)]));return {total:Object.values(bySkill).reduce((a,b)=>a+b,0),bySkill,estimated:!recorded};}
 export function xpForPoints(points){return PROGRESSION.firstPointXP*points+PROGRESSION.pointStepXP*points*(points-1)/2;}
 export function pointsForXP(xp){xp=Math.min(6e12,finite(xp));const b=PROGRESSION.firstPointXP-PROGRESSION.pointStepXP/2;return Math.floor((-b+Math.sqrt(b*b+2*PROGRESSION.pointStepXP*xp))/PROGRESSION.pointStepXP+1e-9);}
-export function freshProfile(petId){return {version:1,petId,maxTrainingXP:0,purchases:[],sets:[{id:'custom_1',name:'My set',slots:Array(8).fill(null)}]};}
+export function freshProfile(petId){return {version:2,petId,maxTrainingXP:0,purchases:[],sets:[{id:'custom_1',name:'My set',slots:Array(9).fill(null)}]};}
 export function validateProfile(p){
- if(!p||p.version!==1||typeof p.petId!=='string'||p.petId.length>160||!Number.isFinite(p.maxTrainingXP)||p.maxTrainingXP<0||p.maxTrainingXP>6e12||!Array.isArray(p.purchases)||p.purchases.length>512||!Array.isArray(p.sets)||p.sets.length>12)throw Error('Invalid battle profile.');
+ // Upgrade in memory; keep the original persisted value until a successful save.
+ if(p?.version===1){p=structuredClone(p);if(!Array.isArray(p.sets)||p.sets.some(s=>!Array.isArray(s?.slots)||s.slots.length!==8))throw Error('Invalid legacy attack slots.');for(const set of p.sets)set.slots.push(null);p.version=2;}
+
+ if(!p||p.version!==2||typeof p.petId!=='string'||p.petId.length>160||!Number.isFinite(p.maxTrainingXP)||p.maxTrainingXP<0||p.maxTrainingXP>6e12||!Array.isArray(p.purchases)||p.purchases.length>512||!Array.isArray(p.sets)||p.sets.length>12)throw Error('Invalid battle profile.');
  const ids=new Set();for(const item of p.purchases){if(!item||typeof item.nodeId!=='string'||item.nodeId.length>250||typeof item.attackId!=='string'||item.attackId.length>100||ids.has(item.nodeId)||!Number.isInteger(item.cost)||item.cost<0||item.cost>100)throw Error('Invalid purchase record.');if(item.attack){validateAttack(item.attack);if(item.attack.id!==item.attackId)throw Error("Mismatched learned attack.");}ids.add(item.nodeId);}
- const names=new Set(),setIds=new Set();for(const set of p.sets){if(!set||typeof set.id!=='string'||set.id.length>100||setIds.has(set.id)||typeof set.name!=='string'||!set.name.trim()||set.name.length>32||names.has(set.name.trim().toLowerCase())||!Array.isArray(set.slots)||set.slots.length!==8||set.slots.some(v=>v!==null&&(typeof v!=='string'||v.length>100)))throw Error('Each set needs a unique name and eight attack slots.');names.add(set.name.trim().toLowerCase());setIds.add(set.id);}
+ const names=new Set(),setIds=new Set();for(const set of p.sets){if(!set||typeof set.id!=='string'||set.id.length>100||setIds.has(set.id)||typeof set.name!=='string'||!set.name.trim()||set.name.length>32||names.has(set.name.trim().toLowerCase())||!Array.isArray(set.slots)||set.slots.length!==9||set.slots.some(v=>v!==null&&(typeof v!=='string'||v.length>100)))throw Error('Each set needs a unique name and nine attack slots.');names.add(set.name.trim().toLowerCase());setIds.add(set.id);}
  if(spentPoints(p)>pointsForXP(p.maxTrainingXP))throw Error('Purchases exceed earned skill points.');return p;
 }
 export function syncCredit(p,data){const next=structuredClone(p),credit=trainingCredit(data);next.maxTrainingXP=Math.max(next.maxTrainingXP,credit.total);return {profile:next,credit};}
@@ -38,5 +41,5 @@ export function saveSet(profile,set,allowed){const next=structuredClone(profile)
 export class ProfileStore{
  constructor(storage){this.storage=storage;this.key=null;this.raw=null;}
  open(petId){this.key='cyber-pet-battle-profile-v1:'+encodeURIComponent(petId);this.raw=this.storage.getItem(this.key);const p=this.raw?validateProfile(JSON.parse(this.raw)):freshProfile(petId);if(p.petId!==petId)throw Error('This profile belongs to another pet.');return p;}
- save(profile){validateProfile(profile);if(this.storage.getItem(this.key)!==this.raw)throw Error('This pet changed in another tab. Reopen its profile before saving.');const raw=JSON.stringify(profile);this.storage.setItem(this.key,raw);this.raw=raw;return profile;}
+ save(profile){profile=validateProfile(profile);if(this.storage.getItem(this.key)!==this.raw)throw Error('This pet changed in another tab. Reopen its profile before saving.');const raw=JSON.stringify(profile);this.storage.setItem(this.key,raw);this.raw=raw;return profile;}
 }
