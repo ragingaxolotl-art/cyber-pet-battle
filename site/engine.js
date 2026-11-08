@@ -14,11 +14,11 @@ import {canCancel,automaticFollowup,MAX_AUTOMATIC_FOLLOWUPS} from './shared/canc
 import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,claimProjectileDefense} from './shared/defense-windows.js?v=20261108-movement-cancels';
 import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-movement-cancels';
 import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-movement-cancels';
-import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-air-recovery';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-air-recovery';
+import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-bounces';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-bounces';
 import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-movement-cancels';
-import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-hitstun';
-import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-air-recovery';
+import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-bounces';
+import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-bounces';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:CONTACT_TIMEOUT};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,blockstunUntil:0,blockstunReduction:0,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,dashUntil:0,dashReady:0,dashDirection:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,hitstunUntil:0,airRecoveryUsed:false,statuses:[],shield:0,shieldUntil:0,flash:0};}
 export class Arena{
@@ -114,7 +114,7 @@ export class Arena{
   this.contactFeedback=[];this.frame++;
   const [p,o]=this.fighters;
   if(this.training){p.energy=p.maxEnergy;o.hp=Math.max(1,o.hp);}
-  for(const f of this.fighters){if(f.hp<=0)continue;const pulseOwned=advancePulseReaction(f,this.frame,35,RULES.width-35);const legacyOwned=!pulseOwned&&advanceReaction(f,this.frame,(name,who)=>this.reactionEvent(name,who));f.pulseOwned=pulseOwned;f.legacyOwned=!!legacyOwned;f.energy=Math.min(f.maxEnergy,f.energy+RULES.energyPerFrame);if(f.shieldUntil<=this.frame)f.shield=0;
+  for(const f of this.fighters){if(f.hp<=0)continue;const pulseOwned=advancePulseReaction(f,this.frame,35,RULES.width-35);const legacyOwned=!pulseOwned&&advanceReaction(f,this.frame,(name,who)=>this.reactionEvent(name,who));if(pulseOwned&&f.reactionBounceFrame===this.frame)this.reactionEvent(f.reactionBounceKind==='wall'?'WALL BOUNCE':'FLOOR BOUNCE',f);f.pulseOwned=pulseOwned;f.legacyOwned=!!legacyOwned;f.energy=Math.min(f.maxEnergy,f.energy+RULES.energyPerFrame);if(f.shieldUntil<=this.frame)f.shield=0;
    for(const s of f.statuses){if(statusTickDue(s,this.frame)){if(s.type==='regen')f.hp=Math.min(f.maxHP,f.hp+s.power);else if(['burn','poison'].includes(s.type))f.hp=Math.max(0,f.hp-s.power);s.next+=s.interval;}}
    f.statuses=f.statuses.filter(s=>s.until>this.frame);
    if(f.statuses.some(s=>s.type==='stun'))f.stun=Math.max(f.stun,this.frame+1);
@@ -128,7 +128,7 @@ export class Arena{
    if(f.reaction==='standing'&&f.dodgeUntil>this.frame&&f.stun<=this.frame){f.x-=f.facing*RULES.dodgeSpeed;}
    if(f.blockstunUntil<=this.frame&&f.reaction==='standing'&&!f.cast&&f.dodgeUntil<=this.frame&&f.dashUntil<=this.frame&&f.stun<=this.frame){const statusSpeed=movementMultiplier(f.statuses);
     if(direction){f.moving=true;f.sprinting=f===p&&direction===sprintDirection&&!f.guarding&&!f.crouch&&f.y===0;f.x+=direction*(RULES.move+f.stats.speed*.012)*statusSpeed*(f.crouch||f.guarding?.4:1)*(f.sprinting?RULES.sprintMultiplier:1);}if(jump&&f.y===0&&!f.crouch&&!f.guarding)f.vy=RULES.jump;}
-   if(!f.pulseOwned&&!f.legacyOwned&&f.reaction!=='wall'){f.vy+=RULES.gravity;f.y+=f.vy;}if(f.y>=0){f.y=0;f.vy=0;resetGroundedJuggle(f);if(f.reaction==='airborne'&&!f.pulseOwned)knockDown(f,this.frame,(name,who)=>this.reactionEvent(name,who));}f.x=clamp(f.x,35,RULES.width-35);
+   if(!f.pulseOwned&&!f.legacyOwned&&f.reaction!=='wall'){f.vy+=RULES.gravity;f.y+=f.vy;}if(f.y>=0){f.y=0;f.vy=0;resetGroundedJuggle(f);if(f.reaction==='airborne'&&!f.pulseOwned&&!f.pulseMotion)knockDown(f,this.frame,(name,who)=>this.reactionEvent(name,who));}f.x=clamp(f.x,35,RULES.width-35);
   }
   this.faceOpponents();p.backing=p.moving&&((input.has('ArrowRight')?1:0)-(input.has('ArrowLeft')?1:0))*p.facing<0;o.backing=false;
   if(this.ai&&!o.cast&&o.stun<=this.frame){o.facing=p.x<o.x?-1:1;if(this.frame%42===0){const choices=this.attacks.filter(a=>!this.reason(o,a));const a=choices[Math.floor(this.frame/42)%Math.max(1,choices.length)];if(a)this.attack(o,a);}}

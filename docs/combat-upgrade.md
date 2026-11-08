@@ -1,13 +1,13 @@
 # Combat tools upgrade — November 5, 2026
 
-## Current status — November 8, 2026 (reconciled after hitstun release)
+## Current status — November 8, 2026 (reconciled after air-recovery release)
 
 This overview supersedes the historical entries below. The overall goal is **not complete**; historical deferrals do not remove requirements.
 
 | Capability | Verified current implementation | Remaining work |
 | --- | --- | --- |
 | Arena controls | Nine slots including C beside X; mobile movement/block/dodge; input cleanup across focus loss, menus and restart | Physical multitouch and broader keyboard/accessibility playtesting |
-| Independent hits | Contact-relative projectile sequences; cast-relative melee/area sequences; per-hit damage/reactions, attached/repeated contact and common juggle budget | Air recovery, bounce limits and expanded event behaviors; format15 hitstun clients verified live |
+| Independent hits | Contact-relative projectile sequences; cast-relative melee/area sequences; per-hit damage/reactions, attached/repeated contact and common juggle budget | Bounce limits and expanded event behaviors; format15 hitstun and neutral air recovery verified live |
 | Geometry | Multiple grouped hitboxes and shared hit budgets | Rotation, animation anchors and authored hurtboxes |
 | Defense/interactions | Same-frame trades, armor, invulnerability, parry, projectile durability/clashes, reflection and absorption | Wider priority, guard break/crush and throws |
 | Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Broader physical-device QA and additional conditional transitions |
@@ -17,7 +17,7 @@ This overview supersedes the historical entries below. The overall goal is **not
 | Authoring | Quick Edit, selected hits, basic/advanced, undo/redo, recovery, timeline zoom, track locking/hiding, atomic multiselect movement, group dragging, same/cross-attack copy/paste, batch hit properties and reaction-block preview/apply | Inheritance, movement/conditional sequence blocks, audio/camera and expanded presets |
 | Testing | Two-attack comparison, replay, saved scenarios, diagnostics and shared regression cases | Remaining scenario coverage, usability checks and classroom-device playtesting |
 
-Latest verified release suites: Arena560 and staged Studio1295 passed. Hitstun release verified51 live file hashes and downloaded format/editor checks. Browser authoring/export/import smoke and automated recovery parity passed. Counts do not prove all browser workflows or roadmap completion.
+Latest verified release suites: Arena576 and staged Studio1296 passed. Air-recovery release verified44 live file hashes and downloaded editor checks. Local browser verified successful recovery at frame12, rejection at frame2, and Studio scenario save/restore. Counts do not prove all browser workflows or roadmap completion.
 
 ### Latest delivered milestones and evidence
 
@@ -37,7 +37,7 @@ Latest verified release suites: Arena560 and staged Studio1295 passed. Hitstun r
 
 Shared cross-attack combo tracking, optional damage scaling and counter-hit rules are delivered. Format15 adds optional hitstun deterioration and explicit per-event hitstun, preserving separate motion/knockdown/status recovery locks. Full release tests Arena560/Studio1295 pass; browser authoring/export/import smoke passed. Arena commit1e009f4 and Studio0efc647 are pushed; both Pages deployments succeeded and51 live files match the release. Server68 already supports15. See the latest dated entries and `release-staging/20261108-hitstun`.
 
-Next combat scope: explicit air recovery and bounce budgets, then broader projectile and defensive mechanics. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
+Next combat scope: shared wall/floor bounce reactions and budgets, then broader projectile and defensive mechanics. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
 
 ---
 
@@ -1205,3 +1205,39 @@ Added frame-by-frame Arena/preview regression coverage for attached and stationa
 ### Air recovery: Arena browser QA and release preparation
 
 Anonymous two-attack import verified in Arena browser: recovery succeeds at combat frame 12 and reports “Hitstun has not ended” at frame 2. Evidence saved in `release-staging/20261108-air-recovery/browser-qa.json`. Refreshed Arena dependency cache keys; complete Arena suite passes 576/576. Studio release is being staged against remote main with only recovery-owned modules and narrow design.js changes; publication and live verification still pending.
+
+### Air recovery release verified live
+
+Arena `5330cdac172d589a96f849b8174f152aa32bfa07` and Studio `0e3e35f45d22d352b6b2911a5cc4a8129f8e8267` deployed successfully (Pages42524883804/42524895428). Verified44 served files against release hashes (16 Arena,28 Studio); downloaded editor tests pass. Full release suites:576 Arena,1296 Studio. Evidence: `release-staging/20261108-air-recovery`. M/touch air recovery is once per landing, requires expired authored/status stun and minimum hit age, and grants no invulnerability or renewed juggle budget. Studio and comparison support saved frame-specific attempts. Global runtime action adds no persisted attack format, so server68/format15 remains current. Physical touch testing and authenticated bank browser roundtrip remain unverified. Next: real wall/floor bounces with shared contact handling and bounded repeat counts; broader report scope remains active.
+
+### Bounce foundation (local, not connected to combat yet)
+
+Audited legacy motion, pulse motion, Arena floor settling and ordinary-preview landing: all currently clamp/end trajectories, while grounded juggle resets run on floor contact. Real bounces must intercept boundaries before those resets. Added identical shared bounce-rules modules with validated wall/floor height, distance and duration, crossing detection (including overshoot/resting/corner ties), and one wall plus one floor rebound per airborne chain. Bounce contact must not replenish recovery or juggle budgets; reset only after settling. Four focused tests pass, mirrored in Studio. No bounce property is accepted by attack transport or exposed in the editor yet. Next: integrate rebound trajectories into ordinary and pulse simulation with frame-by-frame parity, then format/server migration, authoring, diagnostics and release. Existing slams remain unchanged.
+
+### Shared pulse bounce integration (local, unpublished)
+
+Pulse motion now detects wall/floor crossings before clamping or settling, creates an inward/upward rebound, and carries the remaining bounce rules through its trajectory. Rebounds preserve last-hit time and authored hitstun, add no damage contact, and do not reset recovery/juggle limits at floor contact. Ground reset skips an active rebound and clears bounce counts on final landing. Three pulse regressions pass in each client; full suites Arena583/Studio1303 passed before adding two further passing Arena/preview frame-by-frame scenarios (floor-only and wall-then-floor). Remaining before release: ordinary reaction integration, long-duration preview termination, explicit schema/version negotiation and server support, editor settings, diagnostics and browser/live verification. The new fields are not a supported transport contract yet.
+
+### Ordinary bounce integration and long preview completion (local)
+
+Ordinary Arena reactions and Studio preview now hand boundary collisions to the same rebound transition used by pulse reactions. An accepted rebound clears forced-fall motion, preserves authored hit age/stun, and owns position until landing. Ordinary preview action availability and combo locks include rebound motion. Both preview loops extend through active rebound motion so two120-frame rebounds finish rather than truncating after the original sequence. Eight frame-by-frame Arena/preview scenarios pass for ordinary/sequence attacks, floor-only/wall-then-floor, and10/120-frame rebounds. Full suites before final transition deduplication: Arena591/Studio1303; all15 bounce-focused tests passed after deduplication. Still local/unpublished; schema/version/server support, conflict semantics for explicit slam+bounce settings, editor controls, diagnostics, browser and release checks remain.
+
+### Bounce format16 and conflict validation (local)
+
+Both client schemas now validate ordinary/per-event bounces and classify either as format16. Project, bank, tree and Arena catalog readers accept16, while older envelopes reject bounce settings. Classroom clients negotiate16 only when advertised and refuse unsupported writes before PUT. Same-boundary slam+bounce combinations are rejected; different boundaries remain independently configurable. Sequence bounces belong to individual moving hits, not the attack root or none/suspend reactions. Three new transport/schema tests pass in each client, including unchanged legacy bank content and mocked old-server write refusal. Full suites Arena594/Studio1306 pass. Not published; live server remains68/format15. Next: server migration, editor controls/diagnostics, further edge coverage and browser/release verification.
+
+### Bounce authoring controls (local, unpublished)
+
+Added ordinary and selected-hit bounce controls for height, distance and duration, with add/remove, bounded validation, version16 guidance, and once-per-boundary limits. Matching slam prevents adding a bounce until the slam is disabled. Sequence conversion transfers ordinary bounces to the final moving hit with visible explanation; fixed stale root bounces in sequence commit deletion handling. DOM workflow test verifies save16, edits, invalid restoration, removal, Undo and conversion preservation. Browser QA, selected-hit direct-edit coverage, server16 support and release remain pending.
+
+### Bounce feedback and per-hit workflow checks (local)
+
+Extended Studio workflow coverage to selected-hit duration editing, invalid restoration, removal and Undo. Reaction changes that conflict with bounces now restore the prior selection with visible error feedback. Added shared diagnostics for format16, boundary reach, per-chain limits and preserved recovery budgets; preview event lists identify wall/floor rebounds and Arena emits pulse rebound labels. Strengthened ordinary parity checks to assert airborne stance during rebound, catching and fixing floor collision logic that incorrectly applied knockdown immediately after an ordinary rebound began. Full suites Arena594/Studio1307 pass. Server16 migration, broader edge cases, browser QA and scoped release remain; no live bounce release claimed.
+
+### Classroom server69 supports bounce format16 (live)
+
+Sites server69 deployed successfully from d8fcd6c45607a15ea6bf7904485a128645d1330a. Public capabilities now advertise formats1–16; revision protection remains enabled. All21 anonymous in-memory server tests pass, including ordinary and per-hit bounce roundtrips, old-client refusal, malformed/conflicting settings and saved-data preservation. Evidence: `release-staging/20261108-bounces/server-publication.json` and server-tests.txt. No real classroom writes were performed. Studio/Arena bounce clients remain local; browser QA and paired client publication/live verification are next. Authenticated anonymous browser bank roundtrip remains unverified.
+
+### Bounce Studio browser QA and scoped staging
+
+Local browser selected hit3, added a floor bounce, changed height to45 and exported a version16 practice project. Download inspected: exact height45/distance30/frames24 preserved. Inspector screenshot `/private/tmp/cyber-pet-bounce-editor.jpg`; evidence `release-staging/20261108-bounces/browser-qa.json`. Staged36 Studio files against published0e3e35f using feature-owned modules and narrow design.js patches, preserving unrelated editor work. Arena cache imports refreshed; Arena594/594 passes. Arena browser verification and client publication/live checks remain pending.

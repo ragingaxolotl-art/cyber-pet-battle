@@ -1,4 +1,5 @@
-import {juggleLegacyReaction,resetGroundedJuggle} from './shared/juggle-rules.js?v=20261108-air-recovery';
+import {startBoundaryBounce} from './shared/bounce-rules.js?v=20261108-bounces';
+import {juggleLegacyReaction,resetGroundedJuggle} from './shared/juggle-rules.js?v=20261108-bounces';
 import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261108-movement-cancels';
 import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261108-movement-cancels';
 export const REACTION={wallHold:RECOVERY_TIMING.wall,downHold:RECOVERY_TIMING.down,getUp:RECOVERY_TIMING.getUp,drag:.84};
@@ -22,6 +23,8 @@ export function beginReaction(f,attack,direction,frame,countJuggle=true){
 export function advanceReaction(f,frame,emit){
  if(f.legacyMotion){
   const motion=f.legacyMotion,a=motion.attack,sample=sampleLegacyMotion(motion,a,motion.direction,frame-motion.start,35,925);
+  const raw=sampleLegacyMotion(motion,a,motion.direction,frame-motion.start);
+  if(startBoundaryBounce(f,a.bounces,raw,motion.direction,frame,35,925)){emit(f.reactionBounceKind==='wall'?'WALL BOUNCE':'FLOOR BOUNCE',f);return true;}
   f.x=sample.x;f.y=sample.y;f.vx=0;f.vy=0;
   if(sample.wall&&a.wallSlam&&!motion.wall){motion.wall=true;f.stun=Math.max(f.stun,legacyRecoveryEnd(motion,a,motion.start,true));f.reaction='wall';f.reactionStart=frame;emit('WALL HIT',f);}
   if(sample.done){f.legacyMotion=null;if(f.needsFall||motion.wall)knockDown(f,frame,emit);else f.reaction=frame>=f.reactionUntil?'standing':'hurt';}
