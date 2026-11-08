@@ -1,17 +1,19 @@
 {
-  "release": "20261108-c-slot",
+  "release": "20261108-cancels",
   "attackDefinitionVersions": [
     1,
     2,
     3,
-    4
+    4,
+    5
   ],
   "sequenceTransport": "project-download",
   "classroomBankVersions": [
     1,
     2,
     3,
-    4
+    4,
+    5
   ],
   "cloudSequencePublishing": true,
   "skillTreeSequencePublishing": true,
@@ -19,7 +21,8 @@
     1,
     2,
     3,
-    4
+    4,
+    5
   ],
   "twoAttackComparison": true,
   "multipleHitboxes": "timed-damage-and-contact-sequences",
@@ -29,7 +32,8 @@
     1,
     2,
     3,
-    4
+    4,
+    5
   ],
   "defenseKinds": [
     "armor",
@@ -37,5 +41,7 @@
     "parry"
   ],
   "attackSlots": 9,
-  "battleProfileVersion": 2
+  "battleProfileVersion": 2,
+  "cancelWindows": true,
+  "studioComparisonTransfer": true
 }

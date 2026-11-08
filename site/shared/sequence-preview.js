@@ -1,9 +1,9 @@
-import {contactDeadline,castEnd} from './contact-timing.js';
-import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry} from './defense-windows.js?v=20261108-c-slot';
-import {activeGroupBoxes} from './hitbox-groups.js?v=20261108-c-slot';
-import {worldBox,timing,statsFor} from './combat-model.js?v=20261108-c-slot';
-import {shapeHitsRectangle} from './hitbox-shapes.js?v=20261108-c-slot';
-import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult,SEQUENCE_LIMITS} from './hit-sequence.js?v=20261108-c-slot';
+import {contactDeadline,castEnd} from './contact-timing.js?v=20261108-cancels';
+import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry} from './defense-windows.js?v=20261108-cancels';
+import {activeGroupBoxes} from './hitbox-groups.js?v=20261108-cancels';
+import {worldBox,timing,statsFor} from './combat-model.js?v=20261108-cancels';
+import {shapeHitsRectangle} from './hitbox-shapes.js?v=20261108-cancels';
+import {sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult,SEQUENCE_LIMITS} from './hit-sequence.js?v=20261108-cancels';
 
 export function simulateSequence(attack,attacker,target,options={}) {
   const av=statsFor(attacker),tv=statsFor(target),tm=timing(attack,attacker),direction=options.facing===-1?-1:1;

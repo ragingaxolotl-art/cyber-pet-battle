@@ -1,9 +1,9 @@
-import {attackChecks} from './attack-checks.js?v=20261108-c-slot';
-import {KEYS,physicalCatalog,defaultCatalog,availability} from './catalog.js?v=20261108-c-slot';
-import {validateAttack} from './shared/combat-model.js?v=20261108-c-slot';
-import {checkPlayableTree,bankTree,STUDIO_TREE_KEY} from './skill-trees.js?v=20261108-c-slot';
-import {ProfileStore,freshProfile,syncCredit,trainingCredit,pointsForXP,xpForPoints,balance,spentPoints,purchaseReason,buySkill,allowedAttackIds,saveSet,validateProfile} from './progression.js?v=20261108-c-slot';
-import {LoadoutDrafts} from './loadout-drafts.js?v=20261108-c-slot';
+import {attackChecks} from './attack-checks.js?v=20261108-cancels';
+import {KEYS,physicalCatalog,defaultCatalog,availability} from './catalog.js?v=20261108-cancels';
+import {validateAttack} from './shared/combat-model.js?v=20261108-cancels';
+import {checkPlayableTree,bankTree,STUDIO_TREE_KEY} from './skill-trees.js?v=20261108-cancels';
+import {ProfileStore,freshProfile,syncCredit,trainingCredit,pointsForXP,xpForPoints,balance,spentPoints,purchaseReason,buySkill,allowedAttackIds,saveSet,validateProfile} from './progression.js?v=20261108-cancels';
+import {LoadoutDrafts} from './loadout-drafts.js?v=20261108-cancels';
 const $=id=>document.getElementById(id),el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 const TREE_STORAGE='cyber-pet-battle-tree-v1';
 export async function installWorkshop({getPet,pause,changed,status,testAttack}){
