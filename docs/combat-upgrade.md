@@ -1,5 +1,33 @@
 # Combat tools upgrade — November 5, 2026
 
+## Current status — November 8, 2026
+
+This overview supersedes the historical status notes below. The overall goal is **not complete**. Historical “deferred” entries are not scope reductions.
+
+| Capability | Current evidence and limits | Remaining work |
+| --- | --- | --- |
+| Ninth C attack slot | Published in Arena; normal/fullscreen status labels corrected; profile and draft migration tests | Continue keyboard and touch usability checks |
+| Independent hits and juggling | Contact-relative projectile sequences, per-hit reactions, attached/repeated contact, 10-reaction target cap | General melee/area event sequences; global mixed/ordinary combo rules; resistance, recovery and bounce budgets |
+| Juggle landing protection | Arena 3888a10 deployed successfully; paired Studio 8842a76 deploying; 284 Arena / 1135 Studio tests | Paired live verification of reset/forced-landing release |
+| Multiple hitboxes | Grouped geometry with shared hit budgets, editor controls and timeline | Rotation, frame anchors and authored hurtboxes |
+| Defense and simultaneous hits | Trades, armor, invulnerability, parry and frame windows tested | Clashing/priority, guard break/crush, throws and richer defensive interactions |
+| Follow-ups | Manual and automatic attack-to-attack windows; hit/block/parry/whiff rules; eight-transition automatic cap | Movement cancels, broader conditional behavior, hitstop/blockstun and combo scaling |
+| Projectile behavior | Cast-owned traveling, contact/attached sequences and movement paths | Independent persistent entities, durability, reflection, absorption, homing, return, splitting, explosion and general piercing rules |
+| Save/load compatibility | Version 1–6 project/bank/tree support; classroom server v59 revision protection; anonymous API tests | Authenticated end-to-end browser save/load with anonymous fixtures; future schema migrations |
+| Studio authoring | Quick Edit, selected-hit controls, basic/advanced mode, undo/redo, recovery, editable timing tracks | Timeline zoom/locking/hiding/multiselect, property inheritance, reusable behavior blocks, audio/camera tracks and expanded presets |
+| Arena comparison | Two-attack tests, manual/automatic follow-ups, replay, saved scenarios, explicit duration, responsive layout | More scenario diagnostics, arbitrary chain configuration and remaining accessibility audit |
+| Studio-to-Arena handoff | Live browser transfer and successful automatic follow-up checked; cleanup published | Native popup opening not verified by this browser integration |
+| Browser UI checks | C label, comparison desktop/narrow layout, Studio playback/reset placement checked | Full keyboard-only, focus, mobile, error/recovery and authenticated workflows; no blanket accessibility claim |
+
+### Next gameplay milestone: common juggle accounting
+
+Introduce one documented target-level airborne budget used by ordinary and sequence hits. Count successful unblocked, unarmored reaction-producing contacts; define whether the initial grounded launcher consumes a point. Preserve the current sequence cap of ten as the starting classroom balance, and explicitly test any resulting legacy behavior change. Once exhausted, preserve forced landing until floor contact; clear the budget on landing/reset, never by switching attack type. Keep damage-only, guard, armor, invulnerability and parry cases explicit. Both preview code and Arena must use shared rules wherever they simulate the same interaction.
+
+Acceptance evidence must include mixed ordinary/sequence chains in both orders, successive casts, no damage suppression unless explicitly specified, suspension/launch edge cases, floor reset/new jump, armor/invulnerability, per-hit diagnostics and compatibility checks. Existing sequence-only tests do not prove this milestone complete.
+
+---
+
+
 ## Location and scope
 Active work is in `/Volumes/Cyber Pet Combat`. The 200 GiB APFS sparsebundle lives at `/Volumes/Extreme SSD/CCP-V3/Cyber Pet Combat Workspace.sparsebundle`. The original 300 GiB workspace and recovery copies are untouched. No real student data was copied or modified.
 
@@ -388,3 +416,23 @@ This verifies real browser storage/definition transfer and comparison behavior. 
 Confirmed ordinary beginReaction replaced pulseMotion even after the target hit its sequence juggle cap. It now preserves forced landing while juggleLocked and airborne; damage remains resolved by the caller. Grounded reactions clear the expired juggle counter/lock and proceed normally. This closes relaunch escape from an already reached sequence cap, but does not introduce a global counter for ordinary-only combos. Studio single-attack preview does not execute mixed attack chains; sequence lock behavior remains shared.
 
 Regression checks force landing at reaction ten, try an ordinary launch, preserve motion/stun, land and allow the next reaction. Additional real-Arena test confirms 10 damage still connects while forced motion is preserved. Full suites passed at 281 Arena / 1135 Studio; the subsequently added real-Arena regression passed individually (five juggle tests total). This and shared juggle-limit diagnostics remain unpublished. Next: finish broader mixed-chain rule review and publish verified changes; larger combat/editor goal remains active.
+
+### Juggle landing fixes published — deployment pending
+
+Added grounded reset in shared pulse motion, natural sequence-preview landing and Arena floor contact. A lock now expires on landing, allowing a fresh jump to be hit again. Preserved forced landing against ordinary relaunches after the cap; damage still connects. Seven juggle regressions cover diagnostics, active-window landing, forced motion, ordinary damage and reset. Full release suites: 284 Arena / 1135 Studio passing.
+
+Arena commit 3888a1003577e443ba848798244f83909d95926f; Studio 8842a7695fe1e0057967dc9162b45329b8048a99. Studio publication preserved unrelated root entries. Frozen tests, hashes and receipt: release-staging/20261108-juggle-reset/. Prepared /private/tmp/verify_combat_juggle.py for paired live verification after deployment. Global ordinary-only juggle counting remains unfinished. Overall goal active.
+
+### Landing release verified; common juggle budget local
+
+Both juggle-reset deployments succeeded (Arena run 42504097043, Studio run 42504107427). Pinned live verification fetched 98 files, matched 96 hashes, passed both frozen downloaded-code workflow sets and fetched the sample artwork HTTP 200. Evidence: release-staging/20261108-juggle-reset/live-verification.json. This verifies published landing protection/reset and miss diagnostics, not later local common-budget changes.
+
+New local juggle-rules.js shares a ten-reaction target budget between ordinary and sequence reactions. Grounded launch consumes one point; grounded flinches and parry interruptions do not. Exhaustion substitutes a 15-frame/30px grounded-directed release; further ordinary damage still resolves without restarting motion. Landing clears the counter. Legacy preview now stores each flight's resolved reaction instead of always sampling the original attack, preserving release parity.
+
+Tests cover alternating reaction types in both orders, ordinary ten-hit launch preview/Arena frame parity, damage count, floor reset, grounded flinch and parry exclusion. Full suites: 288 Arena / 1135 Studio passing. Remaining before release: armor/guard/invulnerability and successive-cast integration, clear balance-change diagnostics, shared new-file publication and live verification. Existing old attacks are not rewritten, but long legacy launch chains will behave differently under this new runtime rule; document that change. Overall goal remains active.
+
+### Shared juggle budget defensive coverage — local, unpublished
+
+Added actual Arena collision tests for guard, armor and invulnerability against both ordinary and sequence attacks while the target already has four airborne reactions: none consumes another point. An automatic two-cast chain increments the same target counter from one to two and preserves damage. Shared compatibility diagnostics now explain ten reactions, counting the grounded launcher, floor reset, forced release, continuing ordinary damage and the need to retest older long launch combos.
+
+Full suites: 295 Arena / 1135 Studio passing. New shared juggle-rules.js and integrations are still local; current live release remains juggle-reset (sequence lock/landing fixes only). Next: cache/version preparation, include the new shared module in both published dependency graphs, paired release and live downloaded-code tests covering global-juggle.test.mjs. Broader objective remains active.

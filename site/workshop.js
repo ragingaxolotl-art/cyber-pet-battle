@@ -1,9 +1,9 @@
-import {attackChecks} from './attack-checks.js?v=20261108-juggle-reset';
-import {KEYS,physicalCatalog,defaultCatalog,availability} from './catalog.js?v=20261108-juggle-reset';
-import {validateAttack} from './shared/combat-model.js?v=20261108-juggle-reset';
-import {checkPlayableTree,bankTree,STUDIO_TREE_KEY} from './skill-trees.js?v=20261108-juggle-reset';
-import {ProfileStore,freshProfile,syncCredit,trainingCredit,pointsForXP,xpForPoints,balance,spentPoints,purchaseReason,buySkill,allowedAttackIds,saveSet,validateProfile} from './progression.js?v=20261108-juggle-reset';
-import {LoadoutDrafts} from './loadout-drafts.js?v=20261108-juggle-reset';
+import {attackChecks} from './attack-checks.js?v=20261108-shared-juggle';
+import {KEYS,physicalCatalog,defaultCatalog,availability} from './catalog.js?v=20261108-shared-juggle';
+import {validateAttack} from './shared/combat-model.js?v=20261108-shared-juggle';
+import {checkPlayableTree,bankTree,STUDIO_TREE_KEY} from './skill-trees.js?v=20261108-shared-juggle';
+import {ProfileStore,freshProfile,syncCredit,trainingCredit,pointsForXP,xpForPoints,balance,spentPoints,purchaseReason,buySkill,allowedAttackIds,saveSet,validateProfile} from './progression.js?v=20261108-shared-juggle';
+import {LoadoutDrafts} from './loadout-drafts.js?v=20261108-shared-juggle';
 const $=id=>document.getElementById(id),el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 const TREE_STORAGE='cyber-pet-battle-tree-v1';
 export async function installWorkshop({getPet,pause,changed,status,testAttack}){

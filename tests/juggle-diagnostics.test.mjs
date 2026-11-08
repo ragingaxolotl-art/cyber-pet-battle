@@ -29,7 +29,7 @@ test('ordinary launch cannot replace the forced landing after the sequence juggl
  assert.equal(target.pulseMotion,forced);assert.equal(target.legacyMotion,null);assert.equal(target.stun,stun);
  advancePulseReaction(target,25);assert.ok(target.y===0);
  beginReaction(target,{...freshAttack(),launchHeight:100},1,26);
- assert.equal(target.juggleLocked,false);assert.equal(target.juggleHits,0);assert.ok(target.legacyMotion);
+ assert.equal(target.juggleLocked,false);assert.equal(target.juggleHits,1);assert.ok(target.legacyMotion);
 });
 
 test('ordinary damage still connects during forced landing without restarting the motion',()=>{
