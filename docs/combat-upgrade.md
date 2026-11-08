@@ -1311,3 +1311,31 @@ Server71 deployed successfully from90e324f1cabfb70d16689f9137af5976ac813f6e. Pub
 ### Absorption client release QA
 
 Browser authored absorb window with25 energy,60-frame duration and90-frame startup, exported format18 and imported into Arena. At100px spacing and20% defender starting energy, comparison reported one absorption at frame21 restoring25 energy, no HP damage. Screenshot /private/tmp/cyber-pet-absorption-arena.jpg. Scoped Studio staging contains35 files against6b5b20119bd1e8c2185e8aa69ae9dbd2d73c0634; unrelated site files preserved. Full release tests Arena624 and staged Studio1319 pass. Evidence: release-staging/20261108-absorption. Client publication/live verification pending.
+
+### Absorption clients verified live
+
+Arena6a50d4ddd78d95b71591b609fae30edfa6459733 and Studio5a597e9b096d807d5c69b531996730fac0a925b4 deployed successfully (Pages42529208455/42529219820). Verified52 live files (17 Arena,35 Studio) and downloaded editor/format tests pass. Full release tests624/1319. Server71 supports18.
+
+User priority additions: both left and right docked panels trap scrolling; reproduced left wheel leaving scrollTop0 despite overflowing parent. Original library/inspector overflow:auto with overscroll-behavior:contain prevents chaining to workspace columns. Local override moves scrolling ownership to columns/floating bodies. Browser verified left scroll944 and page2; right scroll1245 to its bottom. User also requested compact info buttons near headings; implemented reusable accessible help dialog for Attack timeline, Defense sections and Follow-up sections, retaining status/warnings. Broader contextual help rollout remains. Scoped UI release and live verification pending. Original combat goal remains active.
+
+### Side scrolling and compact help verified live
+
+Studio649bef5a51dea52c896295608300a27dd2d47fc7 deployed successfully (Pages42529665268). All7 served release files match hashes; staged1320 tests pass. Both library and inspector now pass wheel gestures to their workspace column; browser reached Effects page2 and right-panel bottom. Info dialogs added for timeline, defense and follow-up sections; warnings/status remain visible and closing returns focus. Remaining explanatory sections can use the same helper in subsequent UI work.
+
+### Direct preview dragging (local release candidate)
+
+User reports animation + cannot drag and target/attacker placement is difficult. Found animation hit testing recomputed old fixed-speed positions instead of using the positions actually drawn (including steering/attachment). Added draw-derived effect hit targets,16-display-pixel minimum grab radius and transformed artwork hit testing (rotation, facing, scaling/stretch). Selected visible + can be grabbed without switching tools; Move animation can grab the artwork. Added Move hitbox/animation/target/attacker buttons under preview. Target body grabs retain cursor offset, avoiding the old feet-snap. Attacker placement moves horizontally on the floor while target stays fixed and test distance updates; preview origin is session-local, while relative test distance persists. Browser changed effect X/Y to30/-22, moved target up15px, and moved attacker right while target remained in place. Full local1323 tests pass including drag geometry and UI workflow. Scoped staging/publication/live checks pending. Screenshot /private/tmp/cyber-pet-drag-controls.jpg.
+
+### Direct preview dragging verified live
+
+Studio e08f1672c2c10a9ba126eb81d866ca780190bb65 deployed successfully (Pages42530142782). All3 served files match release hashes; tests against downloaded drag helper/design pass. Staged full suite1323 passed. Previous scrolling/info release649bef5 remains included. User can now drag the selected + with a larger grab area, drag transformed animation artwork in Move animation mode, grab target body without snapping feet, and reposition the grounded attacker using preview controls. Target-relative test distance updates; absolute preview origin remains session-local. Broader combat roadmap remains active, with further contextual help and accessibility testing still to do.
+
+### Preview placement recovery and steering drag regression (local)
+
+Extended real editor-event regression to homing and returning projectile handles at combat frame20, using displayed steering centers; both drag correctly and persist authored offsets. Found session-only preview origin prevented complete attacker-position recovery. Added optional validated testBench.options.previewOrigin (45–915 canvas pixels, no combat-format upgrade) and tied rendering to that saved value. Attacker movement records origin alongside relative target distance; Undo/Redo and project reopen preserve/restore both. Older projects retain150 default. Malformed origins rejected by both client project readers. Full current local suites Studio1326/Arena624 pass (Studio local tree also includes concurrent work; scoped release still required).
+
+This follow-up is not yet published; live direct-drag release remains e08f1672. Next: scoped staging/browser recovery check and release, then continue outstanding projectile contact/explosion/splitting, broader help rollout, remaining combat/editor/accessibility requirements.
+
+### Placement recovery release checks
+
+Scoped Studio release patches only preview-origin save/render and optional project validation atop published source; dependency cache keys refreshed. Browser exported previewOrigin221.4294 with target distance48 and confirmed Undo/Redo. Staged release suite1326 passes excluding tree-quota-recovery.test.mjs, which targets concurrent unpublished tree-storage work and fails against intentionally retained published tree storage. Exclusion and rationale recorded in release-staging/20261108-drag-recovery/test-scope.json; local full suite also passed. Arena624 passes. Client publication/live verification pending.

@@ -21,7 +21,7 @@ import {statusDuration,statusMultiplier} from './status-rules.js?v=20261108-move
 import {pathSample} from './attack-motion.js?v=20261108-movement-cancels';
 import {HITBOX_SHAPES,shapeHitsRectangle} from './hitbox-shapes.js?v=20261108-movement-cancels';
 import {validateHitSequence,advancePulseReaction} from './hit-sequence.js?v=20261108-bounces';
-import {simulateSequence} from './sequence-preview.js?v=20261108-absorption';
+import {simulateSequence} from './sequence-preview.js?v=20261108-drag-recovery';
 // Proposed classroom playtest rules. All timing is in 60 Hz simulation frames.
 export const BALANCE={id:'classroom-playtest-v1',baseHP:100,hpPerStamina:2,baseEnergy:50,energyPerStamina:1,maxSpeedReduction:.15,maxFocusCostReduction:.2,baseGuardReduction:.35,maxFocusGuardBonus:.2,maxCharismaShieldBonus:.2,maxFocusStatusReduction:.25,statCap:99};
 export const STATS=['strength','speed','stamina','intelligence','charisma','focus'];
@@ -83,7 +83,7 @@ export function validateDesign(p,ids){
  if(p.version===1&&p.attacks.some(a=>a.hitEvents))fail('Independent hit sequences require a version 2 project.');
  const unique=new Set();for(const a of p.attacks){validateAttack(a,ids);if(unique.has(a.id))fail('Duplicate attack ID.');unique.add(a.id);}return p;
 }
-export function validateSandbox(o){validateRecoveryFrame(o?.recoveryFrame);if(!o||typeof o.guard!=='boolean'||![1,-1].includes(o.facing)||![1,-1].includes(o.targetSide))fail('Invalid test scenario.');for(const [key,min,max] of [['distance',0,245],['resistance',-50,75],['selfHP',.05,1],['targetHP',.05,1],['energy',0,1]])num(o,key,min,max);for(const [key,min,max] of [['incomingDamage',0,500],['incomingFrame',0,1800],['targetHeight',0,60]])if(o[key]!==undefined)num(o,key,min,max,true);}
+export function validateSandbox(o){validateRecoveryFrame(o?.recoveryFrame);if(o?.previewOrigin!==undefined)num(o,'previewOrigin',45,915);if(!o||typeof o.guard!=='boolean'||![1,-1].includes(o.facing)||![1,-1].includes(o.targetSide))fail('Invalid test scenario.');for(const [key,min,max] of [['distance',0,245],['resistance',-50,75],['selfHP',.05,1],['targetHP',.05,1],['energy',0,1]])num(o,key,min,max);for(const [key,min,max] of [['incomingDamage',0,500],['incomingFrame',0,1800],['targetHeight',0,60]])if(o[key]!==undefined)num(o,key,min,max,true);}
 export function statsFor(s){if(!s||typeof s!=='object')fail('Missing test stats.');for(const k of STATS)num(s,k,0,99,true);const b=BALANCE;return {maxHP:b.baseHP+b.hpPerStamina*s.stamina,maxEnergy:b.baseEnergy+b.energyPerStamina*s.stamina,timing:1-b.maxSpeedReduction*s.speed/b.statCap,cost:1-b.maxFocusCostReduction*s.focus/b.statCap,guard:b.baseGuardReduction+b.maxFocusGuardBonus*s.focus/b.statCap,support:1+b.maxCharismaShieldBonus*s.charisma/b.statCap,resistance:1-b.maxFocusStatusReduction*s.focus/b.statCap};}
 export function timing(a,s){const scale=statsFor(s).timing;return {startup:Math.round(a.startup*scale),active:a.active,recovery:Math.round(a.recovery*scale),cooldown:a.cooldown};}
 export function magnitude(a,s){if(['push','block','dodge'].includes(a.payload))return 0;return Math.round((a.base+a.coefficient*s[a.scaling])*(a.payload==='shield'?statsFor(s).support:1));}

@@ -1,5 +1,5 @@
-import {Arena,fighter} from './engine.js?v=20261108-absorption';
-import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261108-absorption';
+import {Arena,fighter} from './engine.js?v=20261108-drag-recovery';
+import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261108-drag-recovery';
 // Isolated, deterministic comparison: no AI, saves, rewards, or pet-art restrictions.
 export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,energyA=100,energyB=100,placement='center',actionB='attack',followupA=null,followupFrame=12,movementA=null,recoveryBFrame=null,availableAttacks=[]}={}) {
  for(const [value,min,max] of [[energyA,0,100],[energyB,0,100],[distance,0,800],[offset,-180,180],[frames,1,900],[heightA,0,150],[heightB,0,150]])if(!Number.isInteger(value)||value<min||value>max)throw Error('Use whole energy percentages 0–100, distance 0–800, offset −180–180, height 0–150, and duration of 1–900 frames.');
