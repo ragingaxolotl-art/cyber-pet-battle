@@ -1,25 +1,42 @@
-import {ProjectileClashes} from './shared/projectile-clashes.js?v=20261108-durability';
-import {ProjectileRegistry,ownerActionEnd} from './shared/projectile-lifetime.js?v=20261108-durability';
-import {CONTACT_TIMEOUT,contactDeadline,castEnd} from './shared/contact-timing.js?v=20261108-durability';
-import {canCancel,automaticFollowup,MAX_AUTOMATIC_FOLLOWUPS} from './shared/cancel-windows.js?v=20261108-durability';
-import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry} from './shared/defense-windows.js?v=20261108-durability';
-import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-durability';
-import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-durability';
-import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-durability';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-durability';
-import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-durability';
-import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-durability';
-import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-durability';
+import {reflectedProjectileTransform,transformProjectileBox} from './shared/projectile-reflection.js?v=20261108-projectile-defense';
+import {ProjectileClashes} from './shared/projectile-clashes.js?v=20261108-projectile-defense';
+import {ProjectileRegistry,ownerActionEnd} from './shared/projectile-lifetime.js?v=20261108-projectile-defense';
+import {CONTACT_TIMEOUT,contactDeadline,castEnd} from './shared/contact-timing.js?v=20261108-projectile-defense';
+import {canCancel,automaticFollowup,MAX_AUTOMATIC_FOLLOWUPS} from './shared/cancel-windows.js?v=20261108-projectile-defense';
+import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,claimProjectileDefense} from './shared/defense-windows.js?v=20261108-projectile-defense';
+import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-projectile-defense';
+import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-projectile-defense';
+import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-projectile-defense';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-projectile-defense';
+import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-projectile-defense';
+import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-projectile-defense';
+import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-projectile-defense';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:CONTACT_TIMEOUT};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
 export class Arena{
- constructor(player,opponent,attacks,options={}){this.fighters=[player,opponent];opponent.x=700;opponent.facing=-1;this.attacks=attacks;this.frame=0;this.set=0;this.paused=true;this.winner=null;this.winnerIndex=null;this.honourMetrics={guards:0,dodges:0,attacks:new Set()};this.events=[];this.projectiles=new ProjectileRegistry();this.projectileClashes=new ProjectileClashes();this.lastProjectileClashes=[];this.automaticAttempts=[];this.training=options.training===true;this.ai=!this.training;this.metrics={hits:0,damage:0,wallHits:0,knockdowns:0};this.decks=options.decks||null;}
+ constructor(player,opponent,attacks,options={}){this.fighters=[player,opponent];opponent.x=700;opponent.facing=-1;this.attacks=attacks;this.frame=0;this.set=0;this.paused=true;this.winner=null;this.winnerIndex=null;this.honourMetrics={guards:0,dodges:0,attacks:new Set()};this.events=[];this.projectiles=new ProjectileRegistry();this.projectileClashes=new ProjectileClashes();this.lastProjectileClashes=[];this.lastProjectileDefenses=[];this.automaticAttempts=[];this.training=options.training===true;this.ai=!this.training;this.metrics={hits:0,damage:0,wallHits:0,knockdowns:0};this.decks=options.decks||null;}
  // Internal launch boundary. Versioned authoring will call this at startup;
  // existing attack definitions remain cast-owned until that support is enabled.
  launchProjectile(f,lifetime){
   if(this.paused||this.winner)throw Error('Start or resume the round before launching.');
   if(!this.fighters.includes(f))throw Error('Projectile owner is not in this arena.');
-  return this.projectiles.launch(f,this.fighters.find(other=>other!==f),f.cast,this.frame,lifetime);
+  const entity=this.projectiles.launch(f,this.fighters.find(other=>other!==f),f.cast,this.frame,lifetime);
+  entity.cast.projectileStats=Object.freeze({...f.stats});return entity;
+ }
+ // Reflection starts a new ownership leg, but never renews lifetime or durability.
+ reflectProjectile(projectile,defender){
+  if(this.paused||this.winner||!this.projectiles.entries.includes(projectile))throw Error('Reflection requires a live projectile.');
+  if(defender!==projectile.target||defender.hp<=0)throw Error('Only the living projectile target can reflect it.');
+  if((projectile.reflections||0)>=8){this.projectiles.remove(projectile);this.emit('REFLECTION LIMIT',defender.x,defender.y-70);return false;}
+  const previous=projectile.cast,snapshot=this.prepareCast(projectile.owner,projectile.target,previous);
+  const transform=reflectedProjectileTransform(previous.projectileTransform,snapshot.box);
+  const formerOwner=projectile.owner,age=this.frame-previous.start;
+  const authored=worldBox(previous.a,age,previous.projectileStats||formerOwner.stats,previous.facing),oldTransform=previous.projectileTransform;
+  const rawX=oldTransform?.direction===-1?oldTransform.offset-snapshot.box.x-snapshot.box.w:snapshot.box.x-(oldTransform?.offset||0);
+  projectile.cast={...previous,x:rawX-authored.x,y:snapshot.box.y-authored.y,projectileTransform:transform,projectileDamageMultiplier:snapshot.damageMultiplier,groupTracker:createGroupHitTracker(),outcomes:new Set(),hits:0,lastHit:-999,
+   impact:previous.a.impactTrigger==='contact'?null:previous.impact,sequence:previous.a.hitEvents?sequenceState():null};
+  projectile.owner=defender;projectile.target=formerOwner;projectile.reflections=(projectile.reflections||0)+1;
+  this.emit('REFLECT',defender.x,defender.y-70);return true;
  }
  slots(){return this.decks?this.decks[this.set].slots:this.attacks.slice(this.set*KEYS.length,(this.set+1)*KEYS.length);}
  rotate(){if(this.paused||this.winner)return;this.set=(this.set+1)%(this.decks?.length||Math.ceil(this.attacks.length/KEYS.length));}
@@ -35,7 +52,7 @@ export class Arena{
  }
  emit(text,x,y){this.events.push({text,x,y,until:this.frame+60});this.events=this.events.slice(-12);}
  tick(input=new Set(),sprintDirection=0){
-  this.automaticAttempts=[];
+  this.automaticAttempts=[];this.lastProjectileDefenses=[];
   if(this.paused||this.winner)return;this.frame++;
   const [p,o]=this.fighters;
   if(this.training){p.energy=p.maxEnergy;o.hp=Math.max(1,o.hp);}
@@ -93,26 +110,33 @@ export class Arena{
  }
  faceOpponents(){const [p,o]=this.fighters;if(p.x!==o.x){p.facing=o.x>p.x?1:-1;o.facing=-p.facing;}for(const f of this.fighters){if(f.cast&&f.cast.a.delivery==='melee')f.cast.facing=f.facing;}}
  reactionEvent(name,f){this.emit(name,f.x,f.y-80);if(f===this.fighters[1]){if(name==='WALL HIT')this.metrics.wallHits++;if(name==='KNOCKDOWN')this.metrics.knockdowns++;}}
- resetDummy(position=700){if(!this.training)return;this.projectiles.clear();this.projectileClashes.clear();this.lastProjectileClashes=[];const f=this.fighters[1];Object.assign(f,{x:position,y:0,vy:0,vx:0,hp:f.maxHP,energy:f.maxEnergy,pulseMotion:null,pulseOwned:false,legacyMotion:null,legacyOwned:false,juggleHits:0,juggleLocked:false,reaction:'standing',reactionStart:this.frame,reactionUntil:0,needsFall:false,lastHit:-999,cast:null,stun:0,statuses:[],shield:0});this.metrics={hits:0,damage:0,wallHits:0,knockdowns:0};this.lastSequence=null;for(const actor of this.fighters)actor.cast=null;this.faceOpponents();}
+ resetDummy(position=700){if(!this.training)return;this.projectiles.clear();this.projectileClashes.clear();this.lastProjectileClashes=[];this.lastProjectileDefenses=[];const f=this.fighters[1];Object.assign(f,{x:position,y:0,vy:0,vx:0,hp:f.maxHP,energy:f.maxEnergy,pulseMotion:null,pulseOwned:false,legacyMotion:null,legacyOwned:false,juggleHits:0,juggleLocked:false,reaction:'standing',reactionStart:this.frame,reactionUntil:0,needsFall:false,lastHit:-999,cast:null,stun:0,statuses:[],shield:0});this.metrics={hits:0,damage:0,wallHits:0,knockdowns:0};this.lastSequence=null;for(const actor of this.fighters)actor.cast=null;this.faceOpponents();}
  testDummyReaction(wall=false){if(!this.training)return;const f=this.fighters[1];this.resetDummy(wall?910:650);beginReaction(f,{motion:'ground_slam_side',knockback:wall?100:24,launchHeight:35,hitstun:15,flightFrames:36,pushAxis:'both',wallSlam:wall,floorSlam:true},1,this.frame);}
  prepare(f,target){return this.prepareCast(f,target,f.cast);}
  // Collision sources may outlive an owner action. Never swap f.cast to inspect one:
  // it also controls defense windows, cancel eligibility and action availability.
  prepareCast(f,target,cast){
-  if(!cast)return null;const {a,tm}=cast,age=this.frame-cast.start;
-  let box=worldBox(a,a.impactTrigger==='contact'&&cast.impact!==null?Math.min(age,cast.impact):age,f.stats,cast.facing);box.x+=cast.x;box.y+=cast.y;
+  if(!cast)return null;const {a,tm}=cast,age=this.frame-cast.start,sourceStats=cast.projectileStats||f.stats;
+  let box=worldBox(a,a.impactTrigger==='contact'&&cast.impact!==null?Math.min(age,cast.impact):age,sourceStats,cast.facing);box.x+=cast.x;box.y+=cast.y;
   if(cast.sequence?.attached&&a.projectileMode==='attached')box={...box,x:target.x-box.w/2,y:target.y-box.h};
+  if(!(cast.sequence?.attached&&a.projectileMode==='attached'))box=transformProjectileBox(box,cast.projectileTransform);else box.facing=cast.facing*(cast.projectileTransform?.direction||1);
   const hurt={x:target.x-14,y:target.y-(target.crouch?34:60),w:28,h:target.crouch?34:60};
   const recipient=a.delivery==='self'?f:target,candidate=recipient.cast,defAge=candidate?this.frame-candidate.start:0,defense=candidate&&defAge<(ownerActionEnd(candidate)??castEnd(candidate.impact,candidate.tm))?candidate:null;
   const defending=defense&&defAge>=defense.tm.startup&&defAge<defense.tm.startup+defense.tm.active;
   const sequenceFrame=cast.sequence?.contactFrame,groupFrame=a.hitEvents?(sequenceFrame===null?0:age-sequenceFrame):age-tm.startup;
   const groupTime=a.hitEvents?(sequenceFrame??age):age;
-  const primary=worldBox(a,groupTime,f.stats,cast.facing);
-  const boxes=a.hitboxGroups?activeGroupBoxes(a.hitboxGroups,groupFrame,b=>{const world=worldBox({...a,box:b},groupTime,f.stats,cast.facing);return {...world,x:world.x+box.x-primary.x,y:world.y+box.y-primary.y};}):null;
+  const primary=worldBox(a,groupTime,sourceStats,cast.facing);
+  const attached=cast.sequence?.attached&&a.projectileMode==='attached';
+  const boxes=a.hitboxGroups?activeGroupBoxes(a.hitboxGroups,groupFrame,b=>{
+   const world=worldBox({...a,box:b},groupTime,sourceStats,cast.facing);
+   const positioned={...world,x:world.x+(attached?target.x-a.box.w/2-primary.x:cast.x),y:world.y+(attached?target.y-a.box.h-primary.y:cast.y)};
+   const transform=attached?(cast.projectileTransform?.direction===-1?{direction:-1,offset:2*target.x}:null):cast.projectileTransform;
+   return transformProjectileBox(positioned,transform);
+  }):null;
   const groupContacts=boxes?a.hitboxGroups.filter(g=>boxes.some(b=>b.groupId===g.id&&shapeHitsRectangle(b,hurt))):null;
   const sequenceContacts=boxes?new Set(groupContacts.map(g=>g.id)):null;
 
-  return {f,target,cast,age,box,defense: defenseSnapshot(defense,defAge),invulnerable:isInvulnerable(defenseSnapshot(defense,defAge),a),boxes,groupContacts,sequenceContacts,damageMultiplier:statusMultiplier(f.statuses,'weaken'),contact:a.delivery==='self'||shapeHitsRectangle(box,hurt),guarding:recipient.guarding||(defending&&defense.a.payload==='block'),guardReduction:defending&&defense.a.payload==='block'?defense.a.blockPercent/100:recipient.guard,evading:a.delivery!=='self'&&((this.frame>=recipient.dodgeStart+RULES.dodgeInvulnerableStart&&this.frame<recipient.dodgeStart+RULES.dodgeInvulnerableEnd)||(defending&&defense.a.payload==='dodge'))};
+  return {f,target,cast,age,box,defense: defenseSnapshot(defense,defAge),invulnerable:isInvulnerable(defenseSnapshot(defense,defAge),a),boxes,groupContacts,sequenceContacts,damageMultiplier:cast.projectileDamageMultiplier??statusMultiplier(f.statuses,'weaken'),contact:a.delivery==='self'||shapeHitsRectangle(box,hurt),guarding:recipient.guarding||(defending&&defense.a.payload==='block'),guardReduction:defending&&defense.a.payload==='block'?defense.a.blockPercent/100:recipient.guard,evading:a.delivery!=='self'&&((this.frame>=recipient.dodgeStart+RULES.dodgeInvulnerableStart&&this.frame<recipient.dodgeStart+RULES.dodgeInvulnerableEnd)||(defending&&defense.a.payload==='dodge'))};
  }
  resolve(f,target,snapshot=this.prepare(f,target)){if(!snapshot)return;const {cast,age}=snapshot;const {a,tm}=cast;
   if(a.hitEvents){this.resolveSequence(f,target,snapshot);return;}
@@ -127,18 +151,19 @@ export class Arena{
  for(let opportunity=0;opportunity<opportunities&&target.hp>0;opportunity++){
    cast.hits++;cast.lastHit=age;const recipient=support?f:target;
    const defense=recipient.cast;const defAge=defense?this.frame-defense.start:0;const defending=defense&&defAge>=defense.tm.startup&&defAge<defense.tm.startup+defense.tm.active;
+   if(!snapshot.evading&&!snapshot.invulnerable&&this.projectileDefense(snapshot,recipient))break;
    const parry=!snapshot.evading&&!snapshot.invulnerable&&claimParry(snapshot.defense,a);
    if(parry){this.parry(f,recipient,parry,snapshot.projectile);if(snapshot.projectile)break;continue;}
    if(snapshot.evading||snapshot.invulnerable){if(!snapshot.invulnerable&&recipient===this.fighters[0]&&a.payload==='damage')this.honourMetrics.dodges++;this.emit(snapshot.invulnerable?'INVULNERABLE':'DODGE',recipient.x,recipient.y-70);}
-   else {let amount=magnitude(a,f.stats);if(a.payload==='damage')amount=Math.round(amount*snapshot.damageMultiplier);
+   else {let amount=magnitude(a,cast.projectileStats||f.stats);if(a.payload==='damage')amount=Math.round(amount*snapshot.damageMultiplier);
     if(a.payload==='damage'){const guard=snapshot.guarding&&a.blockable,armored=!guard&&claimArmor(snapshot.defense,a);amount=Math.round(amount*(guard?1-snapshot.guardReduction:1));const absorbed=Math.min(recipient.shield,amount);recipient.shield-=absorbed;amount-=absorbed;recipient.hp=Math.max(0,recipient.hp-amount);recipient.flash=this.frame+8;
-     cast.outcomes.add(guard?'block':'hit');if(guard&&recipient===this.fighters[0])this.honourMetrics.guards++;if(amount>0&&f===this.fighters[0]&&recipient===this.fighters[1])this.honourMetrics.attacks.add(a.id);if(!guard&&!armored)beginReaction(recipient,a,cast.facing,this.frame);if(armored)recipient.lastHit=this.frame;if(this.training&&recipient===this.fighters[1]){this.metrics.hits++;this.metrics.damage+=amount;}
+     cast.outcomes.add(guard?'block':'hit');if(guard&&recipient===this.fighters[0])this.honourMetrics.guards++;if(amount>0&&f===this.fighters[0]&&recipient===this.fighters[1])this.honourMetrics.attacks.add(a.id);if(!guard&&!armored)beginReaction(recipient,a,snapshot.box.facing,this.frame);if(armored)recipient.lastHit=this.frame;if(this.training&&recipient===this.fighters[1]){this.metrics.hits++;this.metrics.damage+=amount;}
      this.emit(guard?'GUARD −'+amount:armored?'ARMOR −'+amount:'−'+amount,recipient.x,recipient.y-70);
      if(!guard&&a.status!=='none')this.status(recipient,a);
     }else if(a.payload==='heal'){recipient.hp=Math.min(recipient.maxHP,recipient.hp+amount);this.emit('+'+amount,recipient.x,recipient.y-70);}
     else if(a.payload==='energy'){recipient.energy=Math.min(recipient.maxEnergy,recipient.energy+amount);this.emit('ENERGY +'+amount,recipient.x,recipient.y-70);}
     else if(a.payload==='shield'){recipient.shield=Math.max(recipient.shield,amount);recipient.shieldUntil=this.frame+a.shieldDuration;this.emit('SHIELD',recipient.x,recipient.y-70);}
-    else if(a.payload==='push'){cast.outcomes.add(snapshot.guarding&&a.blockable?'block':'hit');if(snapshot.guarding&&a.blockable)this.emit('PUSH BLOCKED',recipient.x,recipient.y-70);else if(claimArmor(snapshot.defense,a)){recipient.lastHit=this.frame;this.emit('ARMORED',recipient.x,recipient.y-70);}else beginReaction(recipient,a,cast.facing,this.frame);}
+    else if(a.payload==='push'){cast.outcomes.add(snapshot.guarding&&a.blockable?'block':'hit');if(snapshot.guarding&&a.blockable)this.emit('PUSH BLOCKED',recipient.x,recipient.y-70);else if(claimArmor(snapshot.defense,a)){recipient.lastHit=this.frame;this.emit('ARMORED',recipient.x,recipient.y-70);}else beginReaction(recipient,a,snapshot.box.facing,this.frame);}
     if(!['damage','push','block','dodge'].includes(a.payload)&&a.status!=='none')this.status(recipient,a);
    }
   }
@@ -151,6 +176,7 @@ export class Arena{
   for(const event of (state.contactFrame===null&&age>contactDeadline(tm)?[]:sequenceOpportunities(a,state,age,snapshot.sequenceContacts?(event=>snapshot.sequenceContacts.has(event.hitboxGroup)):snapshot.contact,target))){
    const guard=snapshot.guarding&&a.blockable;
    if(snapshot.evading||snapshot.invulnerable){hitResult(state,event,age,snapshot.invulnerable?'Invulnerable':'Dodged');state.cancelled=snapshot.invulnerable?'Contact invulnerable; attachment cancelled.':'Contact dodged; attachment cancelled.';this.emit(snapshot.invulnerable?'INVULNERABLE':'DODGE',target.x,target.y-70);continue;}
+   const projectileResult=this.projectileDefense(snapshot,target);if(projectileResult){hitResult(state,event,age,projectileResult);break;}
    const parry=claimParry(snapshot.defense,a);if(parry){hitResult(state,event,age,'Parried');state.cancelled='Contact parried; attachment cancelled.';this.parry(f,target,parry,snapshot.projectile);if(snapshot.projectile)break;continue;}
    const armored=!guard&&claimArmor(snapshot.defense,a);
    const amount=Math.round(event.damage*snapshot.damageMultiplier*(guard?1-snapshot.guardReduction:1)),absorbed=Math.min(target.shield,amount);
@@ -158,11 +184,20 @@ export class Arena{
    cast.outcomes.add(guard?'block':'hit');hitResult(state,event,age,guard?'Blocked':armored?'Armored':'Connected');this.emit((guard?'GUARD −':armored?'ARMOR −':'−')+damage,target.x,target.y-70);
    if(this.training&&target===this.fighters[1]){this.metrics.hits++;this.metrics.damage+=damage;}
    if(guard)state.cancelled='Contact blocked; attachment cancelled.';
-   else {state.attached=true;if(armored)target.lastHit=this.frame;else {target.cast=null;target.guarding=false;applyPulseReaction(target,event,cast.facing,this.frame);}if(f===this.fighters[0]&&damage>0)this.honourMetrics.attacks.add(a.id);}
+   else {state.attached=true;if(armored)target.lastHit=this.frame;else {target.cast=null;target.guarding=false;applyPulseReaction(target,event,snapshot.box.facing,this.frame);}if(f===this.fighters[0]&&damage>0)this.honourMetrics.attacks.add(a.id);}
   }
   cast.impact=state.contactFrame;
   this.lastSequence={attack:a.name,results:state.results.map(r=>({...r})),reason:state.cancelled};
   if(f.cast===cast&&age>=castEnd(state.contactFrame,tm))f.cast=null;
+ }
+ projectileDefense(snapshot,defender){
+  const projectile=snapshot.projectile;if(!projectile)return false;
+  const window=claimProjectileDefense(snapshot.defense,snapshot.cast.a);if(!window)return false;
+  const reflected=window.kind==='reflect'&&this.reflectProjectile(projectile,defender);
+  if(window.kind==='absorb'){this.projectiles.remove(projectile);this.emit('ABSORB',defender.x,defender.y-70);}
+  const result=window.kind==='absorb'?'Absorbed':reflected?'Reflected':'Reflection limit';
+  this.lastProjectileDefenses.push({id:projectile.id,name:snapshot.cast.a.name,defender:this.fighters.indexOf(defender),result,remainingCharges:window.hits-(snapshot.defense.state.get(window.id)||0)});
+  return result;
  }
  parry(attacker,defender,window,projectile=null){defender.cast?.outcomes.add('parry');if(projectile){this.projectiles.remove(projectile);this.emit('PARRY',defender.x,defender.y-70);return;}beginReaction(attacker,{knockback:0,launchHeight:0,pushAxis:'x',hitstun:window.stun,flightFrames:1,floorSlam:false,wallSlam:false},-attacker.facing,this.frame,false);this.emit('PARRY',defender.x,defender.y-70);}
  status(f,a){const previous=f.statuses.find(s=>s.type===a.status);const refreshed=refreshStatus(previous,a,this.frame,f.resistance);f.statuses=f.statuses.filter(s=>s.type!==a.status);f.statuses.push(refreshed);}

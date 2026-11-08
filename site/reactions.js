@@ -1,6 +1,6 @@
-import {juggleLegacyReaction,resetGroundedJuggle} from './shared/juggle-rules.js?v=20261108-durability';
-import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261108-durability';
-import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261108-durability';
+import {juggleLegacyReaction,resetGroundedJuggle} from './shared/juggle-rules.js?v=20261108-projectile-defense';
+import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261108-projectile-defense';
+import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261108-projectile-defense';
 export const REACTION={wallHold:RECOVERY_TIMING.wall,downHold:RECOVERY_TIMING.down,getUp:RECOVERY_TIMING.getUp,drag:.84};
 export function beginReaction(f,attack,direction,frame,countJuggle=true){
  // A completed juggle must reach the floor before another hit can relaunch it.
