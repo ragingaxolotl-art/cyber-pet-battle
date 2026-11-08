@@ -1,3 +1,4 @@
+import {scaledHitReaction,scaledHitEvent} from './shared/hitstun-scaling.js?v=20261108-hitstun';
 import {counterHitDamage,isCounterHit} from './shared/counter-hit.js?v=20261108-counter-hit';
 import {attackPhase} from './shared/attack-phase.js?v=20261108-counter-hit';
 import {scaledComboDamage} from './shared/combo-scaling.js?v=20261108-combo-scaling';
@@ -13,10 +14,10 @@ import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,
 import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-movement-cancels';
 import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-movement-cancels';
 import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-movement-cancels';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-counter-hit';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-hitstun';
 import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-movement-cancels';
-import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-counter-hit';
-import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-movement-cancels';
+import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-hitstun';
+import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-hitstun';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:CONTACT_TIMEOUT};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,blockstunUntil:0,blockstunReduction:0,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,dashUntil:0,dashReady:0,dashDirection:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
 export class Arena{
@@ -222,7 +223,7 @@ export class Arena{
    else {let amount=magnitude(a,cast.projectileStats||f.stats);if(a.payload==='damage')amount=Math.round(amount*snapshot.damageMultiplier);
     if(a.payload==='damage'){const guard=snapshot.guarding&&a.blockable,armored=!guard&&claimArmor(snapshot.defense,a);amount=Math.round(amount*(guard?1-snapshot.guardReduction:1));amount=counterHitDamage(amount,a.counterHit,snapshot.defenderPhase,snapshot.defenderOffensive,guard?'block':armored?'armor':'hit');amount=scaledComboDamage(amount,this.combos.priorHits(f,recipient),a.comboScaling,guard?'block':armored?'armor':'hit');const absorbed=Math.min(recipient.shield,amount);recipient.shield-=absorbed;amount-=absorbed;const hpDamage=Math.min(recipient.hp,amount);recipient.hp-=hpDamage;recipient.flash=this.frame+8;
      this.contactFeedback.push({attack:a,attacker:f,damage:hpDamage,counterHit:isCounterHit(a.counterHit,snapshot.defenderPhase,snapshot.defenderOffensive,guard?'block':armored?'armor':'hit'),target:recipient,guardReduction:snapshot.guardReduction,outcome:guard?'block':armored?'armor':'hit'});
-     cast.outcomes.add(guard?'block':'hit');if(guard&&recipient===this.fighters[0])this.honourMetrics.guards++;if(amount>0&&f===this.fighters[0]&&recipient===this.fighters[1])this.honourMetrics.attacks.add(a.id);if(!guard&&!armored)beginReaction(recipient,a,snapshot.box.facing,this.frame);if(armored)recipient.lastHit=this.frame;if(this.training&&recipient===this.fighters[1]){this.metrics.hits++;this.metrics.damage+=amount;}
+     cast.outcomes.add(guard?'block':'hit');if(guard&&recipient===this.fighters[0])this.honourMetrics.guards++;if(amount>0&&f===this.fighters[0]&&recipient===this.fighters[1])this.honourMetrics.attacks.add(a.id);if(!guard&&!armored)beginReaction(recipient,scaledHitReaction(a,this.combos.priorHits(f,recipient)),snapshot.box.facing,this.frame);if(armored)recipient.lastHit=this.frame;if(this.training&&recipient===this.fighters[1]){this.metrics.hits++;this.metrics.damage+=amount;}
      this.emit(guard?'GUARD −'+amount:armored?'ARMOR −'+amount:'−'+amount,recipient.x,recipient.y-70);
      if(!guard&&a.status!=='none')this.status(recipient,a);
     }else if(a.payload==='heal'){recipient.hp=Math.min(recipient.maxHP,recipient.hp+amount);this.emit('+'+amount,recipient.x,recipient.y-70);}
@@ -251,7 +252,7 @@ export class Arena{
    cast.outcomes.add(guard?'block':'hit');hitResult(state,event,age,guard?'Blocked':armored?'Armored':'Connected');this.emit((guard?'GUARD −':armored?'ARMOR −':'−')+damage,target.x,target.y-70);
    if(this.training&&target===this.fighters[1]){this.metrics.hits++;this.metrics.damage+=damage;}
    if(guard){if(state.startFrame===null)state.cancelled='Contact blocked; attachment cancelled.';}
-   else {state.attached=true;if(armored)target.lastHit=this.frame;else {target.cast=null;target.guarding=false;applyPulseReaction(target,event,snapshot.box.facing,this.frame);}if(f===this.fighters[0]&&damage>0)this.honourMetrics.attacks.add(a.id);}
+   else {state.attached=true;if(armored)target.lastHit=this.frame;else {target.cast=null;target.guarding=false;applyPulseReaction(target,scaledHitEvent(event,this.combos.priorHits(f,target),a.hitstunScaling),snapshot.box.facing,this.frame);}if(f===this.fighters[0]&&damage>0)this.honourMetrics.attacks.add(a.id);}
   }
   cast.impact=state.startFrame??state.contactFrame;
   this.lastSequence={attack:a.name,results:state.results.map(r=>({...r})),reason:state.cancelled};
