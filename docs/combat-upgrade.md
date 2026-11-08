@@ -1,6 +1,6 @@
 # Combat tools upgrade — November 5, 2026
 
-## Current status — November 8, 2026 (reconciled after reaction builder and template submission)
+## Current status — November 8, 2026 (reconciled after impact-timing release)
 
 This overview supersedes the historical entries below. The overall goal is **not complete**; historical deferrals do not remove requirements.
 
@@ -10,13 +10,14 @@ This overview supersedes the historical entries below. The overall goal is **not
 | Independent hits | Contact-relative projectile sequences; cast-relative melee/area sequences; per-hit damage/reactions, attached/repeated contact and common juggle budget | Richer recovery, hitstun deterioration and expanded event behaviors |
 | Geometry | Multiple grouped hitboxes and shared hit budgets | Rotation, animation anchors and authored hurtboxes |
 | Defense/interactions | Same-frame trades, armor, invulnerability, parry, projectile durability/clashes, reflection and absorption | Wider priority, guard break/crush and throws |
-| Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Hitstop/blockstun, counter-hit and combo scaling; broader physical-device QA |
+| Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Counter-hit and combo scaling; broader physical-device QA |
 | Projectiles | Independent lifetime and interruption persistence; durability; reflected ownership/geometry; absorption | Homing, return, splitting, explosion and broader piercing/area behavior |
-| Saving | Version1–11 project/bank/tree transport; server v64; revision protection; local recovery; unreadable-response/expired-session handling | Authenticated anonymous browser round trip and future migrations |
+| Impact timing | Authored hitstop/blockstop/blockstun; separate combat/playback clocks; shared preview and projectile scenarios | Broader interaction and device coverage |
+| Saving | Version1–12 project/bank/tree transport; server v65; revision protection; local recovery; unreadable-response/expired-session handling | Authenticated anonymous browser round trip and future migrations |
 | Authoring | Quick Edit, selected hits, basic/advanced, undo/redo, recovery, timeline zoom, track locking/hiding, atomic multiselect movement, group dragging, same/cross-attack copy/paste, batch hit properties and reaction-block preview/apply | Inheritance, movement/conditional sequence blocks, audio/camera and expanded presets |
 | Testing | Two-attack comparison, replay, saved scenarios, diagnostics and shared regression cases | Remaining scenario coverage, usability checks and classroom-device playtesting |
 
-Latest recorded full source suites: Arena466 and Studio1263 passed; the staged movement release also passed21 focused Studio checks. Studio includes concurrent authoring work; focused release tests provide the scoped evidence below. Counts do not prove browser usability or roadmap completion.
+Latest verified release suites: Arena 493 and staged Studio 1,276 passed. Impact-timing release verified 48 live file hashes and 13 downloaded-code tests. Browser pause/resume/scrub and published impact editing passed. Counts do not prove all browser workflows or roadmap completion.
 
 ### Latest delivered milestones and evidence
 
@@ -32,20 +33,13 @@ Latest recorded full source suites: Arena466 and Studio1263 passed; the staged m
 - Reaction builder `461fbcca`: live preview→replace→Undo verified; supported blocks generate ordinary hit events. Anonymous generated sequence has four60-frame Arena comparisons across melee/area and both facings, committed on `combat-cancel-development` as `7d3f508`.
 - Reusable recipe templates `0a8901c`: submitted, Pages42515303565 in progress at latest check. Local save/rename/remove/reload/restore/download/import browser checks and15 frozen tests passed. **Live template delivery is not yet verified.** Templates are browser-local; backups contain active recipes. They do not provide persistent inheritance or classroom-bank template sharing.
 
-### Next combat milestone: movement cancellation
+### Next combat milestone: combo tracking and scaling
 
-Current-source audit: `site/shared/cancel-windows.js` requires named attack IDs and supports only attack-to-attack transitions. `Arena.dodge()` rejects any cast; the movement loop allows jumping only with no cast. No authored movement-cancel target exists. This requirement is therefore incomplete.
+Movement cancels and impact timing are delivered. The next dependency is a shared definition of an uninterrupted combo, followed by optional damage scaling, hitstun deterioration and counter-hit rules. Current per-cast hit counts and airborne reaction budgets are not combo counters. See `docs/combo-system-plan.md` in the Arena checkout for the current source audit and acceptance criteria.
 
-Implementation acceptance:
-- Add explicit manual jump/dodge/dash cancellation targets with bounded frame windows and existing hit/block/parry/whiff conditions. Preserve old attack-target windows unchanged; do not reinterpret attack IDs as movement names.
-- Define dash separately from existing held sprint. Expose understandable duration/direction/resource settings and shared balance rules; avoid accidental dash activation from ordinary walking.
-- Keep ordinary recovery/stun, grounded/airborne restrictions, dodge cooldown, energy and required pet animation checks. An unavailable movement action must leave the current cast intact.
-- Specify and test when the old attack ends, how hit outcomes and cooldowns are retained, and how already launched persistent projectiles behave. Ensure simultaneous collision processing stays order-independent.
-- Add Studio controls, compatibility diagnostics and visible two-attack/movement testing. The single stationary preview must not claim parity for movement it cannot execute.
-- Introduce the required transport capability/version in both clients and classroom server before allowing saves; older clients must refuse unsupported writes. Test legacy definitions alongside new windows.
-- Cover window boundaries, hit/block/miss conditions, both facings, interruption, failed actions and no-input behavior with shared scenarios. Perform browser keyboard/mobile checks and scoped publication/live verification.
+Latest paired impact release: Arena `d8704b5`, Studio `81cc0c8`, server 65. Both Pages deployments succeeded; scoped publication preserved unrelated Studio work. Evidence: `release-staging/20261108-impact-timing`. Authenticated anonymous bank browser roundtrip remains unverified.
 
-The original historical notes below record previous limitations and local-only states. They are not current capability claims. Broader remaining scope includes movement cancels; hitstop/blockstun/counter-hit/scaling; expanded projectiles, collision and juggle rules; anchors/hurtboxes; richer conditional authoring; authenticated bank verification; and classroom-device/accessibility checks.
+The original historical notes below record previous limitations and local-only states. They are not current capability claims. Broader remaining scope includes counter-hit/scaling/hitstun deterioration; expanded projectiles, collision and juggle rules; anchors/hurtboxes; richer conditional authoring; authenticated bank verification; and classroom-device/accessibility checks.
 
 ---
 
@@ -1067,3 +1061,31 @@ Added shared version-12 impact timing diagnostics, combat-versus-playback clock 
 ### November 8 — classroom bank version-12 support published
 
 Sites release 65 deployed successfully at https://cyber-pet-classroom-settings.ragingaxolotl.chatgpt.site from source a44379f2faf354a7f3edeedb54607d688c0c6587. Live public capabilities advertise attack/bank formats 1–12. All 17 anonymous in-memory bank tests pass, including impact setting round trips, malformed-input rejection and older-client protection without replacing saved data. No real classroom bank records were read or written. Evidence: release-staging/20261108-impact-timing/server-publication.json. Studio/Arena impact-timing clients remain local and unpublished; browser pause/resume and scoped client release remain.
+
+### November 8 — impact timing client release verified live
+
+Arena d8704b5e47002483615b594532c12900c84bc7c9 and Studio 81cc0c87fd0e6ee28a8f10015e91613c99e0f1a7 deployed successfully (Pages runs 42519232315 and 42519239613). Verified 17 Arena and 31 Studio live file hashes; downloaded impact-focused tests pass. Full release suites: Arena 493 and staged Studio 1,276 passed. Staging initially omitted review fixtures; adding the existing anonymous fixtures restored the full suite, with no application change needed. Studio publication preserved unrelated root entries and patched only reviewed impact player integration into the remote design file. Browser confirmed local contact pause/resume retains remaining hold, scrub resets to combat frame 0, and published controls accept hitstop 4 with version-12 guidance. Evidence: release-staging/20261108-impact-timing; screenshot /private/tmp/cyber-pet-live-impact.jpg. Server release 65 is already live. This completes the impact-timing release, not the overall goal. Authenticated anonymous classroom-bank browser roundtrip remains unverified; broader combo, projectile, hurtbox and authoring work remains. Next: audit the next combo capability and its timing dependencies against the report.
+
+### November 8 — local combo telemetry foundation
+
+Added ComboTracker and Arena integration using pre-contact recovery state. Damage contacts span casts until an actionable gap; guard/armor end the damage chain, support/push contacts and periodic status damage do not increment it. Frozen hitstop ticks preserve the chain. Training reset clears it; round end closes active chains. Actual HP damage excludes shield absorption and overkill. Comparison result/replay now carries detached pair telemetry and its summary reports peak contacts and maximum chain HP damage separately. Damage/reaction balance is unchanged. Five new unit/runtime tests cover continuous stun, exact expiry boundary, freeze, reset, guard/armor, snapshot isolation and overkill. Full suites: Arena498 and Studio1276 pass. This is local and unpublished. Remaining before combo delivery: mixed-defense/order cases, cross-cast/automatic chains, projectile ownership, reaction recovery variants, Studio preview integration and browser feedback verification. Scaling, deterioration and counter-hit rules remain unimplemented.
+
+### November 8 — combo contact-order and integration checks (local)
+
+Moved same-frame contact batching into ComboTracker: guard/armor breaks are processed before eligible hits with deterministic break priority. Added actual Arena scenarios for automatic cross-cast follow-up, trades in both fighter orders, guard/armor exclusion, shield-only contact and burn ticks. Corrected fixtures to configure active casts, with explicit assertions that hitstop/status really occur; earlier post-cast definition edits did not exercise those conditions. Ten focused tests pass. Full suites passed Arena503 and Studio1276; after the final deterministic break-priority adjustment, all ten focused checks passed again. No publication yet. Remaining: projectile ownership/reflection, reaction variants, Studio preview integration, replay/browser feedback, then scaling/counter-hit work.
+
+### November 8 — projectile combo attribution and replay evidence (local)
+
+Four actual Arena cases verify ordinary/attached projectile combo attribution after reflection and owner interruption. Forced authored flight retains a chain beyond nominal hitstun; ordinary airborne movement does not. Comparison tests prove serialized A/B identities, per-frame counts and detached snapshots. Replay labels now show active damage-chain contacts and HP loss. Seventeen focused combo tests and full suites Arena510/Studio1276 pass. Browser verification of the new replay label remains outstanding. Still local/unpublished; Studio preview integration, richer recovery/defense cases and scaling/counter-hit implementation remain.
+
+### November 8 — shared preview combo telemetry (local)
+
+Shared ComboTracker now records outgoing damage-chain snapshots and totals in ordinary and sequence previews, preserving combat-frame timing during presentation pauses. Studio results show peak outgoing contacts and maximum chain HP damage with an explicit single-attack limitation. Four frame-by-frame Arena/preview scenarios cover ordinary/scheduled hits and guards, including impact pauses. A zero-motion preview flight record initially retained the combo incorrectly; lock detection now checks actual authored motion. Shared tracker files match exactly. Full suites Arena514/Studio1279 pass. This is not published. Incoming probe remains a simplified damage/frame test and is not reported as a second authored combo. Remaining: wider recovery parity and browser QA, then telemetry release and scaling/counter-hit implementation.
+
+### November 8 — combo recovery and Studio browser checks (local)
+
+Added frame-by-frame launch and floor-knockdown recovery checks; Arena and preview combo state agree through regained control. Browser verified anonymous Studio fixture: standing target displays one outgoing damage contact /19 HP; Blocking displays one contact but zero damage-chain hits /0 HP. Screenshot /private/tmp/cyber-pet-combo-preview.jpg. Updated local importing entry points for combo cache keys. Full suites Arena516/Studio1279 pass. No publication yet. Next: Arena replay browser check and scoped combo telemetry release. Scaling, deterioration, counter-hit and the broader original report scope remain unfinished.
+
+### November 8 — Arena combo browser verification
+
+Anonymous local Quick jab comparison produced a simultaneous trade: each fighter lost15 HP and each pair reported a one-hit chain. Scrubbing the replay to combat/playback frame8 displayed both active chains and15 HP per fighter. Screenshot /private/tmp/cyber-pet-combo-arena.jpg. Scoped release staging is in progress; this entry does not claim publication.
