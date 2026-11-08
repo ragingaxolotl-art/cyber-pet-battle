@@ -1,16 +1,16 @@
-import {reflectedProjectileTransform,transformProjectileBox} from './shared/projectile-reflection.js?v=20261108-projectile-defense';
-import {ProjectileClashes} from './shared/projectile-clashes.js?v=20261108-projectile-defense';
-import {ProjectileRegistry,ownerActionEnd} from './shared/projectile-lifetime.js?v=20261108-projectile-defense';
-import {CONTACT_TIMEOUT,contactDeadline,castEnd} from './shared/contact-timing.js?v=20261108-projectile-defense';
-import {canCancel,automaticFollowup,MAX_AUTOMATIC_FOLLOWUPS} from './shared/cancel-windows.js?v=20261108-projectile-defense';
-import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,claimProjectileDefense} from './shared/defense-windows.js?v=20261108-projectile-defense';
-import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-projectile-defense';
-import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-projectile-defense';
-import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-projectile-defense';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-projectile-defense';
-import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-projectile-defense';
-import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-projectile-defense';
-import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-projectile-defense';
+import {reflectedProjectileTransform,transformProjectileBox} from './shared/projectile-reflection.js?v=20261108-scheduled-sequences';
+import {ProjectileClashes} from './shared/projectile-clashes.js?v=20261108-scheduled-sequences';
+import {ProjectileRegistry,ownerActionEnd} from './shared/projectile-lifetime.js?v=20261108-scheduled-sequences';
+import {CONTACT_TIMEOUT,contactDeadline,castEnd} from './shared/contact-timing.js?v=20261108-scheduled-sequences';
+import {canCancel,automaticFollowup,MAX_AUTOMATIC_FOLLOWUPS} from './shared/cancel-windows.js?v=20261108-scheduled-sequences';
+import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,claimProjectileDefense} from './shared/defense-windows.js?v=20261108-scheduled-sequences';
+import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-scheduled-sequences';
+import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-scheduled-sequences';
+import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-scheduled-sequences';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-scheduled-sequences';
+import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-scheduled-sequences';
+import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-scheduled-sequences';
+import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-scheduled-sequences';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:CONTACT_TIMEOUT};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
 export class Arena{

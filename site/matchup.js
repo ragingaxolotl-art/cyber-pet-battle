@@ -1,5 +1,5 @@
-import {Arena,fighter} from './engine.js?v=20261108-projectile-defense';
-import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261108-projectile-defense';
+import {Arena,fighter} from './engine.js?v=20261108-scheduled-sequences';
+import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261108-scheduled-sequences';
 // Isolated, deterministic comparison: no AI, saves, rewards, or pet-art restrictions.
 export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,placement='center',actionB='attack',followupA=null,followupFrame=12,availableAttacks=[]}={}) {
  for(const [value,min,max] of [[distance,0,800],[offset,-180,180],[frames,1,900],[heightA,0,150],[heightB,0,150]])if(!Number.isInteger(value)||value<min||value>max)throw Error('Use a distance of 0–800, offset of −180–180, and duration of 1–900 frames.');
