@@ -336,3 +336,25 @@ Next: widen and organize comparison dialog (live screenshot showed narrow deskto
 ### Comparison layout — desktop preview checked
 
 Widened comparison to 1180px maximum with setup and replay side by side, a sticky result panel, bounded event log, and stacked layout below 760px. All 276 Arena tests pass. Local browser screenshot confirms the desktop layout; small-screen and published verification remain pending. User confirmed SSD disconnections are due to a fragile cable. Continue in the temporary checkout and sync GitHub; do not write to/repeatedly remount the SSD until connection is stable. Reconcile canonical checkout later without discarding changes.
+
+### SSD work resumed by user instruction
+
+User explicitly directed continuing writes to the SSD despite the fragile cable. Remounted Combat image and fast-forwarded the clean canonical Arena checkout from eb2f088 to 2252f3d, preserving history with no discarded changes. This supersedes the temporary-checkout-only instruction above. Continue development under /Volumes/Cyber Pet Combat; temporary checkout remains a recovery copy.
+
+### Comparison layout — deployed and targeted browser checks passed
+
+Arena 2252f3dcc6d356db685d2dc513db07f7d496cb78 deployed successfully (Pages run 42502799039). Verified 42 published files against that commit and passed downloaded-code comparison/C-slot workflows. Desktop local screenshot shows setup beside replay. Published 390×844 browser check shows stacked, readable controls and a successful 900-frame run with results and scrubber. Restored browser viewport afterward. Initial ordinary URL retained old HTML in browser cache; release-qualified navigation loaded verified current markup.
+
+Evidence: release-staging/20261108-comparison-layout/verification.json and tests.txt. Canonical SSD checkout is current. Next: Studio browser UI audit, remaining accessibility/responsive work and larger combat/editor scope. Overall goal remains active.
+
+### Playback release live verified; parry guidance corrected locally
+
+Studio 6957a143fa566141a677232c1c45bbbd4ac679cb deployed successfully in run 42503091306. Both live files match recorded hashes. Live browser Reset returns phase to 0f STARTUP and the Test attack control is positioned above canvas. Evidence: release-staging/20261108-playback/verification.json. Local narrow-screen check was 500px with no horizontal overflow. This completes this playback-placement milestone, not the entire UI audit.
+
+Separately corrected stale parry guidance in both shared diagnostics copies: a counterattack requires a separate automatic After parrying follow-up, tested in Arena because single-attack preview does not execute follow-ups. This wording change is local/unpublished. Full suites pass: 1135 Studio / 276 Arena. Next: continue remaining UI workflow audit and combat scope, include diagnostics correction in next paired release.
+
+### Temporary comparison handoff cleanup — tested locally
+
+Creating a new Studio-to-Arena test now cleans expired/malformed entries only under cyber-pet-comparison-transfer:. It preserves current handoffs and does not inspect saved profiles or attack banks. Cleanup snapshots keys before removal so storage index shifts cannot skip entries. Storage adapters without enumeration remain supported. Regression confirms expiry, malformed-data removal, preservation of current transfers/unrelated data and successful consumption of the new test. Shared source copies match. Full suites: 277 Arena / 1135 Studio passing.
+
+This cleanup and the parry guidance correction remain unpublished. Next: paired release of these shared changes and live handoff verification; broader combat and editor scope remains active.
