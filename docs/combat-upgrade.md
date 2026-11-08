@@ -254,3 +254,9 @@ Remaining for cancel release: classroom backend v5, reconcile the independently 
 
 ### Ninth attack slot C — release preparation
 C sits beside X and is available in the mapper and fullscreen controls. Physical C is a free Quick jab using existing thrust artwork. Custom sets gain a ninth slot. Version-1 eight-slot profiles upgrade in memory to version 2 without changing the original stored value until a successful save; prior assignments and draft slots are preserved. Old clients reject the new profile version. Separate defense defaults to F for Block and V for Dodge; C is removed from defense choices. Combined Shift defense is unchanged. Release is isolated from unfinished cancel work. 215 tests pass; browser visual verification remains outstanding.
+
+### Published C-slot integration — verified locally
+
+Checkpointed unpublished Arena work as f8d3797 on combat-cancel-development, then merged published C-slot commit 33f14bf into merge commit be9c366. Reviewed conflicts against the published files with cache suffixes normalized: retained all C-slot behavior and all cancel/timeout/handoff work, and preserved both documentation histories. Published C-slot commit is now an ancestor of development HEAD. No merge conflicts or uncommitted source changes remain. This supersedes the prior instruction that integration was still needed. Do not push the development branch to main until remaining release work passes.
+
+Post-merge suites: 249 Arena and 1132 Studio passing. Current live deployment remains the C-slot release; local cancel/handoff functionality is not published. Next: classroom v5 support, paired release metadata/cache preparation, publication and live verification. Browser visual QA and broader feature scope remain outstanding.
