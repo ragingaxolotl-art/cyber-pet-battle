@@ -1,6 +1,6 @@
-import {attacksVersion} from './shared/attack-format.js?v=20261108-absorption';
-import {freshAttack,validateAttack} from './shared/combat-model.js?v=20261108-drag-recovery';
-import {validateTree} from './shared/skill-tree-model.js?v=20261108-absorption';
+import {attacksVersion} from './shared/attack-format.js?v=20261108-contact-final';
+import {freshAttack,validateAttack} from './shared/combat-model.js?v=20261108-contact-final';
+import {validateTree} from './shared/skill-tree-model.js?v=20261108-contact-final';
 export const STUDIO_TREE_KEY='cyber-pet-attack-skill-tree-v1';
 export function checkPlayableTree(tree,effectIds){
  validateTree(tree,new Set([...effectIds,'']),validateAttack);
