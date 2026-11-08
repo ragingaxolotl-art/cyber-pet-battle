@@ -12,13 +12,13 @@ import {ProjectileClashes} from './shared/projectile-clashes.js?v=20261108-movem
 import {ProjectileRegistry,ownerActionEnd} from './shared/projectile-lifetime.js?v=20261108-movement-cancels';
 import {CONTACT_TIMEOUT,contactDeadline,castEnd} from './shared/contact-timing.js?v=20261108-movement-cancels';
 import {canCancel,automaticFollowup,MAX_AUTOMATIC_FOLLOWUPS} from './shared/cancel-windows.js?v=20261108-movement-cancels';
-import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,claimProjectileDefense} from './shared/defense-windows.js?v=20261108-movement-cancels';
+import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,claimProjectileDefense} from './shared/defense-windows.js?v=20261108-absorption';
 import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-movement-cancels';
 import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-movement-cancels';
 import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-bounces';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-steering';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-absorption';
 import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-movement-cancels';
-import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-steering';
+import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-absorption';
 import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-bounces';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:CONTACT_TIMEOUT};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,blockstunUntil:0,blockstunReduction:0,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,dashUntil:0,dashReady:0,dashDirection:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,hitstunUntil:0,airRecoveryUsed:false,statuses:[],shield:0,shieldUntil:0,flash:0};}
@@ -281,9 +281,10 @@ export class Arena{
   const projectile=snapshot.projectile;if(!projectile)return false;
   const window=claimProjectileDefense(snapshot.defense,snapshot.cast.a);if(!window)return false;
   const reflected=window.kind==='reflect'&&this.reflectProjectile(projectile,defender);
-  if(window.kind==='absorb'){this.projectiles.remove(projectile);this.emit('ABSORB',defender.x,defender.y-70);}
+  let energyRestored=0;
+  if(window.kind==='absorb'){energyRestored=Math.min(window.energyGain??0,Math.max(0,defender.maxEnergy-defender.energy));defender.energy+=energyRestored;this.projectiles.remove(projectile);this.emit('ABSORB',defender.x,defender.y-70);if(energyRestored>0)this.emit('ENERGY +'+Number(energyRestored.toFixed(2)),defender.x,defender.y-90);}
   const result=window.kind==='absorb'?'Absorbed':reflected?'Reflected':'Reflection limit';
-  this.lastProjectileDefenses.push({id:projectile.id,name:snapshot.cast.a.name,defender:this.fighters.indexOf(defender),result,remainingCharges:window.hits-(snapshot.defense.state.get(window.id)||0)});
+  this.lastProjectileDefenses.push({id:projectile.id,name:snapshot.cast.a.name,defender:this.fighters.indexOf(defender),result,energyRestored,remainingCharges:window.hits-(snapshot.defense.state.get(window.id)||0)});
   return result;
  }
  parry(attacker,defender,window,projectile=null){defender.cast?.outcomes.add('parry');if(projectile){this.projectiles.remove(projectile);this.emit('PARRY',defender.x,defender.y-70);return;}beginReaction(attacker,{knockback:0,launchHeight:0,pushAxis:'x',hitstun:window.stun,flightFrames:1,floorSlam:false,wallSlam:false},-attacker.facing,this.frame,false);this.emit('PARRY',defender.x,defender.y-70);}

@@ -39,3 +39,31 @@ test('a defense window ending before contact does not intercept the projectile',
  const {arena,b}=setup('reflect');b.cast.a.defenseWindows[0].duration=2;
  for(let i=0;i<35;i++)arena.tick();assert.equal(b.hp,b.maxHP-7);
 });
+
+test('absorption restores authored energy once and respects maximum capacity',()=>{
+ for(const initial of [10,69,70]){
+  const {arena,b}=setup('absorb');b.energy=initial;b.cast.a.defenseWindows[0].energyGain=25;
+  const records=[];let before;
+  for(let i=0;i<35;i++){const prior=b.energy;arena.tick();if(arena.lastProjectileDefenses.length){before=prior;records.push(...arena.lastProjectileDefenses);assert.equal(b.energy,Math.min(b.maxEnergy,prior+.055+25));}}
+  assert.equal(records.length,1);assert.ok(Math.abs(records[0].energyRestored-Math.min(25,Math.max(0,b.maxEnergy-before-.055)))<1e-9);assert.equal(b.hp,b.maxHP);
+ }
+});
+test('exhausted absorption does not reward a later damaging projectile',()=>{
+ const {arena,a,b,attack}=setup('absorb');b.energy=0;b.cast.a.defenseWindows[0].energyGain=10;
+ const records=[];for(let i=0;i<20;i++){arena.tick();records.push(...arena.lastProjectileDefenses);}
+ assert.equal(arena.attack(a,{...attack,id:'attack_second_reward'}),true);
+ for(let i=0;i<20;i++){arena.tick();records.push(...arena.lastProjectileDefenses);}
+ assert.equal(records.length,1);assert.equal(records[0].energyRestored,10);assert.equal(b.hp,b.maxHP-7);assert.ok(Math.abs(b.energy-(10+40*.055))<1e-9);
+});
+test('invulnerability prevents absorption rewards and leaves the charge unused',()=>{
+ const {arena,b}=setup('absorb',[{id:'defense_inv_reward',kind:'invulnerability',against:'all',start:0,duration:60}]);b.energy=0;b.cast.a.defenseWindows[1].energyGain=25;const cast=b.cast;
+ for(let i=0;i<35;i++)arena.tick();assert.equal(cast.defenseState.get('defense_projectile'),undefined);assert.ok(Math.abs(b.energy-35*.055)<1e-9);
+});
+test('absorption energy has version18 protection and strict bounds',()=>{
+ const attack={...freshAttack(),defenseWindows:[{...window('absorb'),energyGain:25}]};
+ assert.equal(attackVersion(attack),18);assert.doesNotThrow(()=>validateDesign({format:'cyber-pet-combat-design',version:18,attacks:[attack]}));
+ assert.throws(()=>validateDesign({format:'cyber-pet-combat-design',version:17,attacks:[attack]}),/version 18/);
+ for(const energyGain of [-1,101,1.5,null,'25',NaN])assert.throws(()=>validateAttack({...attack,defenseWindows:[{...window('absorb'),energyGain}]}),/Absorption energy/);
+ assert.throws(()=>validateAttack({...attack,defenseWindows:[{...window('reflect'),energyGain:25}]}),/Absorption energy/);
+ assert.equal(attackVersion({...attack,defenseWindows:[window('absorb')]}),9);
+});

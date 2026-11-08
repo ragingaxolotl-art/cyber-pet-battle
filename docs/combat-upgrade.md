@@ -1285,3 +1285,29 @@ Continued writing in the mounted combat SSD workspace as requested. Added a retu
 Remaining for this milestone: browser export/Arena import verification, cache-key review, client publication and live-file verification. Steering clients are not yet published. Overall combat/UI goal remains active.
 
 Steering release QA: browser-created version17 export imported into Arena; both Traveling bolt projectiles returned at playback frame53, neither owner lost HP. Added explicit return events to the comparison log and a regression proving each return is logged once. Arena full suite now616 passing; staged Studio1317 passing. Cache keys refreshed. Client publication pending.
+
+### Steering clients verified live
+
+Arena d2b69ceda75299469dace6c79376e41f3b2e9ccb and Studio 6b5b20119bd1e8c2185e8aa69ae9dbd2d73c0634 deployed successfully (Pages42528352342/42528365258). Verified53 live files against release hashes:18 Arena,35 Studio. Tests against downloaded steering/editor/format modules pass. Full prepublication suites: Arena616, staged Studio1317. Browser-created version17 export imports into Arena and both return events appear once, without catch damage. Server70 already advertises format17. Evidence: release-staging/20261108-steering.
+
+This completes the homing/return release, not the overall report. VFX alignment has renderer regression coverage; the browser export fixture has no VFX artwork, so this is not visual artwork verification. Authenticated anonymous browser bank roundtrip and physical-device/accessibility checks remain unverified. Next projectile scope: contact outcomes (single contact/piercing/persistent area), explosion/splitting and absorption resource benefits. Remaining priority/guard/throw, hurtbox/anchor/rotation, authoring inheritance/behavior/audio/camera work and final scope audit remain active.
+
+### Absorption energy rewards — local, unpublished
+
+Audited existing projectile lifetime/contact and defense handling. Absorption currently removes independent projectiles with charged windows and no resource benefit. Added optional defense-window energyGain (integer0–100, absorb-only), applied once on successful absorption and capped at current maximum energy. No reward on invulnerability or exhausted charges; old omitted settings preserve zero reward. Arena comparison reports actual restored energy, separating this from configured reward. Studio has a blank-to-disable energy field, invalid-value restoration and Undo coverage. Both clients classify authored rewards as format18, accept18 project/bank/tree reads, negotiate18 only when advertised and reject reward writes to older servers before PUT. Diagnostics explain the version requirement and melee-only Studio probe limitation.
+
+Validation: full suites Arena620 and Studio1317 passed before adding two transport tests per client; both new transport tests also pass in each client. Existing editor workflow test now checks save18, invalid values, clearing to legacy9 and Undo. Runtime tests cover partial/full energy, exact capacity clamp, once-only award, exhausted charge and invulnerability precedence. No publication yet: live server70 supports17 and safely refuses18 writes. Next: server18 migration and rejection/roundtrip tests, comparison starting-energy controls so authors can demonstrate nonzero rewards, browser QA, scoped client release and live verification. Other projectile contact/area/explosion/splitting work and the broader report remain unfinished.
+
+### Absorption comparison energy controls — local
+
+Added A/B starting-energy percentages (whole0–100, default100) to isolated comparison. Initial energy respects each fighter’s stat-derived maximum and normal attack costs; regeneration continues. Replay snapshots and labels expose current/max energy. Saved scenarios preserve both percentages; older scenarios and new Studio transfers reset them to full energy instead of retaining stale low values. Blank/invalid inputs are rejected. Runtime/UI tests demonstrate a25-point absorption reward, exact energy accounting, insufficient-energy attack rejection, save/load and legacy defaults. Full Arena624/624 passes; git diff --check clean.
+
+Still unpublished. Next: classroom server18 support/tests, browser authoring/export/import/reward verification, scoped release staging and live verification. The broader combat/editor/accessibility goal remains active.
+
+### Classroom server71 supports absorption format18 (live)
+
+Server71 deployed successfully from90e324f1cabfb70d16689f9137af5976ac813f6e. Public capabilities advertise1–18 with revision protection. All23 anonymous in-memory server tests pass, including reward roundtrip, zero reward, old-client refusal, malformed values/wrong defense kind and saved-data preservation after rejected writes. Evidence: release-staging/20261108-absorption/server-publication.json and server-tests.txt. No real classroom bank writes performed. Client controls remain local/unpublished; next browser authoring/export/import/energy verification, scoped client staging and publication. Overall goal remains active.
+
+### Absorption client release QA
+
+Browser authored absorb window with25 energy,60-frame duration and90-frame startup, exported format18 and imported into Arena. At100px spacing and20% defender starting energy, comparison reported one absorption at frame21 restoring25 energy, no HP damage. Screenshot /private/tmp/cyber-pet-absorption-arena.jpg. Scoped Studio staging contains35 files against6b5b20119bd1e8c2185e8aa69ae9dbd2d73c0634; unrelated site files preserved. Full release tests Arena624 and staged Studio1319 pass. Evidence: release-staging/20261108-absorption. Client publication/live verification pending.
