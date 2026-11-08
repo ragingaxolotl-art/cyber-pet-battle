@@ -1,6 +1,6 @@
 # Combat tools upgrade — November 5, 2026
 
-## Current status — November 8, 2026 (reconciled after bounce release)
+## Current status — November 8, 2026 (reconciled through verified contact19 release)
 
 This overview supersedes the historical entries below. The overall goal is **not complete**; historical deferrals do not remove requirements.
 
@@ -11,13 +11,13 @@ This overview supersedes the historical entries below. The overall goal is **not
 | Geometry | Multiple grouped hitboxes and shared hit budgets | Rotation, animation anchors and authored hurtboxes |
 | Defense/interactions | Same-frame trades, armor, invulnerability, parry, projectile durability/clashes, reflection and absorption | Wider priority, guard break/crush and throws |
 | Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Broader physical-device QA and additional conditional transitions |
-| Projectiles | Independent lifetime and interruption persistence; durability; reflected ownership/geometry; absorption | Homing, return, splitting, explosion and broader piercing/area behavior |
+| Projectiles | Verified live independent lifetime, durability, reflection, absorption energy, homing and return. Single-contact/repeated policy verified live as format19 | Splitting, explosion and projectile-created persistent areas; expanded travel/target behavior |
 | Impact timing | Authored hitstop/blockstop/blockstun; separate combat/playback clocks; shared preview and projectile scenarios | Broader interaction and device coverage |
-| Saving | Version1–16 clients and server v69 live; revision protection; local recovery; unreadable-response/expired-session handling | Authenticated anonymous browser round trip and future migrations |
-| Authoring | Quick Edit, selected hits, basic/advanced, undo/redo, recovery, timeline zoom, track locking/hiding, atomic multiselect movement, group dragging, same/cross-attack copy/paste, batch hit properties and reaction-block preview/apply | Inheritance, movement/conditional sequence blocks, audio/camera and expanded presets |
+| Saving | Version1–19 clients verified live. Server72/version19 live; revision protection, local recovery, unsupported-write refusal | Authenticated anonymous classroom-bank browser round trip and future migrations |
+| Authoring | Quick Edit, selected hits, basic/advanced, undo/redo/recovery, timeline zoom and grouped edits, reusable reaction templates, direct animation/target/attacker placement, both docked sides scrolling, compact section help | Persistent property inheritance, movement/conditional sequence blocks, audio/camera, more presets and broader help rollout |
 | Testing | Two-attack comparison, replay, saved scenarios, diagnostics and shared regression cases | Remaining scenario coverage, usability checks and classroom-device playtesting |
 
-Latest verified release suites: Arena595 and staged Studio1307 passed. Bounce release verified55 live file hashes and downloaded editor/schema/reaction checks. Local browser verified version16 export, Arena import, rebound replay and event feedback. Server69 supports formats1–16. Counts do not prove all browser workflows or roadmap completion.
+Latest verified release suites: Arena639 and staged Studio1330 passed. Browser verified format19 export/import and a five-hit-configured projectile ending on its first block. Arena42532631928 and Studio42532641794 succeeded;52 live file hashes match (17 Arena,35 Studio), and downloaded editor/format/help checks pass. Server72 supports formats1–19 with24 anonymous in-memory tests. Earlier steering/absorption/placement releases have live-file receipts in their release-staging directories. Test counts do not establish completion of untested browser/device workflows or the full report.
 
 ### Latest delivered milestones and evidence
 
@@ -31,13 +31,13 @@ Latest verified release suites: Arena595 and staged Studio1307 passed. Bounce re
 - Group dragging `5370d393`: live1× selected drag and Undo verified; resize controls occupy a separate lane so short hits remain draggable.
 - Batch hit properties `7dfc6df6`: live selected-hit damage/Undo verified, preserving timing.
 - Reaction builder `461fbcca`: live preview→replace→Undo verified; supported blocks generate ordinary hit events. Anonymous generated sequence has four60-frame Arena comparisons across melee/area and both facings, committed on `combat-cancel-development` as `7d3f508`.
-- Reusable recipe templates `0a8901c`: submitted, Pages42515303565 in progress at latest check. Local save/rename/remove/reload/restore/download/import browser checks and15 frozen tests passed. **Live template delivery is not yet verified.** Templates are browser-local; backups contain active recipes. They do not provide persistent inheritance or classroom-bank template sharing.
+- Reusable recipe templates `0a8901c`: Pages42515303565 succeeded; release-staging/20261108-reaction-templates/deployment-status.json records six matched live hashes and15 focused tests. Local save/rename/remove/reload/restore/download/import browser checks passed. This supersedes the stale pending note. Templates are browser-local; backups contain active recipes. They do not provide persistent inheritance or classroom-bank template sharing.
 
 ### Latest combat milestone: hitstun release verified
 
 Shared cross-attack combo tracking, optional damage scaling and counter-hit rules are delivered. Format15 adds optional hitstun deterioration and explicit per-event hitstun, preserving separate motion/knockdown/status recovery locks. Full release tests Arena560/Studio1295 pass; browser authoring/export/import smoke passed. Arena commit1e009f4 and Studio0efc647 are pushed; both Pages deployments succeeded and51 live files match the release. Server68 already supports15. See the latest dated entries and `release-staging/20261108-hitstun`.
 
-Next combat scope: shared projectile movement for homing/return, then splitting/explosions and broader defensive mechanics. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
+Next combat scope: projectile-created persistent areas, splitting/explosions and broader defensive mechanics. Homing and return are delivered. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
 
 ---
 
@@ -1374,3 +1374,45 @@ Sites server72 deployed successfully (source664c401f7a33ffc0ade27131677496b67938
 Browser created an anonymous Traveling bolt with single contact,5 permitted hits,60 active frames,0 knockback; exported version19 to /Users/timetravellog/Downloads/cyber-pet-arena-practice (8).json and imported in local Arena. Studio explains first-successful-contact removal. Guard comparison had0 damage but no explanation, so added per-tick projectile contact-end records and comparison rows (exactly once through hitstop);13 focused runtime tests now pass. Refresh browser/cache to verify new comparison row and capture screenshot before release. New source remains local, not published; server supports it already.
 
 Help-only Pages42531347690 first attempt failed after10m28s syncing_files timeout and cancelled its deployment. Confirmed terminal failure from logs before retrying only failed jobs on the same run. New watch launched; do not restart unless this attempt terminates. Verify four live files with /private/tmp/verify_projectile_help_release.py after success. Next: finish contact browser checks, scoped Studio staging preserving concurrent local work, full final suites and client releases. Original combat/editor/report scope remains active.
+
+
+### Contact19 clients published; deployment verification pending
+
+Browser verified version19 import into Arena with5 configured hits: at200px distance projectile visible at frame20, removed on full guard at frame54, absent frame70; row explains later hits cancelled. Screenshot /private/tmp/cyber-pet-single-contact.jpg and browser-qa.json in release-staging/20261108-projectile-contact. Clarified summary's automatic-follow-up contact count. Final full suites Arena639/639 and staged Studio1330/1330 pass. Studio staging preserves existing dependency cache identities and narrowly patches published design commit handler, bank and tree formats. Source publication: Arena9d1025cdd227258bc99c801dc3a818993a71e41d (Pages42532631928), Studioc8e62a399f8f2661d18a57e14ac44e379b39d972 (Pages42532641794). Both deploying; do not claim live yet. Server72 already live19. After both succeed run /private/tmp/verify_projectile_contact_release.py and save deployment receipts. Older help-only retry42531347690 remained queued last checked; new contact release includes its changes. Keep all processes/artifacts, do not restart on observation timeout. Next after live verification: remaining projectile area/explosion/splitting and broader report requirements. Overall goal active.
+
+
+### Contact19 verified live
+
+Arena9d1025cdd227258bc99c801dc3a818993a71e41d and Studioc8e62a399f8f2661d18a57e14ac44e379b39d972 deployments succeeded.52 live files matched hashes, downloaded contact editor/format/context-help tests pass. Latest Pages build explicitly names c8e62a3. Evidence: release-staging/20261108-projectile-contact/deployment-receipts.json, live-file-verification.json, live-contact-tests.txt. Server72/version19 live. This also delivers the projectile compact-help changes. Old help-only run42531347690 has inconsistent GitHub status: read reports queued/no jobs, cancellation rejects as already completed. Cancellation was attempted only because superseded, not because of an observation timeout. No new deployment was created for it; latest built/served files confirmed current. Watch10494 may remain observational; do not restart old build.
+
+Next: projectile-created persistent areas/explosion/splitting, remaining priority/guard/throws and geometry/anchors/hurtboxes, authoring inheritance/conditional blocks/audio/camera, wider accessibility/device testing, authenticated anonymous bank browser roundtrip, and final requirement audit. Original goal remains active; verified templates and steering are no longer incorrectly listed as pending.
+
+
+### Projectile impact-area foundation (local, incomplete)
+
+Added shared projectile-area.js validation, stationary contact-centered bounds, next-combat-frame start, exclusive expiry, per-target hit count/interval and collision-dependent claiming. New projectileArea {width,height,duration,interval,hitLimit,damage} requires a single-contact independent damage projectile; version20 envelopes protect it. Local project/bank/tree/catalog readers negotiate20; live server remains72/version19 and refuses area writes. Arena stores areas separately from projectiles, snapshots collision/defense before resolution, permits walking out/reentry, respects guard/invulnerability/dodge/parry, survives owner interruption and clears on reset/defeat.16 areas per owner cap reports rejection. Areas deal fixed authored damage without an extra launch/hitstun/status, starting after impact to prevent same-frame double hits. Ordinary and sequence previews have area ticks and expose area bounds in frame snapshots. No editor/UI rendering or publication yet.
+
+Six focused tests pass: shared timing, ordinary runtime/preview HP parity, leaving/reentering, exact schema/version rejection, interruption/pause/guard, invulnerability/defeat. Full local suites Arena645/645, Studio1330/1330 pass; logs /private/tmp/area-foundation-{arena,studio}-tests.txt. Still needed before release: sequence/area-defense and reflected ownership coverage, grouped-contact anchor correctness (current spawn uses primary snapshot box), area hit reporting and replay lifetime/unfinished accounting, visible area rendering in both apps, editor controls and dependent-setting cleanup, fixed-damage/no-reaction help, server20 migration/roundtrip, browser QA, scoped staging and publication. Do not claim area feature complete or deploy this foundation as finished. Next continue those requirements. Overall goal active; splitting/explosion and other report work remain.
+
+
+### Impact-area authoring/rendering and interaction checks (local)
+
+Added projectile-area-editor.js with enable/disable, width/height, lifetime, interval, per-target hit limit and fixed damage; compact info dialog documents no added launch/hitstun/status, next-frame pulses, escape/reentry and16-area bound. Enabling chooses single contact; changing persistence/contact removes dependent area, Undo/import restores. Version20 editor save and invalid values pass actual-handler regression. Studio draw renders translucent area bounds even with debug boxes off; contact metrics include area pulses. Arena draws areas separately from projectile art; comparison snapshots/rendering expose active bounds and remaining time, area hit/block rows, and unfinished status while areas remain. No browser QA of these new visuals yet.
+
+Fixed grouped contact anchor using the actual overlapping box, including the shared sequence preview path. Added tests for grouped primary-box displacement, sequence/runtime area damage parity, reflected current-owner damage, replay expiry and test-limit accounting. Ten focused area runtime tests pass. Full local suites Arena649/649 and Studio1331/1331 pass; git diff check clean. Logs /private/tmp/area-authoring-{arena,studio}-tests.txt.
+
+Still local/unpublished. Next: finish area parry/shield/armor/cap coverage and transport roundtrip diagnostics, server20 support (live server72 remains19), browser QA/export/import, scoped Studio staging (narrow design.js commit/render/metrics patch; preserve concurrent work), final tests and releases. Explosion/splitting and broader report requirements remain. Goal active.
+
+
+### Impact-area defenses/transport and server73 verified
+
+Added shield absorption, armor continuation, area parry outcome/no owner stun, and16-area bound tests. Area parry now records its outcome for cancels and comparison logs; it removes the stationary area. Added format20 bank roundtrip/older-server refusal tests in both clients and area diagnostics/lifetime warning. Full local suites Arena653/653, Studio1332/1332 pass; server25/25 anonymous in-memory tests pass. Server73 deployed successfully from b3c0102a7abbd6a84bd2dcee67aaef8b7db9a1fb and public capabilities1–20/revision protection verified. Evidence release-staging/20261108-projectile-area/server-publication.json and server-live-capabilities.json. No real classroom data writes. Client impact-area changes still local/unpublished.
+
+Next: browser author/edit/export/import/replay and visual QA, including clarity of area bounds/counts/expiry; scoped Studio staging preserving concurrent work and narrow design.js commit/render/metrics patches; final release checks, client publication and live hashes. Original broader goal active.
+
+### November 8 — impact-area release validation
+
+- Scoped Studio staging preserves the current published baseline c8e62a3 and unrelated local authoring changes. Fixed release cache rewriting to match complete module filenames (never JSON filename prefixes). Staged full suite: **1,332/1,332**; Arena full suite: **653/653**.
+- Browser QA: authoring, help popup, version-20 export/import, and debug-independent area rendering verified. Result summary now distinguishes the initial contact from area hits. Arena comparison reproduces 19 HP initial impact at frame 17 plus five 3 HP pulses at 18/33/48/63/78; area absent at frame 108. Full guard prevents damage from all pulses.
+- Evidence: release-staging/20261108-projectile-area/{browser-qa.json,studio-preview.jpg,arena-preview.jpg,studio-tests.txt,arena-tests.txt}. Server 73/version20 is live; client publication and live verification are next.
+- Still outstanding: custom area artwork, explosion/splitting and remaining report scope. No real student/classroom bank records used.
