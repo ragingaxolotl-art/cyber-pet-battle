@@ -12,13 +12,14 @@ test('Arena initializes and loadout edits survive switching, closing, save, dele
  const slot=$('mappingKeys').querySelector('select');slot.value=slot.options[1].value;slot.onchange();const chosen=slot.value;
  await $('newSet').click();$('setList').value=first;$('setList').onchange();assert.equal($('mappingKeys').querySelector('select').value,chosen);
  await $('closeMapping').click();await $('mapAttacks').click();assert.equal($('mappingKeys').querySelector('select').value,chosen);
- await $('saveMapping').click();assert.equal($('mappingDirty').textContent,'Set saved');
+ const cSlot=$('mappingKeys').querySelectorAll('select')[8];assert.equal(cSlot.getAttribute('aria-label'),'Attack for C');cSlot.value='attack_quick_jab';cSlot.onchange();
+ await $('saveMapping').click();assert.equal($('mappingDirty').textContent,'Set saved');assert.equal($('mappingKeys').querySelectorAll('select')[8].value,'attack_quick_jab');
  await $('duplicateSet').click();assert.equal($('mappingKeys').querySelector('select').value,chosen);
  $('setNameInput').value='Unsaved name';$('setNameInput').oninput();await $('deleteSet').click();assert.equal($('undoSetDelete').disabled,false);await $('undoSetDelete').click();assert.equal($('setNameInput').value,'Unsaved name');assert.match($('mappingDirty').textContent,/Unsaved/);assert.equal($('mappingKeys').querySelector('select').value,chosen);
  $('moveSearch').value='nothing matches this';$('moveSearch').oninput();assert.match($('movePicker').textContent,/No learned attacks/);
  $('moveSearch').value='';$('moveSearch').oninput();assert.ok($('movePicker').querySelectorAll('button').some(b=>b.textContent==='Test this move'));
  await $('movePicker').querySelectorAll('button').find(b=>b.textContent==='Test this move').click();assert.match($('setName').textContent,/Move test/);
- await $('stepFrame').click();assert.match($('modeBadge').textContent,/TRAINING/);assert.equal($('fullscreenSlots').children.length,8);
+ await $('stepFrame').click();assert.match($('modeBadge').textContent,/TRAINING/);assert.equal($('fullscreenSlots').children.length,9);
  const attack={...freshAttack('projectile'),name:'Electrical barrage',behaviorVersion:2,hitEvents:jugglePreset(),projectileMode:'attached',impactTrigger:'contact',active:21,coefficient:0};
  const file={size:2048,text:async()=>JSON.stringify({format:'cyber-pet-combat-design',version:2,attacks:[attack]})};
  $('attackFile').files=[file];await $('attackFile').onchange({target:$('attackFile')});
@@ -46,5 +47,5 @@ test('Arena initializes and loadout edits survive switching, closing, save, dele
  await $('attackSlots').children[0].click();for(let i=0;i<110;i++)await $('stepFrame').click();assert.match($('dummyStats').textContent,/5 hits · 28 damage/);
  }finally{globalThis.fetch=originalFetch;}
  const savedBeforeComparison=[...env.storage.entries()];await $('openMatchup').click();assert.equal($('matchupDialog').open,true);await $('runMatchup').click();assert.match($('matchupSummary').textContent,/frames simulated/);assert.ok($('matchupLog').children.length);assert.deepEqual([...env.storage.entries()],savedBeforeComparison);$('matchupFrame').value=10;$('matchupFrame').oninput();assert.match($('matchupFrameLabel').textContent,/Frame 10/);$('matchupDistance').value=90;await $('saveMatchup').click();$('matchupDistance').value=200;await $('loadMatchup').click();assert.equal($('matchupDistance').value,'90');assert.match($('matchupSummary').textContent,/Scenario restored/);await $('closeMatchup').click();assert.equal($('matchupDialog').open,false);
- $('defenseMode').value='separate';$('defenseMode').onchange();assert.match($('guardHint').textContent,/C blocks/);
+ $('defenseMode').value='separate';$('defenseMode').onchange();assert.match($('guardHint').textContent,/F blocks/);
 });

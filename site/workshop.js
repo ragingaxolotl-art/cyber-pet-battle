@@ -1,13 +1,13 @@
-import {attackChecks} from './attack-checks.js?v=20261107-parry';
-import {KEYS,defaultCatalog,availability} from './catalog.js?v=20261107-parry';
-import {validateAttack} from './shared/combat-model.js?v=20261107-parry';
-import {checkPlayableTree,bankTree,STUDIO_TREE_KEY} from './skill-trees.js?v=20261107-parry';
-import {ProfileStore,freshProfile,syncCredit,trainingCredit,pointsForXP,xpForPoints,balance,spentPoints,purchaseReason,buySkill,allowedAttackIds,saveSet,validateProfile} from './progression.js?v=20261107-parry';
-import {LoadoutDrafts} from './loadout-drafts.js?v=20261107-parry';
+import {attackChecks} from './attack-checks.js?v=20261108-c-slot';
+import {KEYS,physicalCatalog,defaultCatalog,availability} from './catalog.js?v=20261108-c-slot';
+import {validateAttack} from './shared/combat-model.js?v=20261108-c-slot';
+import {checkPlayableTree,bankTree,STUDIO_TREE_KEY} from './skill-trees.js?v=20261108-c-slot';
+import {ProfileStore,freshProfile,syncCredit,trainingCredit,pointsForXP,xpForPoints,balance,spentPoints,purchaseReason,buySkill,allowedAttackIds,saveSet,validateProfile} from './progression.js?v=20261108-c-slot';
+import {LoadoutDrafts} from './loadout-drafts.js?v=20261108-c-slot';
 const $=id=>document.getElementById(id),el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 const TREE_STORAGE='cyber-pet-battle-tree-v1';
 export async function installWorkshop({getPet,pause,changed,status,testAttack}){
- const store=new ProfileStore(localStorage),physical=defaultCatalog().slice(0,8);
+ const store=new ProfileStore(localStorage),physical=physicalCatalog();
  const effectIndex=await (await fetch('effects.json')).json(),effectIds=new Set(Object.keys(effectIndex));
  let tree=checkPlayableTree(await (await fetch('starter-trees.json')).json(),effectIds),effectImages=new Map();
  try{const saved=localStorage.getItem(TREE_STORAGE);if(saved)tree=checkPlayableTree(JSON.parse(saved),effectIds);}catch(e){status('Saved tree could not load: '+e.message);}
@@ -41,7 +41,7 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack}){
  function renderMapping(){
   const source=committed(),set=source?drafts.read(source):null;$('setNameInput').value=set?.name||'';$('mappingKeys').replaceChildren();
   const owned=allowedAttackIds(profile,physical),attacks=registry();
-  for(let i=0;i<8;i++){
+  for(let i=0;i<KEYS.length;i++){
    const label=el('label'),key=el('button',KEYS[i]),select=el('select');key.type='button';key.setAttribute('aria-pressed',String(i===selectedKey));key.onclick=()=>{selectedKey=i;renderMapping();};
    select.setAttribute('aria-label','Attack for '+KEYS[i]);select.add(new Option('Empty',''));
    for(const a of attacks.filter(a=>owned.has(a.id))){const problem=availability(getPet(),a),option=new Option(a.name+(problem?' · artwork needed':''),a.id);option.disabled=!!problem;select.add(option);}
@@ -66,7 +66,7 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack}){
  $('mapAttacks').onclick=()=>{pause();renderSetList();$('mappingStatus').textContent='Select a key, choose a move, then Save set. Drafts survive closing and switching sets.';$('mappingDialog').showModal();};
  $('closeMapping').onclick=()=>$('mappingDialog').close();$('closeSkills').onclick=()=>$('skillsDialog').close();$('skillTrees').onclick=openTree;
  $('setList').onchange=()=>{selectedSet=$('setList').value;renderMapping();};
- async function addSet(copy=false){try{if(profile.sets.length>=12)throw Error('You can keep up to 12 custom sets.');let n=1;while(profile.sets.some(s=>s.name==='Set '+n))n++;const original=copy&&committed()?drafts.read(committed()):null;const set={id:'set_'+crypto.randomUUID(),name:'Set '+n,slots:original?.slots||Array(8).fill(null)};await transact(p=>saveSet(p,set,allowedAttackIds(p,physical)));selectedSet=set.id;renderSetList();}catch(e){$('mappingStatus').textContent=e.message;}}
+ async function addSet(copy=false){try{if(profile.sets.length>=12)throw Error('You can keep up to 12 custom sets.');let n=1;while(profile.sets.some(s=>s.name==='Set '+n))n++;const original=copy&&committed()?drafts.read(committed()):null;const set={id:'set_'+crypto.randomUUID(),name:'Set '+n,slots:original?.slots||Array(KEYS.length).fill(null)};await transact(p=>saveSet(p,set,allowedAttackIds(p,physical)));selectedSet=set.id;renderSetList();}catch(e){$('mappingStatus').textContent=e.message;}}
  $('newSet').onclick=()=>addSet();$('duplicateSet').onclick=()=>addSet(true);
  $('saveMapping').onclick=async()=>{try{const set=drafts.read(committed());await transact(p=>saveSet(p,set,allowedAttackIds(p,physical)));drafts.discard(set.id);persistDraft();renderSetList();$('mappingStatus').textContent='Saved '+set.name+'. Choose it in the arena or press Space.';}catch(e){$('mappingStatus').textContent=e.message;}};
  $('discardMapping').onclick=()=>{drafts.discard(selectedSet);persistDraft();renderMapping();};

@@ -1,6 +1,6 @@
-import {requireGroupVersion} from './shared/attack-format.js?v=20261107-parry';
-import {freshAttack,validateAttack,STATS} from './shared/combat-model.js?v=20261107-parry';
-export const KEYS=['Q','W','E','A','S','D','Z','X'];
+import {requireGroupVersion} from './shared/attack-format.js?v=20261108-c-slot';
+import {freshAttack,validateAttack,STATS} from './shared/combat-model.js?v=20261108-c-slot';
+export const KEYS=['Q','W','E','A','S','D','Z','X','C'];
 const definitions=[
  ['upper','Upper hit','upper_hit_side',14,18,46],['lower','Low kick','lower_hit_side',12,13,50],['thrust','Straight hit','thrust_hit_side',12,10,55],['sweep','Sweep','sweep_hit_side',15,20,64],['bash','Body bash','body_bash_side',20,25,42],['spin','Spin hit','spin_hit_side',18,22,58],['slam','Ground slam','ground_slam_side',26,34,82],['push','Push strike','side_push_side',10,14,58],
  ['up','Sky summon','up_summon_side',20,30,120],['down','Summon below','down_summon_side',22,32,100],['gather','Gather energy','gather_power_side',0,0,1],['release','Release power','release_power_side',18,22,50],['channel','Channel power','channel_power_side',16,20,70]
@@ -23,4 +23,6 @@ export function mappedAttack(pet,attack){const result=structuredClone(attack);if
 }
 
 // Physical attacks occupy a permanent first deck, independent of teacher banks.
-export function withPhysicalDeck(authored){const physical=defaultCatalog().slice(0,8),reserved=new Set(physical.map(a=>a.id));return [...physical,...authored.filter(a=>!reserved.has(a.id))];}
+export function withPhysicalDeck(authored){const physical=physicalCatalog(),reserved=new Set(physical.map(a=>a.id));return [...physical,...authored.filter(a=>!reserved.has(a.id))];}
+
+export function physicalCatalog(){const attacks=defaultCatalog().slice(0,8);const jab={...freshAttack(),id:'attack_quick_jab',name:'Quick jab',cost:0,startup:8,active:6,recovery:18,cooldown:36,base:8};return [...attacks,jab];}
