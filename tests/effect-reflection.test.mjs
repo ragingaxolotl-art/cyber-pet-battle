@@ -10,3 +10,9 @@ test('attached reflected effect tracks target with mirrored local offsets',()=>{
  const c=cast();c.a.projectileMode='attached';c.sequence={attached:true};c.projectileTransform={direction:-1,offset:400};
  assert.deepEqual(render(c)[0],['translate',290,-60]);assert.deepEqual(render(c,{x:450,y:-80})[0],['translate',440,-100]);
 });
+test('steered effects retain authored offsets and mirror them after reflection',()=>{
+ const c=cast();c.a.box={x:22,y:-52,w:54,h:44};c.steering={x:200,y:-80};
+ assert.deepEqual(render(c)[0],['translate',161,-70]);
+ c.projectileTransform={direction:-1,offset:999};assert.deepEqual(render(c)[0],['translate',239,-70]);
+ c.a.projectileMode='attached';c.sequence={attached:true};assert.deepEqual(render(c)[0],['translate',290,-60]);
+});

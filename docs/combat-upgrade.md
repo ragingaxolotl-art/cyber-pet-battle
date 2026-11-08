@@ -1,23 +1,23 @@
 # Combat tools upgrade — November 5, 2026
 
-## Current status — November 8, 2026 (reconciled after air-recovery release)
+## Current status — November 8, 2026 (reconciled after bounce release)
 
 This overview supersedes the historical entries below. The overall goal is **not complete**; historical deferrals do not remove requirements.
 
 | Capability | Verified current implementation | Remaining work |
 | --- | --- | --- |
 | Arena controls | Nine slots including C beside X; mobile movement/block/dodge; input cleanup across focus loss, menus and restart | Physical multitouch and broader keyboard/accessibility playtesting |
-| Independent hits | Contact-relative projectile sequences; cast-relative melee/area sequences; per-hit damage/reactions, attached/repeated contact and common juggle budget | Bounce limits and expanded event behaviors; format15 hitstun and neutral air recovery verified live |
+| Independent hits | Contact-relative projectile sequences; cast-relative melee/area sequences; per-hit damage/reactions, attached/repeated contact and common juggle budget | Expanded event behaviors; neutral air recovery and bounded wall/floor bounces verified live |
 | Geometry | Multiple grouped hitboxes and shared hit budgets | Rotation, animation anchors and authored hurtboxes |
 | Defense/interactions | Same-frame trades, armor, invulnerability, parry, projectile durability/clashes, reflection and absorption | Wider priority, guard break/crush and throws |
 | Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Broader physical-device QA and additional conditional transitions |
 | Projectiles | Independent lifetime and interruption persistence; durability; reflected ownership/geometry; absorption | Homing, return, splitting, explosion and broader piercing/area behavior |
 | Impact timing | Authored hitstop/blockstop/blockstun; separate combat/playback clocks; shared preview and projectile scenarios | Broader interaction and device coverage |
-| Saving | Version1–15 clients and server v68 live; revision protection; local recovery; unreadable-response/expired-session handling | Authenticated anonymous browser round trip and future migrations |
+| Saving | Version1–16 clients and server v69 live; revision protection; local recovery; unreadable-response/expired-session handling | Authenticated anonymous browser round trip and future migrations |
 | Authoring | Quick Edit, selected hits, basic/advanced, undo/redo, recovery, timeline zoom, track locking/hiding, atomic multiselect movement, group dragging, same/cross-attack copy/paste, batch hit properties and reaction-block preview/apply | Inheritance, movement/conditional sequence blocks, audio/camera and expanded presets |
 | Testing | Two-attack comparison, replay, saved scenarios, diagnostics and shared regression cases | Remaining scenario coverage, usability checks and classroom-device playtesting |
 
-Latest verified release suites: Arena576 and staged Studio1296 passed. Air-recovery release verified44 live file hashes and downloaded editor checks. Local browser verified successful recovery at frame12, rejection at frame2, and Studio scenario save/restore. Counts do not prove all browser workflows or roadmap completion.
+Latest verified release suites: Arena595 and staged Studio1307 passed. Bounce release verified55 live file hashes and downloaded editor/schema/reaction checks. Local browser verified version16 export, Arena import, rebound replay and event feedback. Server69 supports formats1–16. Counts do not prove all browser workflows or roadmap completion.
 
 ### Latest delivered milestones and evidence
 
@@ -37,7 +37,7 @@ Latest verified release suites: Arena576 and staged Studio1296 passed. Air-recov
 
 Shared cross-attack combo tracking, optional damage scaling and counter-hit rules are delivered. Format15 adds optional hitstun deterioration and explicit per-event hitstun, preserving separate motion/knockdown/status recovery locks. Full release tests Arena560/Studio1295 pass; browser authoring/export/import smoke passed. Arena commit1e009f4 and Studio0efc647 are pushed; both Pages deployments succeeded and51 live files match the release. Server68 already supports15. See the latest dated entries and `release-staging/20261108-hitstun`.
 
-Next combat scope: shared wall/floor bounce reactions and budgets, then broader projectile and defensive mechanics. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
+Next combat scope: shared projectile movement for homing/return, then splitting/explosions and broader defensive mechanics. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
 
 ---
 
@@ -1241,3 +1241,47 @@ Sites server69 deployed successfully from d8fcd6c45607a15ea6bf7904485a128645d133
 ### Bounce Studio browser QA and scoped staging
 
 Local browser selected hit3, added a floor bounce, changed height to45 and exported a version16 practice project. Download inspected: exact height45/distance30/frames24 preserved. Inspector screenshot `/private/tmp/cyber-pet-bounce-editor.jpg`; evidence `release-staging/20261108-bounces/browser-qa.json`. Staged36 Studio files against published0e3e35f using feature-owned modules and narrow design.js patches, preserving unrelated editor work. Arena cache imports refreshed; Arena594/594 passes. Arena browser verification and client publication/live checks remain pending.
+
+### Bounce clients pushed; deployment verification pending
+
+Arena browser imported anonymous16 fixture, reported floor bounce at12f with no extra damage, and showed airborne rebound at24f. Added comparison bounce log with impact-pause deduplication coverage. Full Arena595 and staged Studio1307 pass. Arena db15a2fe489b746eb30cdf8a28e4b5f5edba739b and Studio b68f73b1430f13ea554b334d057a5145d58b1214 pushed; Arena Pages42526523770 is in progress. Next: inspect matching Studio/Arena deployments and run `/private/tmp/verify_bounces_release.py`; do not claim live client delivery yet. Server69 is already live.
+
+### Bounce clients verified live
+
+Arena db15a2fe489b746eb30cdf8a28e4b5f5edba739b and Studio b68f73b1430f13ea554b334d057a5145d58b1214 deployed successfully (Pages42526523770/42526533884). Verified55 served files against release hashes (19 Arena,36 Studio); downloaded bounce editor/format/pulse/rule tests pass. Evidence: `release-staging/20261108-bounces`. This completes the bounded wall/floor bounce milestone, not the full report. Next dependency audit: projectile travel currently comes from worldBox fixed-speed or authored path plus reflection transforms; homing/return require shared per-projectile movement state in Arena and both previews. Authenticated anonymous browser bank roundtrip, physical-device/accessibility checks and remaining defense/authoring/geometry scope remain unfinished.
+
+### Projectile steering foundation (local, not integrated)
+
+Audited fixed-speed/path worldBox positioning, group offsets and horizontal reflection. Added identical shared steering modules with bounded homing turn rate, delayed return toward current owner position, constant speed, swept owner-catch radius, duplicate-frame idempotence and reflection preserving travel age. Four focused tests cover validation, bounded trajectory/speed, return/catch and reflection invariants. These are movement primitives only: no authored attack property, transport version or runtime integration yet. Next: drive independent projectile positions once per combat frame in Arena and both previews, translate grouped hitboxes consistently, and preserve attachment/reflection/lifetime semantics before authoring/versioning. Broader roadmap remains active.
+
+### Arena steering runtime integration (local)
+
+Independent projectile launches create center-coordinate steering state. Arena advances it once per combat tick before collision snapshots, keeps grouped hitbox offsets/reflection geometry, and removes caught return projectiles without owner damage. Attached sequences retain attachment ownership of position; reflection reverses heading while preserving travel age and expiry. Focused tests cover duplicate collision queries, impact-pause freeze, catch/removal, reflection and grouped offsets. Still unsupported authoring/transport: both Studio previews, schema/version/server, editor and browser/release checks remain. No live steering feature claimed.
+
+### Steering preview integration (local)
+
+Ordinary and sequence previews now advance shared steering state, translate grouped boxes, retain attachment priority over steering, and stop contacts after return catch. Snapshots retain independent steering data. Six Arena/preview scenarios cover ordinary/contact/attached delivery with homing/return and compare positions/HP throughout. Initial attachment impact geometry is pre-contact in preview versus post-contact in a fresh Arena query; that single geometry comparison is excluded, HP remains checked. Attached hits intentionally stop return pursuit. Full suites before expanding attachment scenarios: Arena607/Studio1311; all6 expanded parity tests pass. Schema/version, server, editor controls, broader edge coverage and publication remain.
+
+### Steering format17 and diagnostics (local)
+
+Client project/bank/tree/catalog formats now support17 for projectileSteering. Validation requires independent lifetime and rejects competing authored paths; old envelopes reject steering instead of silently losing it. Classroom negotiation requests17 only when advertised and refuses old-server writes before PUT. Diagnostics explain steering, reflected ownership, attachment precedence and return delays at/after expiry. Full suites before diagnostic additions: Arena612/Studio1314; focused format/diagnostic checks added. Live server remains69/format16, so this is not a live save capability. Next: authoring UI, server17 migration, remaining edge/browser tests and scoped release.
+
+### Steering authoring controls (local)
+
+Projectile inspector now provides straight/path, homing and return modes after independent lifetime is enabled; supports bounded turn rate and return delay. Existing paths disable steering selection with explanation. Turning persistence off removes dependent steering; Undo restores the lifetime and steering together. DOM workflow verifies mode changes, version17 save, numeric rejection, removal and Undo. Studio1316/1316 passes. Rendering audit found both Studio design.js and Arena effect-renderer.js still derive VFX travel from the old fixed-speed/path expression: align these to steering centers before browser/release verification. Server17 migration and broader edge checks also remain.
+
+### Steering visual alignment (local)
+
+Studio and Arena VFX now use the steered projectile center plus the authored effect-to-hitbox offset, instead of fixed-speed travel. Shared helper preserves left/right offsets and vertical placement; reflection mirrors horizontal offsets without applying the world reflection transform twice. Attachment still takes precedence. Arena renderer regression checks actual canvas translation, reflected placement and attached fallback; mirrored shared helper tests cover both facings. Full suites Arena615/Studio1317 pass. Visual browser QA is still pending, along with server17 support, remaining interaction coverage and scoped client release.
+
+### Classroom server70 supports steering format17 (live)
+
+Sites server70 deployed from1baba912b12070da44acfd6995fcb81a97929806. Public capabilities advertise formats1–17 with revision protection. All22 anonymous in-memory server tests pass, including homing/return roundtrips, invalid settings, lifetime/path conflicts, older client refusal and unchanged saved data on rejection. Evidence: `release-staging/20261108-steering/server-publication.json` and server-tests.txt. No real classroom writes performed. Client browser QA, scoped publication and live verification remain; authenticated anonymous bank browser roundtrip is still unverified.
+
+### Steering release staging — November 8, 2026
+
+Continued writing in the mounted combat SSD workspace as requested. Added a return-window diagnostic: an independent projectile lifetime does not extend the active damage window, so a return delay beyond that window is warned about separately from expiry. Focused format tests pass. Browser preview visibly reports “Projectile returned to owner” for the anonymous Traveling bolt fixture (active 120, turn 90, return delay 12). Scoped Studio release staged against b68f73b1430f13ea554b334d057a5145d58b1214, preserving unrelated authoring work. Staged Studio suite: 1,317 passing; Arena suite: 615 passing. Evidence: release-staging/20261108-steering/{studio-tests.txt,arena-tests.txt,baseline-files.json}.
+
+Remaining for this milestone: browser export/Arena import verification, cache-key review, client publication and live-file verification. Steering clients are not yet published. Overall combat/UI goal remains active.
+
+Steering release QA: browser-created version17 export imported into Arena; both Traveling bolt projectiles returned at playback frame53, neither owner lost HP. Added explicit return events to the comparison log and a regression proving each return is logged once. Arena full suite now616 passing; staged Studio1317 passing. Cache keys refreshed. Client publication pending.
