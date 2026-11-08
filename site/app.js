@@ -1,6 +1,6 @@
 import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261108-automatic';
 import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261108-automatic';
-import {installMatchup} from './matchup.js?v=20261108-automatic';
+import {installMatchup} from './matchup.js?v=20261108-duration';
 import {attackChecks} from './attack-checks.js?v=20261108-automatic';
 import {installHonours} from './honours-ui.js?v=20261108-automatic';
 import {artworkDirection} from './shared/display.js?v=20261108-automatic';

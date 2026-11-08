@@ -11,3 +11,14 @@ test('follow-up comparison controls save and restore named references and report
  const transferred={...freshAttack(),name:'Transferred only'};const before=[...env.storage.entries()];matchup.openStudioTest({attacks:[transferred,follow],first:transferred.id,followup:follow.id,frame:7});assert.equal($('matchupA').value,transferred.id);assert.equal($('matchupFollowup').value,follow.id);assert.equal(Number($('matchupFollowupFrame').value),7);assert.deepEqual([...env.storage.entries()],before);await $('closeMatchup').click();await $('openMatchup').click();assert.ok(!$('matchupA').options.some(o=>o.value===transferred.id));
  transferred.cancelWindows=[{id:'cancel_auto',automatic:true,start:0,duration:30,condition:'any',attacks:[follow.id]}];matchup.openStudioTest({attacks:[transferred,follow],first:transferred.id,followup:follow.id,frame:0,automatic:true});assert.equal($('matchupFollowup').value,'');await $('runMatchup').click();assert.match($('matchupSummary').textContent,/1 automatic follow-up/);assert.doesNotMatch($('matchupLog').textContent,/Follow-up rejected/);
 });
+
+test('comparison duration includes delayed automatic follow-ups and survives scenario save/load',async()=>{
+ const env=environment(path.join(root,'index.html'),root),$=id=>env.ids.get(id);
+ const first={...freshAttack(),name:'Delayed opener',startup:0,active:1,recovery:800,cost:0},follow={...freshAttack(),name:'Late follow-up',cost:0};
+ first.cancelWindows=[{id:'cancel_late',automatic:true,start:650,duration:20,condition:'whiff',attacks:[follow.id]}];
+ installMatchup({getAttacks:()=>[first,follow],pause:()=>{}});await $('openMatchup').click();$('matchupA').value=first.id;$('matchupB').value=follow.id;$('matchupActionB').value='guard';$('matchupDistance').value=800;
+ await $('runMatchup').click();assert.match($('matchupSummary').textContent,/1 automatic follow-up/);
+ $('matchupDuration').value=600;await $('runMatchup').click();assert.match($('matchupSummary').textContent,/0 automatic follow-up/);assert.match($('matchupSummary').textContent,/later contacts or follow-ups may be omitted/);
+ await $('saveMatchup').click();$('matchupDuration').value=900;await $('loadMatchup').click();assert.equal(Number($('matchupDuration').value),600);
+ $('matchupDuration').value=901;await $('runMatchup').click();assert.match($('matchupSummary').textContent,/duration of 1–900/);
+});

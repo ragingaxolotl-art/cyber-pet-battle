@@ -312,3 +312,13 @@ Next: classroom v6 support, remaining combined-interaction checks, paired releas
 Classroom Site v59 deployed successfully from 0bf3b121ddd3403096d417870c804c1422cc24cc, deployment appgdep_6af0a671156c819185ed62852317df45. Version-6 banks preserve automatic rules, require one target, reject invalid activation types and reject automatic definitions in older envelopes. Older-client read/overwrite protections and revision compare-and-swap remain intact. Ten in-memory bank API tests and the production build passed; no actual bank records were changed. Evidence: release-staging/classroom-automatic-v6/publication.json.
 
 Remaining: combined-interaction checks, paired frontend version/cache preparation, publication and live verification. The server supports v6; automatic authoring/runtime are still local until frontend release. Browser visual/accessibility QA and broader combat/editor scope remain unfinished.
+
+### Automatic follow-ups — published and live verified
+
+Release 20261108-automatic is deployed: Arena 1073c8e342cfc6f947ee5efea942e897fac7bc41 (Pages run 42501365177) and Studio d4ec43f4cb0f0e73f1ceca0dbb59d310c19fd402 (run 42501369906), both successful. Classroom v59 supports version-6 saving. This supersedes the unpublished status above.
+
+Source suites passed: 275 Arena / 1135 Studio. Live verification fetched 98 files, matched all 96 expected hashes, passed both downloaded-code workflow test sets, and received HTTP 200 for the sample effect. Evidence: release-staging/20261108-automatic/live-verification.json. Visual/browser interaction QA has not been performed for this release; the verifier's browser-unavailable label reflects the earlier environment check, not a new browser availability test.
+
+Finished: automatic hit/block/parry/whiff follow-ups, authoring controls, eight-transition chain limit, resource checks, comparison replay and eligible-attempt failure explanations, version-6 transport, armor/invulnerability/simultaneous interruption coverage, deployment and live-code verification. The ninth C attack slot remains included.
+
+Next: improve comparison duration for late automatic whiff follow-ups, audit contextual explanations, and perform browser UI/accessibility verification when available. Still left: movement cancels, broader conditional rules, combo/juggle limits, advanced projectile interactions, clashing, animation anchors/hurtboxes, expanded timeline editing and remaining UI/UX audit items. Overall goal remains active.
