@@ -34,7 +34,7 @@ export function validateAttack(a,ids){
  if(a.hitboxGroups!==undefined){
   validateHitboxGroups(a.hitboxGroups);
   if((!a.hitEvents&&a.impactTrigger==='contact')||a.payload!=='damage'||a.delivery==='self')fail('Hitbox groups require timed damage or an independent hit sequence.');
-  if(a.hitEvents){if(a.hitEvents.some(e=>!e.hitboxGroup))fail('Assign a hitbox group to every sequence hit.');const first=a.hitboxGroups.find(g=>g.id===a.hitEvents[0].hitboxGroup);if(!first?.boxes.some(b=>b.start===0))fail('First contact needs a hitbox active at contact + 0.');}
+  if(a.hitEvents){if(a.hitEvents.some(e=>!e.hitboxGroup))fail('Assign a hitbox group to every sequence hit.');const first=a.hitboxGroups.find(g=>g.id===a.hitEvents[0].hitboxGroup);if(a.sequenceTiming!=='cast'&&!first?.boxes.some(b=>b.start===0))fail('First contact needs a hitbox active at contact + 0.');}
   if(a.hitboxGroups.some(g=>g.boxes.some(b=>b.start+b.duration>a.active)))fail('Hitbox windows must fit within the attack active duration.');
  }
  if(!/^attack_[a-zA-Z0-9_]{1,80}$/.test(a.id)||typeof a.name!=='string'||!a.name.trim()||a.name.length>48)fail('Attack needs an ID and a name (1–48 characters).');

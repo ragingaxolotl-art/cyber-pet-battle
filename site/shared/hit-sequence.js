@@ -6,13 +6,20 @@ export const SEQUENCE_LIMITS = Object.freeze({hits:10, duration:300, suspension:
 export const REACTIONS = ['launch','suspend','relaunch','spike','knockback','none'];
 const integer=(value,min,max)=>Number.isInteger(value)&&value>=min&&value<=max;
 export function validateHitSequence(attack) {
+  if(attack.sequenceTiming!==undefined&&attack.sequenceTiming!=='cast')throw Error('Invalid sequence timing.');
+  const scheduled=attack.sequenceTiming==='cast';
   if (attack.hitEvents===undefined) {
+    if(scheduled)throw Error('Scheduled timing requires hit events.');
     if (attack.behaviorVersion!==undefined&&attack.behaviorVersion!==1) throw Error('Missing version 2 hit sequence.');
     return;
   }
-  if (attack.behaviorVersion!==2||attack.delivery!=='projectile'||attack.payload!=='damage'||attack.status!=='none'||attack.impactTrigger!=='contact')
-    throw Error('Hit sequences require version 2, a contact-triggered damage projectile, and no secondary status.');
-  if (!['attached','contact'].includes(attack.projectileMode)) throw Error('Choose attached or repeated-contact projectile behavior.');
+  if(scheduled){
+    if(attack.behaviorVersion!==2||!['melee','area'].includes(attack.delivery)||attack.payload!=='damage'||attack.status!=='none'||attack.impactTrigger!=='timed'||attack.projectileMode!==undefined)throw Error('Scheduled hits require timed melee or area damage, no secondary status, and no projectile mode.');
+  }else{
+    if (attack.behaviorVersion!==2||attack.delivery!=='projectile'||attack.payload!=='damage'||attack.status!=='none'||attack.impactTrigger!=='contact')
+      throw Error('Hit sequences require version 2, a contact-triggered damage projectile, and no secondary status.');
+    if (!['attached','contact'].includes(attack.projectileMode)) throw Error('Choose attached or repeated-contact projectile behavior.');
+  }
   if (!Array.isArray(attack.hitEvents)||!integer(attack.hitEvents.length,1,SEQUENCE_LIMITS.hits)) throw Error('Use 1–10 independent hits.');
   const ids=new Set(); let previous=-1;
   for (const event of attack.hitEvents) {
@@ -26,7 +33,7 @@ export function validateHitSequence(attack) {
     if (!['any','grounded','airborne'].includes(event.target)) throw Error('Invalid hit target restriction.');
     previous=event.offset;
   }
-  if (attack.hitEvents[0].offset!==0) throw Error('The first hit starts at contact + 0.');
+  if (!scheduled&&attack.hitEvents[0].offset!==0) throw Error('The first hit starts at contact + 0.');
 }
 export const sequenceDuration=attack=>Math.max(...attack.hitEvents.map(e=>e.offset+e.duration));
 export function jugglePreset(count=5,interval=5) {
