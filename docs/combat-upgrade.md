@@ -7,8 +7,8 @@ This overview supersedes the historical status notes below. The overall goal is 
 | Capability | Current evidence and limits | Remaining work |
 | --- | --- | --- |
 | Ninth C attack slot | Published in Arena; normal/fullscreen status labels corrected; profile and draft migration tests | Continue keyboard and touch usability checks |
-| Independent hits and juggling | Contact-relative projectile sequences, per-hit reactions, attached/repeated contact, 10-reaction target cap | General melee/area event sequences; global mixed/ordinary combo rules; resistance, recovery and bounce budgets |
-| Juggle landing protection | Arena 3888a10 deployed successfully; paired Studio 8842a76 deploying; 284 Arena / 1135 Studio tests | Paired live verification of reset/forced-landing release |
+| Independent hits and juggling | Contact-relative projectile sequences, per-hit reactions, attached/repeated contact, 10-reaction target cap | General melee/area event sequences; resistance, recovery, deterioration and bounce budgets |
+| Shared juggle budget and landing protection | Arena 821e939 / Studio bc7de02 deployed and live verified; 295 Arena / 1140 Studio source tests; 98 live hashes matched | Browser playtesting of long legacy combos; configurable balance and richer recovery rules |
 | Multiple hitboxes | Grouped geometry with shared hit budgets, editor controls and timeline | Rotation, frame anchors and authored hurtboxes |
 | Defense and simultaneous hits | Trades, armor, invulnerability, parry and frame windows tested | Clashing/priority, guard break/crush, throws and richer defensive interactions |
 | Follow-ups | Manual and automatic attack-to-attack windows; hit/block/parry/whiff rules; eight-transition automatic cap | Movement cancels, broader conditional behavior, hitstop/blockstun and combo scaling |
@@ -19,11 +19,11 @@ This overview supersedes the historical status notes below. The overall goal is 
 | Studio-to-Arena handoff | Live browser transfer and successful automatic follow-up checked; cleanup published | Native popup opening not verified by this browser integration |
 | Browser UI checks | C label, comparison desktop/narrow layout, Studio playback/reset placement checked | Full keyboard-only, focus, mobile, error/recovery and authenticated workflows; no blanket accessibility claim |
 
-### Next gameplay milestone: common juggle accounting
+### Next gameplay milestone: independent projectile lifetime
 
-Introduce one documented target-level airborne budget used by ordinary and sequence hits. Count successful unblocked, unarmored reaction-producing contacts; define whether the initial grounded launcher consumes a point. Preserve the current sequence cap of ten as the starting classroom balance, and explicitly test any resulting legacy behavior change. Once exhausted, preserve forced landing until floor contact; clear the budget on landing/reset, never by switching attack type. Keep damage-only, guard, armor, invulnerability and parry cases explicit. Both preview code and Arena must use shared rules wherever they simulate the same interaction.
+Common juggle accounting is published and verified. Ordinary and sequence reaction-producing contacts share ten points, including the grounded launcher; landing resets the budget. Guard, armor, invulnerability, damage-only events and parry interruptions do not consume it. Forced landing preserves motion while ordinary damage can still connect. Legacy long launch chains need balance playtesting.
 
-Acceptance evidence must include mixed ordinary/sequence chains in both orders, successive casts, no damage suppression unless explicitly specified, suspension/launch edge cases, floor reset/new jump, armor/invulnerability, per-hit diagnostics and compatibility checks. Existing sequence-only tests do not prove this milestone complete.
+Next, separate projectile lifetime from the owner's active cast before exposing persistence, reflection or splitting. Preserve existing cast-owned behavior by default. Acceptance must cover interruption, concurrent owner moves and projectiles, target defeat, expiry/reset, rendering and simultaneous impacts. Versioned authoring and bank capabilities must agree before enabling new definitions.
 
 ---
 
@@ -436,3 +436,79 @@ Tests cover alternating reaction types in both orders, ordinary ten-hit launch p
 Added actual Arena collision tests for guard, armor and invulnerability against both ordinary and sequence attacks while the target already has four airborne reactions: none consumes another point. An automatic two-cast chain increments the same target counter from one to two and preserves damage. Shared compatibility diagnostics now explain ten reactions, counting the grounded launcher, floor reset, forced release, continuing ordinary damage and the need to retest older long launch combos.
 
 Full suites: 295 Arena / 1135 Studio passing. New shared juggle-rules.js and integrations are still local; current live release remains juggle-reset (sequence lock/landing fixes only). Next: cache/version preparation, include the new shared module in both published dependency graphs, paired release and live downloaded-code tests covering global-juggle.test.mjs. Broader objective remains active.
+
+### Common juggle budget release pushed
+
+Arena 821e9391828cdd2f7f2c6d319715d7f04218fe36 and Studio bc7de02c35361d200cd2de02a1412002c03a98a9 published with cache updates and the new juggle-rules.js module. Source release tests pass: 295 Arena / 1140 Studio. Studio test count increased because separate skill-tree dataset tests appeared in the shared workspace. Those newer skill-tree implementation files are excluded from this scoped publication and preserved locally; do not overwrite them. Publication preserved unrelated root entries. Baseline hashes for excluded previously published Studio files are retained in verification manifest.
+
+Evidence/frozen tests: release-staging/20261108-shared-juggle/. Prepared /private/tmp/verify_combat_shared_juggle.py, including global-juggle tests against downloaded code. Remaining: deployment and live verification, then broader combat/editor scope. The balance change applies to legacy launch chains without rewriting saved definitions. Overall goal active.
+
+### Shared budget Arena live verification; projectile dependency audit
+
+Arena run 42504566610 succeeded. All 43 published source/data files match 821e939 and downloaded-code workflows pass, including global-juggle, landing and handoff regressions. Evidence: release-staging/20261108-shared-juggle/arena-live/verification.json. Studio run 42504573532 is still in progress; paired verifier remains pending.
+
+Projectile audit: Arena tick snapshots only fighters with f.cast. prepare reads f.cast directly; resolve and resolveSequence retire that cast at castEnd. Thus all projectiles currently depend on the fighter's active move even though their origins and hit trackers live on the cast object. A persistent projectile needs a separate entity registry, explicit spawn/lifetime and owner references, collision snapshots collected alongside fighter casts, independent retirement and drawing. Reflections must change owner/facing/target with explicit hit-history policy; splitting must have a spawn budget. This must be versioned and advertised in Studio/Arena/bank capabilities before authoring is enabled. Do not claim persistence by merely retaining a canceled fighter cast: that would retain defense/cancel windows and block the owner's next move.
+
+Next: finish paired live verification, then implement independent projectile state with tests for attacker interruption, concurrent moves/projectiles, target defeat, expiry/reset and simultaneous impacts, before adding reflection/splitting. Existing cast-owned definitions must preserve their behavior. Overall scope remains active.
+
+### Shared juggle release fully verified live
+
+Studio Pages run 42504573532 completed successfully alongside Arena run 42504566610. Paired verification fetched 100 files, matched 98 expected hashes, passed both frozen downloaded-code workflow sets and returned HTTP 200 for sample artwork. Evidence: release-staging/20261108-shared-juggle/live-verification.json. No new browser visual QA is claimed for this release. Both applications now serve the common juggle budget. Next milestone is independent projectile lifetime; the overall goal remains active. Continue development directly on the SSD as explicitly requested despite the fragile cable.
+
+### Explicit collision sources — local foundation
+
+Arena prepareCast(owner, target, cast) now builds collision snapshots from an explicit source; prepare remains the existing active-cast wrapper. This avoids swapping fighter.cast, which controls action availability and defense/cancel windows. Three regressions verify detached-source damage without restoring the owner action, preserving a newer move through old-source expiry, and independent recipient guard evaluation. Full suites pass: 298 Arena / 1140 Studio. Logs: /private/tmp/projectile-source-arena.txt and /private/tmp/projectile-source-studio.txt.
+
+This refactor is local, unpublished and does not yet enable persistent projectiles. Next: entity lifecycle/registry and collision collection, render integration, interruption/defeat/reset/expiry rules, then versioned Studio authoring and bank support with preview parity. Live release remains 20261108-shared-juggle.
+
+### Independent projectile runtime — local, not authorable yet
+
+Added ProjectileRegistry with explicit launch after startup, 1–600-frame lifetime, 16 concurrent entities per owner, duplicate-cast protection and expiry/defeat/reset cleanup. Arena includes independent sources in the same pre-resolution collision snapshot as fighter attacks, preserves owner recovery independently of contact travel, and allows another owner move while the projectile travels. Existing definitions retain cast-owned behavior. The internal launchProjectile boundary is not yet invoked by imported definitions or editor controls.
+
+Rendering now draws independent effects/debug boxes from their own cast state and skips the duplicate owner-cast drawing. No browser visual verification of independent effects yet. Parrying an independent entity destroys it without remotely interrupting a newer owner action; old cast-owned parry behavior is preserved. Current damage uses owner stats/status at contact, as before; ownership/reflection policies remain unfinished.
+
+Thirteen lifecycle regressions cover interruption, subsequent owner moves, expiry/pause, reset, either fighter defeat, bounds/duplicate launches, startup cancellation, simultaneous lethal trade, parry, spawn cap, legacy lifetime preservation and attached multi-hit completion. Full suites passed 311 Arena / 1140 Studio; the final Arena run is recorded in /private/tmp/projectile-lifecycle-arena.txt. Studio log: /private/tmp/projectile-lifecycle-studio.txt.
+
+Next: versioned lifetime fields and automatic launch scheduling, shared Studio preview semantics, comparison replay/unfinished detection, bank capability migration, authoring controls and browser rendering QA. Do not publish or advertise persistence as usable before these are connected. Live release remains shared-juggle.
+
+### Version 7 lifetime and automatic launch — local, unpublished
+
+Independent lifetime is now represented by optional projectileLifetime (integer 1–600) on damage/push projectiles. Presence requires container version 7; older formats cannot silently carry it. Independent travel begins at startup; conflicting projectileStart is rejected. Projects, local banks, skill trees and Arena catalog validation support version 7. Classroom clients negotiate version 7 only when advertised and reject saving to the current version 6 server before PUT. Server migration remains outstanding.
+
+Arena automatically registers eligible casts at startup before simultaneous collision snapshots. Startup interruption cancels launch; later interruption does not remove the entity. Owner defense/recovery uses fixed owner timing rather than contact-delayed projectile timing. Launch failures emit a reason and cannot fall back to ordinary cast-owned damage. Studio ordinary/sequence previews now distinguish launch from interruption, obey lifetime and owner death, and return independent owner next-cast timing. Diagnostics describe version/lifetime boundaries.
+
+Full suites pass: 320 Arena / 1145 Studio (/private/tmp/projectile-v7-arena.txt and /private/tmp/projectile-v7-studio.txt). New tests cover v7 local round trips, malformed fields/older containers, safe classroom rejection, ordinary/sequence preview expiry and pre/post-launch interruption. Four Arena/preview parity scenarios verify actual automatic launch hit totals and damage. Rendering is integrated but not browser-verified for independent entities.
+
+Remaining before release: editor lifetime controls and history/Quick Edit handling, comparison projectile replay/unfinished reporting, classroom server version 7 migration, expanded death/simultaneous/cap-limit integration tests, browser visual checks, cache changes, publication and live verification. Preserve concurrent skill-tree UI work. No new publication this turn; shared-juggle remains live. Overall goal active.
+
+### Persistence authoring and comparison replay — local, unpublished
+
+Studio now shows Projectile lifetime for damage/push projectiles. Designers choose End with the move or Keep traveling after launch, then set 1–600 frames (default 120). The help explains startup, linked travel start, defeat/parry removal, active-duration limits and version 7 saving. Changing delivery refreshes contextual controls. Turning persistence off is required before incompatible delivery changes. Enabling removes a separate projectileStart after explaining the link. The shared edit/history path preserves hit definitions. UI workflow verifies enable/edit/invalid value/save/reload/disable/undo.
+
+Arena comparison now records detached projectile IDs, owner, name, remaining maximum lifetime and copied bounds in each replay frame. The canvas draws the bounds and labels them as bounds; they are not claimed to be artwork or exact nonrectangular shapes. A test remains unfinished while entities travel after owner recovery. Regression verifies advancing, independent snapshots and expiry removing unfinished status.
+
+Full suites: 321 Arena / 1146 Studio passed. Logs: /private/tmp/projectile-ui-arena.txt and /private/tmp/projectile-ui-studio.txt. No publication or browser visual QA of these changes yet. Next: classroom server v7, explicit Quick Edit persistence coverage, preview VFX/pose lifetime review, browser QA and paired release verification. Broader goal remains active.
+
+### Independent preview visual state — local, unpublished
+
+Ordinary and sequence simulation frames now expose ownerActive and projectileAlive independently. Studio uses those states to stop independent projectile VFX on expiry/removal and return the owner to standing after action completion/interruption. Its phase distinguishes a traveling projectile from owner recovery. Synced pose timing for independent projectiles uses startup rather than delayed contact, shared with Arena. Existing cast-owned pose timing is preserved. Debug hitbox editing guides remain available after expiry; they are editor guides, not active collisions.
+
+Added tests for owner recovery while travel continues, exact visual expiry boundary, independent-vs-legacy pose timing, and Quick Edit retaining lifetime while expanding five hits to six. Full suites pass: 323 Arena / 1148 Studio. Logs /private/tmp/projectile-visual-arena.txt and /private/tmp/projectile-visual-studio.txt. Browser-rendered verification is still outstanding; tests do not establish visual QA.
+
+Next: classroom-server version 7 support and anonymous server tests, browser checks, expanded runtime edge cases, cache/deployment preparation and live verification. No persistence publication yet. Overall scope remains active.
+
+### Classroom server version 7 support deployed
+
+Opened the existing public Sites source at 0bf3b121ddd3403096d417870c804c1422cc24cc before editing. Added the mirrored projectile-lifetime validator and version 7 capability/header/container checks while retaining revision CAS and older-client protections. Eleven anonymous in-memory attack-bank tests passed, covering persistent roundtrip, malformed values, mismatched startup, stale writes and version 6 read/overwrite rejection. Production build passed. No live classroom bank contents were read or written.
+
+Published source 65a82faf11f8adacbb355923b6ea594d3249783b; saved Site version 60: appgprj_6ac1778cd32081918ba530bb3c83b9d6~appgver_9eef6600b3048191b82a51d3db177176. Deployment appgdep_6af0b34c71e08191a0838070b089a092 succeeded at https://cyber-pet-classroom-settings.ragingaxolotl.chatgpt.site. Archive /private/tmp/combat-classroom-v7.tar.gz. Existing audience preserved. Backend code remains at /private/tmp/combat-classroom-source using the Sites source workflow; combat app edits remain directly on SSD.
+
+The server now supports version 7. Client persistence authoring/runtime remains local, not published. Next: browser QA and edge-case checks, paired client release preparation/publication/live verification. Overall combat/editor goal remains active.
+
+### Local browser persistence-control check and layout correction
+
+Created one unbanked anonymous Stone strike draft through the local Studio UI, generated five hits, enabled persistence and keyboard-edited lifetime to 181. Compatibility text updated to 181 and the draft recovered in a fresh tab. No classroom login/save occurred; existing working attacks were preserved. Browser screenshot exposed a 177.75px half-column lifetime fieldset. Added scoped projectile-lifetime-editor styling spanning the inspector grid; fresh-page inspection confirms grid-column 1 / -1 and 373.5px width with readable labels/help. Updated local cache keys for design CSS/JS and new editor module. Reload/navigation in the dirty original tab did not load fresh assets; a new tab verified corrected files.
+
+Current Studio also contains concurrent workspace/docking changes (studio-workspace.css and a restructured design.html) beyond this persistence task. Preserve them and reconcile against remote before scoped publication; do not bulk-publish or overwrite them blindly. Screenshots were viewed through browser tools but not saved as standalone artifacts. This proves desktop lifetime-control rendering and keyboard edit/recovery only, not mobile, independent VFX in Arena or full browser parity. Targeted persistence UI workflow passes after styling; latest full suites remain 323 Arena / 1148 Studio.
+
+Next: complete remaining browser/runtime release checks, reconcile publication scope with concurrent workspace edits, publish paired clients and verify live files. Server v60 already supports version 7. Overall goal active.

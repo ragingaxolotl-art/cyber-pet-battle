@@ -1,4 +1,4 @@
-import {frameCoordinates,animationEnvelope,sourceScale} from './display.js?v=20261108-shared-juggle';
+import {frameCoordinates,animationEnvelope,sourceScale} from './display.js?v=20261108-persistence';
 // Uniform scaling only: never stretch width and height independently.
 export const sizeStability={sizeRatio:1.35,aspectTolerance:1.25,minimumCorrection:.125,maximumCorrection:8};
 const median=values=>{const a=[...values].sort((a,b)=>a-b),m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;};

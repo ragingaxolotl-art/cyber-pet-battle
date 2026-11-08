@@ -1,12 +1,13 @@
 {
-  "release": "20261108-automatic",
+  "release": "20261108-persistence",
   "attackDefinitionVersions": [
     1,
     2,
     3,
     4,
     5,
-    6
+    6,
+    7
   ],
   "sequenceTransport": "project-download",
   "classroomBankVersions": [
@@ -15,7 +16,8 @@
     3,
     4,
     5,
-    6
+    6,
+    7
   ],
   "cloudSequencePublishing": true,
   "skillTreeSequencePublishing": true,
@@ -25,11 +27,20 @@
     3,
     4,
     5,
-    6
+    6,
+    7
   ],
-  "twoAttackComparison": true,
   "multipleHitboxes": "timed-damage-and-contact-sequences",
   "groupSequenceSupport": true,
+  "timelineTracks": [
+    "animation",
+    "hitbox-groups",
+    "hit-sequences",
+    "visual-effects",
+    "movement-path",
+    "block-dodge",
+    "armor"
+  ],
   "armorWindows": true,
   "attackContainerVersions": [
     1,
@@ -37,16 +48,16 @@
     3,
     4,
     5,
-    6
+    6,
+    7
   ],
   "defenseKinds": [
     "armor",
     "invulnerability",
     "parry"
   ],
-  "attackSlots": 9,
-  "battleProfileVersion": 2,
   "cancelWindows": true,
   "studioComparisonTransfer": true,
-  "automaticFollowups": true
+  "automaticFollowups": true,
+  "independentProjectileLifetime": true
 }
