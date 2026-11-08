@@ -1,4 +1,4 @@
-import {attackChecks} from './attack-checks.js?v=20261108-automatic';
+import {attackChecks} from './attack-checks.js?v=20261108-handoff-cleanup';
 import {KEYS,physicalCatalog,defaultCatalog,availability} from './catalog.js?v=20261108-automatic';
 import {validateAttack} from './shared/combat-model.js?v=20261108-automatic';
 import {checkPlayableTree,bankTree,STUDIO_TREE_KEY} from './skill-trees.js?v=20261108-automatic';
