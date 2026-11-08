@@ -14,7 +14,7 @@ test('follow-up comparison controls save and restore named references and report
 
 test('comparison duration includes delayed automatic follow-ups and survives scenario save/load',async()=>{
  const env=environment(path.join(root,'index.html'),root),$=id=>env.ids.get(id);
- const first={...freshAttack(),name:'Delayed opener',startup:0,active:1,recovery:800,cost:0},follow={...freshAttack(),name:'Late follow-up',cost:0};
+ const first={...freshAttack('projectile'),name:'Delayed opener',startup:0,active:2,recovery:100,cost:0,projectileSpeed:0,impactTrigger:'contact'},follow={...freshAttack(),name:'Late follow-up',cost:0};
  first.cancelWindows=[{id:'cancel_late',automatic:true,start:650,duration:20,condition:'whiff',attacks:[follow.id]}];
  installMatchup({getAttacks:()=>[first,follow],pause:()=>{}});await $('openMatchup').click();$('matchupA').value=first.id;$('matchupB').value=follow.id;$('matchupActionB').value='guard';$('matchupDistance').value=800;
  await $('runMatchup').click();assert.match($('matchupSummary').textContent,/1 automatic follow-up/);
