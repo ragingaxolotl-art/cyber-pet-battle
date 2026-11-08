@@ -1,5 +1,5 @@
 {
-  "release": "20261107-parry",
+  "release": "20261108-c-slot",
   "attackDefinitionVersions": [
     1,
     2,
@@ -35,5 +35,7 @@
     "armor",
     "invulnerability",
     "parry"
-  ]
+  ],
+  "attackSlots": 9,
+  "battleProfileVersion": 2
 }

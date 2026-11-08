@@ -1,4 +1,4 @@
-import {attacksVersion,requireGroupVersion} from './attack-format.js?v=20261107-parry';
+import {attacksVersion,requireGroupVersion} from './attack-format.js?v=20261108-c-slot';
 // Learning order is a directed acyclic graph. Edges point from prerequisite to attack.
 export const TREE_KEY='cyber-pet-attack-skill-tree-v1';
 export function validateTree(tree,effectIds,validateAttack){

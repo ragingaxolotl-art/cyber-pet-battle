@@ -1,15 +1,15 @@
 import {castEnd} from './contact-timing.js';
 import {validateCancelWindows} from './cancel-windows.js';
-import {validateDefenseWindows,createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry} from './defense-windows.js?v=20261107-parry';
-import {requireGroupVersion} from './attack-format.js?v=20261107-parry';
-import {validateHitboxGroups,activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './hitbox-groups.js?v=20261107-parry';
-import {legacyRecoveryEnd} from './recovery-timing.js?v=20261107-parry';
-import {sampleLegacyMotion} from './legacy-motion.js?v=20261107-parry';
-import {statusDuration,statusMultiplier} from './status-rules.js?v=20261107-parry';
-import {pathSample} from './attack-motion.js?v=20261107-parry';
-import {HITBOX_SHAPES,shapeHitsRectangle} from './hitbox-shapes.js?v=20261107-parry';
-import {validateHitSequence} from './hit-sequence.js?v=20261107-parry';
-import {simulateSequence} from './sequence-preview.js?v=20261107-parry';
+import {validateDefenseWindows,createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry} from './defense-windows.js?v=20261108-c-slot';
+import {requireGroupVersion} from './attack-format.js?v=20261108-c-slot';
+import {validateHitboxGroups,activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './hitbox-groups.js?v=20261108-c-slot';
+import {legacyRecoveryEnd} from './recovery-timing.js?v=20261108-c-slot';
+import {sampleLegacyMotion} from './legacy-motion.js?v=20261108-c-slot';
+import {statusDuration,statusMultiplier} from './status-rules.js?v=20261108-c-slot';
+import {pathSample} from './attack-motion.js?v=20261108-c-slot';
+import {HITBOX_SHAPES,shapeHitsRectangle} from './hitbox-shapes.js?v=20261108-c-slot';
+import {validateHitSequence} from './hit-sequence.js?v=20261108-c-slot';
+import {simulateSequence} from './sequence-preview.js?v=20261108-c-slot';
 // Proposed classroom playtest rules. All timing is in 60 Hz simulation frames.
 export const BALANCE={id:'classroom-playtest-v1',baseHP:100,hpPerStamina:2,baseEnergy:50,energyPerStamina:1,maxSpeedReduction:.15,maxFocusCostReduction:.2,baseGuardReduction:.35,maxFocusGuardBonus:.2,maxCharismaShieldBonus:.2,maxFocusStatusReduction:.25,statCap:99};
 export const STATS=['strength','speed','stamina','intelligence','charisma','focus'];

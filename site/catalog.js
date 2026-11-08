@@ -1,5 +1,5 @@
-import {requireGroupVersion} from './shared/attack-format.js?v=20261107-parry';
-import {freshAttack,validateAttack,STATS} from './shared/combat-model.js?v=20261107-parry';
+import {requireGroupVersion} from './shared/attack-format.js?v=20261108-c-slot';
+import {freshAttack,validateAttack,STATS} from './shared/combat-model.js?v=20261108-c-slot';
 export const KEYS=['Q','W','E','A','S','D','Z','X','C'];
 const definitions=[
  ['upper','Upper hit','upper_hit_side',14,18,46],['lower','Low kick','lower_hit_side',12,13,50],['thrust','Straight hit','thrust_hit_side',12,10,55],['sweep','Sweep','sweep_hit_side',15,20,64],['bash','Body bash','body_bash_side',20,25,42],['spin','Spin hit','spin_hit_side',18,22,58],['slam','Ground slam','ground_slam_side',26,34,82],['push','Push strike','side_push_side',10,14,58],
