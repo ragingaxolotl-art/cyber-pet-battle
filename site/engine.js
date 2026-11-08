@@ -1,18 +1,19 @@
-import {reflectedProjectileTransform,transformProjectileBox} from './shared/projectile-reflection.js?v=20261108-scheduled-sequences';
-import {ProjectileClashes} from './shared/projectile-clashes.js?v=20261108-scheduled-sequences';
-import {ProjectileRegistry,ownerActionEnd} from './shared/projectile-lifetime.js?v=20261108-scheduled-sequences';
-import {CONTACT_TIMEOUT,contactDeadline,castEnd} from './shared/contact-timing.js?v=20261108-scheduled-sequences';
-import {canCancel,automaticFollowup,MAX_AUTOMATIC_FOLLOWUPS} from './shared/cancel-windows.js?v=20261108-scheduled-sequences';
-import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,claimProjectileDefense} from './shared/defense-windows.js?v=20261108-scheduled-sequences';
-import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-scheduled-sequences';
-import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-scheduled-sequences';
-import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-scheduled-sequences';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-scheduled-sequences';
-import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-scheduled-sequences';
-import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-scheduled-sequences';
-import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-scheduled-sequences';
+import {movementCancelWindow,MOVEMENT_CANCEL_RULES} from './shared/movement-cancels.js?v=20261108-movement-cancels';
+import {reflectedProjectileTransform,transformProjectileBox} from './shared/projectile-reflection.js?v=20261108-movement-cancels';
+import {ProjectileClashes} from './shared/projectile-clashes.js?v=20261108-movement-cancels';
+import {ProjectileRegistry,ownerActionEnd} from './shared/projectile-lifetime.js?v=20261108-movement-cancels';
+import {CONTACT_TIMEOUT,contactDeadline,castEnd} from './shared/contact-timing.js?v=20261108-movement-cancels';
+import {canCancel,automaticFollowup,MAX_AUTOMATIC_FOLLOWUPS} from './shared/cancel-windows.js?v=20261108-movement-cancels';
+import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,claimProjectileDefense} from './shared/defense-windows.js?v=20261108-movement-cancels';
+import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-movement-cancels';
+import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-movement-cancels';
+import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-movement-cancels';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-movement-cancels';
+import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-movement-cancels';
+import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-movement-cancels';
+import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-movement-cancels';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:CONTACT_TIMEOUT};
-export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
+export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,dashUntil:0,dashReady:0,dashDirection:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,statuses:[],shield:0,shieldUntil:0,flash:0};}
 export class Arena{
  constructor(player,opponent,attacks,options={}){this.fighters=[player,opponent];opponent.x=700;opponent.facing=-1;this.attacks=attacks;this.frame=0;this.set=0;this.paused=true;this.winner=null;this.winnerIndex=null;this.honourMetrics={guards:0,dodges:0,attacks:new Set()};this.events=[];this.projectiles=new ProjectileRegistry();this.projectileClashes=new ProjectileClashes();this.lastProjectileClashes=[];this.lastProjectileDefenses=[];this.automaticAttempts=[];this.training=options.training===true;this.ai=!this.training;this.metrics={hits:0,damage:0,wallHits:0,knockdowns:0};this.decks=options.decks||null;}
  // Internal launch boundary. Versioned authoring will call this at startup;
@@ -40,15 +41,52 @@ export class Arena{
  }
  slots(){return this.decks?this.decks[this.set].slots:this.attacks.slice(this.set*KEYS.length,(this.set+1)*KEYS.length);}
  rotate(){if(this.paused||this.winner)return;this.set=(this.set+1)%(this.decks?.length||Math.ceil(this.attacks.length/KEYS.length));}
- reason(f,a,automatic=false){if(!a)return 'Empty slot';return availability(f.pet,a)||(f.reaction!=='standing'?'Recovering from a hit':f.dodgeUntil>this.frame?'Finish your dodge':f.guarding?'Lower your guard before attacking':f.cast&&!canCancel(f.cast,a,this.frame-f.cast.start,automatic)?'Finish the current move':f.stun>this.frame?'Recovering from a hit':(f.cooldowns.get(a.id)||0)>this.frame?'Cooling down':f.energy<Math.ceil(a.cost*f.cost)?'Not enough energy':'');}
+ reason(f,a,automatic=false){if(!a)return 'Empty slot';return availability(f.pet,a)||(f.reaction!=='standing'?'Recovering from a hit':f.dodgeUntil>this.frame?'Finish your dodge':f.dashUntil>this.frame?'Finish your dash':f.guarding?'Lower your guard before attacking':f.cast&&!canCancel(f.cast,a,this.frame-f.cast.start,automatic)?'Finish the current move':f.stun>this.frame?'Recovering from a hit':(f.cooldowns.get(a.id)||0)>this.frame?'Cooling down':f.energy<Math.ceil(a.cost*f.cost)?'Not enough energy':'');}
  attack(f,a,automatic=false){if(this.paused||this.winner||this.reason(f,a,automatic))return false;const automaticDepth=automatic?(f.cast?.automaticDepth||0)+1:0;this.faceOpponents();a=mappedAttack(f.pet,a);const tm=timing(a,f.stats);if(a.hitEvents)tm.active=sequenceDuration(a);const cost=Math.ceil(a.cost*f.cost);f.energy-=cost;f.cooldowns.set(a.id,this.frame+Math.max(tm.cooldown,tm.startup+tm.active+tm.recovery));f.cast={a,tm,automaticDepth,start:this.frame+1,x:f.x,y:f.y,facing:f.facing,groupTracker:createGroupHitTracker(),defenseState:createDefenseState(),outcomes:new Set(),hits:0,lastHit:-999,impact:a.impactTrigger==='contact'?null:tm.startup,sequence:a.hitEvents?sequenceState(a.sequenceTiming==='cast'?tm.startup:null):null};return true;}
  dodge(f){
   if(this.paused||this.winner)return 'Start or resume the round first';
   const problem=availability(f.pet,{motion:'dodge_side'});
   if(problem)return problem;
-  if(f.reaction!=='standing'||f.cast||f.stun>this.frame||f.dodgeUntil>this.frame)return 'Finish your current action first';
+  const window=f.cast?movementCancelWindow(f.cast,'dodge',this.frame-f.cast.start):null;
+  if(f.reaction!=='standing'||(f.cast&&!window)||f.stun>this.frame||f.dodgeUntil>this.frame||f.dashUntil>this.frame)return 'Finish your current action first';
   if(f.dodgeReady>this.frame)return 'Dodge is cooling down';
+  const cost=window?Math.ceil(window.cost*f.cost):0;
+  if(f.energy<cost)return 'Not enough energy';
+  // Commit only after every check succeeds. Launched independent projectiles
+  // keep their cast; the fighter relinquishes only the current action.
+  f.energy-=cost;f.cast=null;
   this.faceOpponents();f.guarding=false;f.sprinting=false;f.dodgeStart=this.frame;f.dodgeUntil=this.frame+RULES.dodgeFrames;f.dodgeReady=this.frame+RULES.dodgeCooldown;return '';
+ }
+ jump(f){
+  if(this.paused||this.winner)return 'Start or resume the round first';
+  const problem=availability(f.pet,{motion:'jump_side'});
+  if(problem)return problem;
+  const window=f.cast?movementCancelWindow(f.cast,'jump',this.frame-f.cast.start):null;
+  if(f.reaction!=='standing'||(f.cast&&!window)||f.stun>this.frame||f.dodgeUntil>this.frame||f.dashUntil>this.frame)return 'Finish your current action first';
+  if(f.y!==0||f.vy!==0)return 'Land before jumping';
+  if(f.crouch||f.guarding)return 'Stand before jumping';
+  const cost=window?Math.ceil(window.cost*f.cost):0;
+  if(f.energy<cost)return 'Not enough energy';
+  f.energy-=cost;f.cast=null;f.sprinting=false;f.vy=RULES.jump;return '';
+ }
+ dash(f,inputDirection=0){
+  if(this.paused||this.winner)return 'Start or resume the round first';
+  const window=f.cast?movementCancelWindow(f.cast,'dash',this.frame-f.cast.start):null;
+  if(!window)return 'No dash cancel is available';
+  const problem=availability(f.pet,{motion:'running_side'});
+  if(problem)return problem;
+  if(f.reaction!=='standing'||f.stun>this.frame||f.dodgeUntil>this.frame||f.dashUntil>this.frame)return 'Finish your current action first';
+  if(f.y!==0||f.vy!==0||f.crouch||f.guarding)return 'Stand on the ground before dashing';
+  if(f.dashReady>this.frame)return 'Dash is cooling down';
+  if(window.direction==='input'&&inputDirection!==1&&inputDirection!==-1)return 'Choose a left or right direction';
+  const cost=Math.ceil(window.cost*f.cost);
+  if(f.energy<cost)return 'Not enough energy';
+  this.faceOpponents();
+  f.dashDirection=window.direction==='input'?inputDirection:f.facing*(window.direction==='backward'?-1:1);
+  f.energy-=cost;f.cast=null;f.guarding=false;
+  // The next tick is the first movement frame, matching attack start timing.
+  f.dashUntil=this.frame+1+MOVEMENT_CANCEL_RULES.dashFrames;
+  f.dashReady=this.frame+MOVEMENT_CANCEL_RULES.dashCooldown;return '';
  }
  emit(text,x,y){this.events.push({text,x,y,until:this.frame+60});this.events=this.events.slice(-12);}
  tick(input=new Set(),sprintDirection=0){
@@ -60,11 +98,14 @@ export class Arena{
    for(const s of f.statuses){if(statusTickDue(s,this.frame)){if(s.type==='regen')f.hp=Math.min(f.maxHP,f.hp+s.power);else if(['burn','poison'].includes(s.type))f.hp=Math.max(0,f.hp-s.power);s.next+=s.interval;}}
    f.statuses=f.statuses.filter(s=>s.until>this.frame);
    if(f.statuses.some(s=>s.type==='stun'))f.stun=Math.max(f.stun,this.frame+1);
-   let direction=0,jump=false;f.crouch=false;f.sprinting=false;f.moving=false;f.guarding=f.reaction==='standing'&&f===p&&input.has('Shift')&&!f.cast&&f.dodgeUntil<=this.frame&&f.stun<=this.frame&&!availability(f.pet,{motion:'block_side'});
+   let direction=0,jump=false;f.crouch=false;f.sprinting=false;f.moving=false;f.guarding=f.reaction==='standing'&&f===p&&input.has('Shift')&&!f.cast&&f.dodgeUntil<=this.frame&&f.dashUntil<=this.frame&&f.stun<=this.frame&&!availability(f.pet,{motion:'block_side'});
    if(f===p){direction=Number(input.has('ArrowRight'))-Number(input.has('ArrowLeft'));jump=input.has('ArrowUp');f.crouch=input.has('ArrowDown')&&f.y===0;}
    else if(this.ai){const distance=p.x-f.x;direction=Math.abs(distance)>65?Math.sign(distance):0;if(this.frame%90===0&&p.y< -20)jump=true;}
+   if(f.reaction!=='standing'||f.stun>this.frame||f.hp<=0)f.dashUntil=0;
+   if(jump&&f.cast)this.jump(f);
+   if(f.dashUntil>this.frame){f.x+=f.dashDirection*MOVEMENT_CANCEL_RULES.dashSpeed*movementMultiplier(f.statuses);f.moving=true;f.sprinting=true;}
    if(f.reaction==='standing'&&f.dodgeUntil>this.frame&&f.stun<=this.frame){f.x-=f.facing*RULES.dodgeSpeed;}
-   if(f.reaction==='standing'&&!f.cast&&f.dodgeUntil<=this.frame&&f.stun<=this.frame){const statusSpeed=movementMultiplier(f.statuses);
+   if(f.reaction==='standing'&&!f.cast&&f.dodgeUntil<=this.frame&&f.dashUntil<=this.frame&&f.stun<=this.frame){const statusSpeed=movementMultiplier(f.statuses);
     if(direction){f.moving=true;f.sprinting=f===p&&direction===sprintDirection&&!f.guarding&&!f.crouch&&f.y===0;f.x+=direction*(RULES.move+f.stats.speed*.012)*statusSpeed*(f.crouch||f.guarding?.4:1)*(f.sprinting?RULES.sprintMultiplier:1);}if(jump&&f.y===0&&!f.crouch&&!f.guarding)f.vy=RULES.jump;}
    if(!f.pulseOwned&&!f.legacyOwned&&f.reaction!=='wall'){f.vy+=RULES.gravity;f.y+=f.vy;}if(f.y>=0){f.y=0;f.vy=0;resetGroundedJuggle(f);if(f.reaction==='airborne'&&!f.pulseOwned)knockDown(f,this.frame,(name,who)=>this.reactionEvent(name,who));}f.x=clamp(f.x,35,RULES.width-35);
   }
@@ -110,7 +151,7 @@ export class Arena{
  }
  faceOpponents(){const [p,o]=this.fighters;if(p.x!==o.x){p.facing=o.x>p.x?1:-1;o.facing=-p.facing;}for(const f of this.fighters){if(f.cast&&f.cast.a.delivery==='melee')f.cast.facing=f.facing;}}
  reactionEvent(name,f){this.emit(name,f.x,f.y-80);if(f===this.fighters[1]){if(name==='WALL HIT')this.metrics.wallHits++;if(name==='KNOCKDOWN')this.metrics.knockdowns++;}}
- resetDummy(position=700){if(!this.training)return;this.projectiles.clear();this.projectileClashes.clear();this.lastProjectileClashes=[];this.lastProjectileDefenses=[];const f=this.fighters[1];Object.assign(f,{x:position,y:0,vy:0,vx:0,hp:f.maxHP,energy:f.maxEnergy,pulseMotion:null,pulseOwned:false,legacyMotion:null,legacyOwned:false,juggleHits:0,juggleLocked:false,reaction:'standing',reactionStart:this.frame,reactionUntil:0,needsFall:false,lastHit:-999,cast:null,stun:0,statuses:[],shield:0});this.metrics={hits:0,damage:0,wallHits:0,knockdowns:0};this.lastSequence=null;for(const actor of this.fighters)actor.cast=null;this.faceOpponents();}
+ resetDummy(position=700){if(!this.training)return;this.projectiles.clear();this.projectileClashes.clear();this.lastProjectileClashes=[];this.lastProjectileDefenses=[];const f=this.fighters[1];Object.assign(f,{x:position,y:0,vy:0,vx:0,hp:f.maxHP,energy:f.maxEnergy,pulseMotion:null,pulseOwned:false,legacyMotion:null,legacyOwned:false,juggleHits:0,juggleLocked:false,reaction:'standing',reactionStart:this.frame,reactionUntil:0,needsFall:false,lastHit:-999,cast:null,stun:0,statuses:[],shield:0});this.metrics={hits:0,damage:0,wallHits:0,knockdowns:0};this.lastSequence=null;for(const actor of this.fighters){actor.cast=null;actor.dashUntil=0;}this.faceOpponents();}
  testDummyReaction(wall=false){if(!this.training)return;const f=this.fighters[1];this.resetDummy(wall?910:650);beginReaction(f,{motion:'ground_slam_side',knockback:wall?100:24,launchHeight:35,hitstun:15,flightFrames:36,pushAxis:'both',wallSlam:wall,floorSlam:true},1,this.frame);}
  prepare(f,target){return this.prepareCast(f,target,f.cast);}
  // Collision sources may outlive an owner action. Never swap f.cast to inspect one:

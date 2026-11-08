@@ -1,5 +1,5 @@
-import {resetGroundedJuggle,recordJuggleReaction,JUGGLE_RULES} from './juggle-rules.js?v=20261108-scheduled-sequences';
-export {resetGroundedJuggle} from './juggle-rules.js?v=20261108-scheduled-sequences';
+import {resetGroundedJuggle,recordJuggleReaction,JUGGLE_RULES} from './juggle-rules.js?v=20261108-movement-cancels';
+export {resetGroundedJuggle} from './juggle-rules.js?v=20261108-movement-cancels';
 // Version 2: a bounded sequence of hits timed from first projectile contact.
 // Shared by the editor preview and the Arena. All times are 60 Hz frames.
 export const SEQUENCE_LIMITS = Object.freeze({hits:10, duration:300, suspension:30, gravity:.48});

@@ -6,7 +6,7 @@ export class TouchInput {
  clear(){this.held.clear();}
  keys(){return new Set(this.held.values());}
 }
-export function installTouchControls(root,{active,dodge}){
+export function installTouchControls(root,{active,dodge,dash=()=>{}}){
  const input=new TouchInput();
  for(const button of root.querySelectorAll('[data-hold]')){
   const key=button.dataset.hold;
@@ -18,6 +18,7 @@ export function installTouchControls(root,{active,dodge}){
   button.addEventListener('blur',()=>{input.release('keyboard:'+key);button.setAttribute('aria-pressed',String(input.keys().has(key)));});
  }
  root.querySelector('[data-dodge]').addEventListener('click',()=>{if(active())dodge();});
+ for(const button of root.querySelectorAll('[data-dash]'))button.addEventListener('click',()=>{if(active())dash(Number(button.dataset.dash));});
  const clear=input.clear.bind(input);input.clear=()=>{clear();for(const button of root.querySelectorAll('[data-hold]'))button.setAttribute('aria-pressed','false');};
  return input;
 }

@@ -1,4 +1,4 @@
-import {visualFrame,visualOpacity,pathSample} from './shared/attack-motion.js?v=20261108-scheduled-sequences';
+import {visualFrame,visualOpacity,pathSample} from './shared/attack-motion.js?v=20261108-movement-cancels';
 // The same renderer handles cast-owned and independently reflected effects.
 export function drawAttackEffect(ctx,{cast:c,visual:v,effect,image,frame,target,ground=0}){
  const age=frame-c.start,impact=c.impact??Infinity,i=visualFrame(effect,v,age,impact);if(i<0)return false;

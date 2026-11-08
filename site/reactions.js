@@ -1,6 +1,6 @@
-import {juggleLegacyReaction,resetGroundedJuggle} from './shared/juggle-rules.js?v=20261108-scheduled-sequences';
-import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261108-scheduled-sequences';
-import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261108-scheduled-sequences';
+import {juggleLegacyReaction,resetGroundedJuggle} from './shared/juggle-rules.js?v=20261108-movement-cancels';
+import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261108-movement-cancels';
+import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261108-movement-cancels';
 export const REACTION={wallHold:RECOVERY_TIMING.wall,downHold:RECOVERY_TIMING.down,getUp:RECOVERY_TIMING.getUp,drag:.84};
 export function beginReaction(f,attack,direction,frame,countJuggle=true){
  // A completed juggle must reach the floor before another hit can relaunch it.

@@ -1,4 +1,4 @@
-import {shapesOverlap} from './hitbox-shapes.js?v=20261108-scheduled-sequences';
+import {shapesOverlap} from './hitbox-shapes.js?v=20261108-movement-cancels';
 
 // Runtime-only groundwork. Both projectiles must opt into durability; legacy
 // projectiles keep passing through each other until versioned authoring exists.

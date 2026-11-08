@@ -5,7 +5,7 @@ test('pause cleanup releases all touch and keyboard-held buttons',()=>{const inp
 import {installTouchControls} from '../site/touch-controls.js';
 function fixture(){
  const button=key=>({dataset:{hold:key},listeners:{},attributes:{},addEventListener(type,fn){this.listeners[type]=fn;},setAttribute(name,value){this.attributes[name]=value;},setPointerCapture(id){this.captured=id;},send(type,patch={}){const event={pointerId:1,button:0,preventDefault(){this.prevented=true;},...patch};this.listeners[type](event);return event;}});
- const left=button('ArrowLeft'),guard=button('Guard'),dodge=button(),root={querySelectorAll:()=>[left,guard],querySelector:()=>dodge};let running=true,dodges=0;
+ const left=button('ArrowLeft'),guard=button('Guard'),dodge=button(),root={querySelectorAll:selector=>selector==='[data-hold]'?[left,guard]:[],querySelector:()=>dodge};let running=true,dodges=0;
  const input=installTouchControls(root,{active:()=>running,dodge:()=>dodges++});return {left,guard,dodge,input,pause:()=>{running=false;input.clear();},dodges:()=>dodges};
 }
 for(const ending of ['pointerup','pointercancel','lostpointercapture'])test(ending+' releases only its pointer and updates pressed state',()=>{
@@ -17,3 +17,10 @@ test('keyboard hold releases on blur and paused buttons cannot re-arm',()=>{
  f.left.send('pointerdown');f.pause();assert.equal(f.left.attributes['aria-pressed'],'false');f.left.send('pointerdown');f.guard.send('keydown',{key:'Enter'});f.dodge.send('click');assert.equal(f.input.keys().size,0);assert.equal(f.dodges(),0);
 });
 test('dodge activation is discrete and does not latch movement',()=>{const f=fixture();f.dodge.send('click');assert.equal(f.dodges(),1);assert.equal(f.input.keys().size,0);});
+test('dash buttons send discrete signed input only while the round is active',()=>{
+ const calls=[];let running=true;const buttons=[-1,1].map(direction=>({dataset:{dash:String(direction)},addEventListener(type,fn){this.click=fn;}}));
+ const root={querySelectorAll:selector=>selector==='[data-dash]'?buttons:[],querySelector:()=>({addEventListener(){}})};
+ const input=installTouchControls(root,{active:()=>running,dodge(){},dash:direction=>calls.push(direction)});
+ buttons[0].click();buttons[1].click();assert.deepEqual(calls,[-1,1]);assert.equal(input.keys().size,0);
+ running=false;buttons[0].click();assert.deepEqual(calls,[-1,1]);
+});
