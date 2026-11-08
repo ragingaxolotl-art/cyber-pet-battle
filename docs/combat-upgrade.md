@@ -1,23 +1,23 @@
 # Combat tools upgrade — November 5, 2026
 
-## Current status — November 8, 2026 (reconciled after impact-timing release)
+## Current status — November 8, 2026 (reconciled after hitstun release)
 
 This overview supersedes the historical entries below. The overall goal is **not complete**; historical deferrals do not remove requirements.
 
 | Capability | Verified current implementation | Remaining work |
 | --- | --- | --- |
 | Arena controls | Nine slots including C beside X; mobile movement/block/dodge; input cleanup across focus loss, menus and restart | Physical multitouch and broader keyboard/accessibility playtesting |
-| Independent hits | Contact-relative projectile sequences; cast-relative melee/area sequences; per-hit damage/reactions, attached/repeated contact and common juggle budget | Richer recovery, hitstun deterioration and expanded event behaviors |
+| Independent hits | Contact-relative projectile sequences; cast-relative melee/area sequences; per-hit damage/reactions, attached/repeated contact and common juggle budget | Air recovery, bounce limits and expanded event behaviors; format15 hitstun clients verified live |
 | Geometry | Multiple grouped hitboxes and shared hit budgets | Rotation, animation anchors and authored hurtboxes |
 | Defense/interactions | Same-frame trades, armor, invulnerability, parry, projectile durability/clashes, reflection and absorption | Wider priority, guard break/crush and throws |
-| Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Counter-hit and combo scaling; broader physical-device QA |
+| Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Broader physical-device QA and additional conditional transitions |
 | Projectiles | Independent lifetime and interruption persistence; durability; reflected ownership/geometry; absorption | Homing, return, splitting, explosion and broader piercing/area behavior |
 | Impact timing | Authored hitstop/blockstop/blockstun; separate combat/playback clocks; shared preview and projectile scenarios | Broader interaction and device coverage |
-| Saving | Version1–12 project/bank/tree transport; server v65; revision protection; local recovery; unreadable-response/expired-session handling | Authenticated anonymous browser round trip and future migrations |
+| Saving | Version1–15 clients and server v68 live; revision protection; local recovery; unreadable-response/expired-session handling | Authenticated anonymous browser round trip and future migrations |
 | Authoring | Quick Edit, selected hits, basic/advanced, undo/redo, recovery, timeline zoom, track locking/hiding, atomic multiselect movement, group dragging, same/cross-attack copy/paste, batch hit properties and reaction-block preview/apply | Inheritance, movement/conditional sequence blocks, audio/camera and expanded presets |
 | Testing | Two-attack comparison, replay, saved scenarios, diagnostics and shared regression cases | Remaining scenario coverage, usability checks and classroom-device playtesting |
 
-Latest verified release suites: Arena 493 and staged Studio 1,276 passed. Impact-timing release verified 48 live file hashes and 13 downloaded-code tests. Browser pause/resume/scrub and published impact editing passed. Counts do not prove all browser workflows or roadmap completion.
+Latest verified release suites: Arena560 and staged Studio1295 passed. Hitstun release verified51 live file hashes and downloaded format/editor checks. Browser authoring/export/import smoke and automated recovery parity passed. Counts do not prove all browser workflows or roadmap completion.
 
 ### Latest delivered milestones and evidence
 
@@ -33,13 +33,11 @@ Latest verified release suites: Arena 493 and staged Studio 1,276 passed. Impact
 - Reaction builder `461fbcca`: live preview→replace→Undo verified; supported blocks generate ordinary hit events. Anonymous generated sequence has four60-frame Arena comparisons across melee/area and both facings, committed on `combat-cancel-development` as `7d3f508`.
 - Reusable recipe templates `0a8901c`: submitted, Pages42515303565 in progress at latest check. Local save/rename/remove/reload/restore/download/import browser checks and15 frozen tests passed. **Live template delivery is not yet verified.** Templates are browser-local; backups contain active recipes. They do not provide persistent inheritance or classroom-bank template sharing.
 
-### Next combat milestone: combo tracking and scaling
+### Latest combat milestone: hitstun release verified
 
-Movement cancels and impact timing are delivered. The next dependency is a shared definition of an uninterrupted combo, followed by optional damage scaling, hitstun deterioration and counter-hit rules. Current per-cast hit counts and airborne reaction budgets are not combo counters. See `docs/combo-system-plan.md` in the Arena checkout for the current source audit and acceptance criteria.
+Shared cross-attack combo tracking, optional damage scaling and counter-hit rules are delivered. Format15 adds optional hitstun deterioration and explicit per-event hitstun, preserving separate motion/knockdown/status recovery locks. Full release tests Arena560/Studio1295 pass; browser authoring/export/import smoke passed. Arena commit1e009f4 and Studio0efc647 are pushed; both Pages deployments succeeded and51 live files match the release. Server68 already supports15. See the latest dated entries and `release-staging/20261108-hitstun`.
 
-Latest paired impact release: Arena `d8704b5`, Studio `81cc0c8`, server 65. Both Pages deployments succeeded; scoped publication preserved unrelated Studio work. Evidence: `release-staging/20261108-impact-timing`. Authenticated anonymous bank browser roundtrip remains unverified.
-
-The original historical notes below record previous limitations and local-only states. They are not current capability claims. Broader remaining scope includes counter-hit/scaling/hitstun deterioration; expanded projectiles, collision and juggle rules; anchors/hurtboxes; richer conditional authoring; authenticated bank verification; and classroom-device/accessibility checks.
+Next combat scope: explicit air recovery and bounce budgets, then broader projectile and defensive mechanics. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
 
 ---
 
@@ -1167,3 +1165,43 @@ Studio now exposes optional whole-frame deterioration step/floor, neutral defaul
 ### November 8 — hitstun format15 server published
 
 Sites server68 deployed from d21d7f862fde487348b60a71770a5ce3d131abaa, deployment appgdep_6af0e3d854d881918399493d8db7514d succeeded. All20 anonymous bank tests pass, including deterioration/per-event zero roundtrip, malformed values, event-only downgrade rejection and preservation of saved revision/data. No real classroom records accessed. Evidence release-staging/20261108-hitstun/server-publication.json. Clients remain local; browser authoring/export/recovery QA, scoped staging, publication and live verification remain next. Overall goal active.
+
+### November 8 — hitstun browser QA and client publication started
+
+Local Studio browser authored step3/floor1 and first-event8f, displayed8/5/2/1 examples, exported format15 with exact values. Arena imported the anonymous export and ran a simultaneous comparison (9 HP each); recovery parity itself remains verified by automated frame-by-frame tests. Screenshots /private/tmp/cyber-pet-hitstun-editor.jpg and /private/tmp/cyber-pet-hitstun-arena.jpg; evidence release-staging/20261108-hitstun/browser-qa.json. Scoped Studio34-file stage retained unrelated published work. Full release suites Arena560/Studio1295 pass. Arena1e009f4fca79ebaac96d97149472b7110e18ff3b and Studio0efc6472e8c7f7e751c52e15a6a5e1fde77c2b34 pushed. Pages42523541587 in progress and42523553004 queued at last check. Do not claim live yet. Next: poll these exact runs, then /private/tmp/verify_hitstun_release.py and record deployment evidence. Server68 is live. Overall goal active.
+
+### November 8 — hitstun format15 release verified live
+
+Arena1e009f4fca79ebaac96d97149472b7110e18ff3b and Studio0efc6472e8c7f7e751c52e15a6a5e1fde77c2b34 deployed successfully (Pages42523541587/42523553004). Verified51 served files (17 Arena,34 Studio) against release hashes; downloaded format/editor checks passed. Full release suites Arena560/Studio1295 pass. Server68 supports15. Local browser authoring/export/import smoke and automated frame-by-frame recovery parity are recorded separately in release-staging/20261108-hitstun. Authenticated bank browser roundtrip remains unverified. Next: explicit air recovery and bounce budgets, retaining the broader projectile/defense/authoring/UI requirements. Overall goal remains active.
+
+### November 8 — air-recovery timing foundation (local)
+
+Source audit confirms stun combines authored hitstun with movement/knockdown locks, so it cannot alone determine air-recovery eligibility. Added separate hitstunUntil state to ordinary Arena reactions, ordinary preview and shared pulse reactions, retaining earlier longer authored hitstun on rehit. Fighter initialization and dummy reset clear it. Three tests verify separation from launch/knockdown recovery, preservation across shorter hits and reset; full suites Arena563/Studio1295 pass. This adds no escape action yet and is unpublished. Existing wall/floor slam flags are impacts/knockdown, not a complete bounce system; do not relabel them as delivered bounce mechanics. Next: explicit recovery eligibility/action, controlled transition from authored motion to free airborne movement, input/preview/comparison coverage, then bounce events/budgets and corresponding authoring/versioning. Overall goal active.
+
+### November 8 — air-recovery action and eligibility (local)
+
+Shared airRecoveryReason/recoverInAir implement one neutral recovery per landing, at least12 combat frames after the last hit and after authored hitstun expiry. Defeat, grounded/free movement, active status stun, wall/down/get-up, forced floor knockdown and juggle-limit release reject without mutation. Recovery brakes motion at the exact position, switches to free falling control, clears motion ownership and preserves juggle count. It grants no invulnerability. Arena.airRecover rejects pause/winner/hitstop and emits feedback on success; floor contact resets allowance. Three tests cover atomic rejection, timer boundaries, no teleport/budget refill, pause/hitstop, falling and landing reset. Full suites Arena566/Studio1295 pass. Unpublished; input controls, comparison/preview action options, interrupted attachments/rehit scenarios and browser verification are not implemented yet. Bounce mechanics remain separate unfinished work. Overall goal active.
+
+### November 8 — air-recovery keyboard and touch controls (local)
+
+Arena binds M and a discrete Air recover touch button to the same airRecover action/status feedback. M does not overlap attack slots or configurable defense keys. Repeats are ignored and form/native control editing is preserved. Movement/footer instructions name the action and once-per-landing rule. App-handler DOM test verifies both dispatch paths, grounded rejection feedback, repeat suppression and native editing; existing pointer cleanup tests still pass. Full suites Arena567/Studio1295 pass. Unpublished and not browser/device verified. Next: comparison/preview recovery attempts and timing feedback, attached projectile/rehit cases, browser QA and paired release; bounce mechanics remain unfinished. Overall goal active.
+
+### November 8 — scheduled comparison air recovery (local)
+
+Arena comparison accepts optional recoveryBFrame0–899, blank/null disabled. It attempts once after contacts and any impact pause on the chosen combat frame; results/log distinguish success, rejection reason and unattempted test limit. Replay captures the restored control state. Configuration save/load includes the attempt, and Studio comparison transfer clears it. Three tests cover success/early hitstun, no-option/invalid input, hitstop combat-versus-playback timing, forced-knockdown rejection and short-test limit. Full suites Arena570/Studio1295 pass. Unpublished/not browser verified. Next: Studio preview recovery attempt with consistent free-fall transition, cross-application parity, attached/projectile rehit cases, UI/browser verification and release. Bounce mechanics and broader scope remain unfinished.
+
+### November 8 — preview air-recovery simulation parity (local)
+
+Ordinary and sequence simulations accept optional recoveryFrame, call the shared eligibility/action after contacts, report success/rejection/unattempted results, and resume free fall after recovery. Ordinary preview tracks last hit/reaction/forced landing and maps active status stun for eligibility; local authored flight is removed only on successful recovery. Four frame-by-frame tests compare Arena height/HP and rejection reasons for ordinary/sequence launches at early frame2 and eligible frame12. Full suites Arena574/Studio1295 pass. Unpublished; Studio visible attempt control, saved-scenario integration, attached projectile/rehit cases, browser checks and release remain. Overall goal active.
+
+### Air recovery: Studio scenario control (local, unpublished)
+
+Added a blank-to-disable recovery-attempt frame control, saved-scenario restoration (including clearing the setting for older scenarios), and validation at both preview entry points. Invalid saved frames are rejected before changing the current scenario. Automated verification: Arena 574/574; Studio 1296/1296, including the new control/save/restore test. Remaining for this milestone: rehit/projectile edge cases, browser verification, scoped publication and live verification.
+
+### Air recovery: projectile rehit and Studio browser verification
+
+Added frame-by-frame Arena/preview regression coverage for attached and stationary contact projectiles after recovery. Attached follow-ups remain able to hit, preserve the spent recovery and juggle count, and reject a second recovery until landing. Stationary geometry can miss after the target leaves it. All 16 air-recovery tests pass. Studio browser verification: entered frame 12, saved scenario, cleared the field, restored scenario and observed frame 12 restored. Screenshot: `/private/tmp/cyber-pet-air-recovery-editor.jpg`. This is local UI verification; Arena browser exercise, release staging, publication and live verification remain.
+
+### Air recovery: Arena browser QA and release preparation
+
+Anonymous two-attack import verified in Arena browser: recovery succeeds at combat frame 12 and reports “Hitstun has not ended” at frame 2. Evidence saved in `release-staging/20261108-air-recovery/browser-qa.json`. Refreshed Arena dependency cache keys; complete Arena suite passes 576/576. Studio release is being staged against remote main with only recovery-owned modules and narrow design.js changes; publication and live verification still pending.

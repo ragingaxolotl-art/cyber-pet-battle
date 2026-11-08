@@ -1,6 +1,6 @@
 import {attackChecks} from './attack-checks.js?v=20261108-movement-cancels';
 import {KEYS,physicalCatalog,defaultCatalog,availability} from './catalog.js?v=20261108-hitstun';
-import {validateAttack} from './shared/combat-model.js?v=20261108-hitstun';
+import {validateAttack} from './shared/combat-model.js?v=20261108-air-recovery';
 import {checkPlayableTree,bankTree,STUDIO_TREE_KEY} from './skill-trees.js?v=20261108-movement-cancels';
 import {ProfileStore,freshProfile,syncCredit,trainingCredit,pointsForXP,xpForPoints,balance,spentPoints,purchaseReason,buySkill,allowedAttackIds,saveSet,validateProfile} from './progression.js?v=20261108-movement-cancels';
 import {LoadoutDrafts} from './loadout-drafts.js?v=20261108-movement-cancels';

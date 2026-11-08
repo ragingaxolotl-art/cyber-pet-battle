@@ -1,4 +1,4 @@
-import {juggleLegacyReaction,resetGroundedJuggle} from './shared/juggle-rules.js?v=20261108-movement-cancels';
+import {juggleLegacyReaction,resetGroundedJuggle} from './shared/juggle-rules.js?v=20261108-air-recovery';
 import {RECOVERY_TIMING,legacyRecoveryEnd} from './shared/recovery-timing.js?v=20261108-movement-cancels';
 import {sampleLegacyMotion,hasLegacyMotion} from './shared/legacy-motion.js?v=20261108-movement-cancels';
 export const REACTION={wallHold:RECOVERY_TIMING.wall,downHold:RECOVERY_TIMING.down,getUp:RECOVERY_TIMING.getUp,drag:.84};
@@ -9,6 +9,8 @@ export function beginReaction(f,attack,direction,frame,countJuggle=true){
  resetGroundedJuggle(f);
  if(countJuggle){attack=juggleLegacyReaction(f,attack);if(!attack)return;}
  const recoveryEnd=legacyRecoveryEnd(f,attack,frame);
+ // Keep authored hitstun separate from motion/knockdown recovery for air recovery.
+ f.hitstunUntil=Math.max(f.hitstunUntil||0,frame+attack.hitstun);
  f.pulseMotion=null;f.cast=null;f.guarding=false;f.moving=false;f.sprinting=false;f.vx=0;f.vy=0;
  f.legacyMotion=hasLegacyMotion(f,attack)?{x:f.x,y:f.y,start:frame,attack:{...attack},direction,wall:false}:null;
  f.needsFall=!!attack.floorSlam&&(f.y<0||(attack.pushAxis!=='x'&&attack.launchHeight>0));f.reaction=(attack.pushAxis!=='x'&&attack.launchHeight>0)||f.y<0?'airborne':'hurt';
