@@ -7,6 +7,7 @@ const root=fileURLToPath(new URL('../site/',import.meta.url));
 test('Arena initializes and loadout edits survive switching, closing, save, deletion and undo',async()=>{
  const env=environment(path.join(root,'index.html'),root),$=id=>env.ids.get(id);
  await import('../site/app.js');await new Promise(r=>setImmediate(r));
+ await $('stepFrame').click();for(const id of ['attackSlots','fullscreenSlots'])assert.match($(id).children[8].getAttribute('aria-label'),/^C: Quick jab/);
  assert.doesNotMatch($('status').textContent,/could not load/i);assert.equal($('mapAttacks').disabled,false);
  await $('mapAttacks').click();await $('newSet').click();const first=$('setList').value;
  const slot=$('mappingKeys').querySelector('select');slot.value=slot.options[1].value;slot.onchange();const chosen=slot.value;
