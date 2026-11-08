@@ -16,7 +16,7 @@ import {drawAttackEffect} from './effect-renderer.js?v=20261108-projectile-defen
 import {posePlayback} from './shared/pose-timing.js?v=20261108-projectile-defense';
 import {readBackup} from './shared/backups.js?v=20261108-projectile-defense';
 import {accountClient} from './account.js?v=20261108-projectile-defense';
-import {createClassroomBank} from './shared/attack-bank.js?v=20261108-projectile-defense';
+import {createClassroomBank} from './shared/attack-bank.js?v=20261108-bank-recovery';
 import {shapePoints} from './shared/hitbox-shapes.js?v=20261108-projectile-defense';
 const $=id=>document.getElementById(id),canvas=$('arena'),ctx=canvas.getContext('2d'),account=accountClient();
 let workshop=null,decks=null,training=true;
