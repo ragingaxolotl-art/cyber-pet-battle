@@ -1,4 +1,4 @@
-import {createImpactArea,claimAreaHit,areaAlive,impactAreaAnchor} from './shared/projectile-area.js?v=20261108-area-final';
+import {createImpactArea,claimAreaHit,impactAreaBox,areaAlive,impactAreaAnchor} from './shared/projectile-area.js?v=20261108-explosion';
 import {consumesProjectile,CONTACT_END_REASON} from './shared/projectile-contact.js?v=20261108-contact-final';
 import {createSteeringState,advanceSteering,reflectSteering} from './shared/projectile-steering.js?v=20261108-steering';
 import {recoverInAir} from './shared/air-recovery.js?v=20261108-air-recovery';
@@ -18,9 +18,9 @@ import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,
 import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './shared/hitbox-groups.js?v=20261108-movement-cancels';
 import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './shared/status-rules.js?v=20261108-movement-cancels';
 import {beginReaction,advanceReaction,knockDown} from './reactions.js?v=20261108-bounces';
-import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-area-final';
+import {statsFor,timing,magnitude,worldBox,clamp} from './shared/combat-model.js?v=20261108-explosion';
 import {shapeHitsRectangle} from './shared/hitbox-shapes.js?v=20261108-movement-cancels';
-import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-area-final';
+import {KEYS,availability,mappedAttack} from './catalog.js?v=20261108-explosion';
 import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './shared/hit-sequence.js?v=20261108-bounces';
 export const RULES={width:960,ground:370,gravity:.48,jump:-9.5,move:2.8,sprintMultiplier:1.8,dodgeFrames:18,dodgeInvulnerableStart:2,dodgeInvulnerableEnd:14,dodgeCooldown:45,dodgeSpeed:4,energyPerFrame:.055,contactTimeout:CONTACT_TIMEOUT};
 export function fighter(name,stats,pet=null){const limits=statsFor(stats);return {name,stats,pet,...limits,hp:limits.maxHP,energy:limits.maxEnergy,x:260,y:0,vy:0,facing:1,crouch:false,moving:false,backing:false,sprinting:false,guarding:false,blockstunUntil:0,blockstunReduction:0,dodgeStart:-999,dodgeUntil:0,dodgeReady:0,dashUntil:0,dashReady:0,dashDirection:0,reaction:"standing",reactionStart:0,reactionUntil:0,lastHit:-999,vx:0,needsFall:false,cast:null,cooldowns:new Map(),stun:0,hitstunUntil:0,airRecoveryUsed:false,statuses:[],shield:0,shieldUntil:0,flash:0};}
@@ -292,7 +292,7 @@ export class Arena{
   const defense=defenseSnapshot(cast,age),incoming={delivery:'area',payload:'damage'};
   return {area,defense,guarding:target.guarding||blocking,guardReduction:blocking?cast.a.blockPercent/100:target.guard,
    evading:dodging||(this.frame>=target.dodgeStart+RULES.dodgeInvulnerableStart&&this.frame<target.dodgeStart+RULES.dodgeInvulnerableEnd),
-   invulnerable:isInvulnerable(defense,incoming),overlap:shapeHitsRectangle(area.box,{x:target.x-14,y:target.y-(target.crouch?34:60),w:28,h:target.crouch?34:60})};
+   invulnerable:isInvulnerable(defense,incoming),overlap:shapeHitsRectangle(impactAreaBox(area,this.frame),{x:target.x-14,y:target.y-(target.crouch?34:60),w:28,h:target.crouch?34:60})};
  }
  resolveArea({area,defense,guarding,guardReduction,evading,invulnerable,overlap}){
   const target=area.target;if(target.hp<=0||evading||invulnerable||!claimAreaHit(area,target,this.frame,overlap))return;

@@ -1,6 +1,6 @@
 # Combat tools upgrade — November 5, 2026
 
-## Current status — November 8, 2026 (reconciled through verified contact19 release)
+## Current status — November 8, 2026 (reconciled through verified impact-area20 release)
 
 This overview supersedes the historical entries below. The overall goal is **not complete**; historical deferrals do not remove requirements.
 
@@ -11,15 +11,17 @@ This overview supersedes the historical entries below. The overall goal is **not
 | Geometry | Multiple grouped hitboxes and shared hit budgets | Rotation, animation anchors and authored hurtboxes |
 | Defense/interactions | Same-frame trades, armor, invulnerability, parry, projectile durability/clashes, reflection and absorption | Wider priority, guard break/crush and throws |
 | Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Broader physical-device QA and additional conditional transitions |
-| Projectiles | Verified live independent lifetime, durability, reflection, absorption energy, homing and return. Single-contact/repeated policy verified live as format19 | Splitting, explosion and projectile-created persistent areas; expanded travel/target behavior |
+| Projectiles | Verified live independent lifetime, durability, reflection, absorption energy, homing and return. Single-contact/repeated policy (format19) and stationary impact areas (format20) verified live | Splitting, explosion, custom area artwork and expanded travel/target behavior |
 | Impact timing | Authored hitstop/blockstop/blockstun; separate combat/playback clocks; shared preview and projectile scenarios | Broader interaction and device coverage |
-| Saving | Version1–19 clients verified live. Server72/version19 live; revision protection, local recovery, unsupported-write refusal | Authenticated anonymous classroom-bank browser round trip and future migrations |
+| Saving | Version1–20 clients verified live. Server73/version20 live; revision protection, local recovery, unsupported-write refusal | Authenticated anonymous classroom-bank browser round trip and future migrations |
 | Authoring | Quick Edit, selected hits, basic/advanced, undo/redo/recovery, timeline zoom and grouped edits, reusable reaction templates, direct animation/target/attacker placement, both docked sides scrolling, compact section help | Persistent property inheritance, movement/conditional sequence blocks, audio/camera, more presets and broader help rollout |
 | Testing | Two-attack comparison, replay, saved scenarios, diagnostics and shared regression cases | Remaining scenario coverage, usability checks and classroom-device playtesting |
 
-Latest verified release suites: Arena639 and staged Studio1330 passed. Browser verified format19 export/import and a five-hit-configured projectile ending on its first block. Arena42532631928 and Studio42532641794 succeeded;52 live file hashes match (17 Arena,35 Studio), and downloaded editor/format/help checks pass. Server72 supports formats1–19 with24 anonymous in-memory tests. Earlier steering/absorption/placement releases have live-file receipts in their release-staging directories. Test counts do not establish completion of untested browser/device workflows or the full report.
+Latest verified release suites: Arena653 and staged Studio1332 passed. Browser verified version20 authoring/export/import, separate area-hit counts, rendering without debug boxes, five pulses, expiry and guard. Arena42534391508 and Studio42534388221 succeeded;63 live file hashes match (17 Arena,46 Studio), and downloaded editor/format/help checks pass. Server73 supports formats1–20 with25 anonymous in-memory tests. Earlier release evidence remains in release-staging. These counts do not establish completion of untested browser/device workflows or the full report.
 
 ### Latest delivered milestones and evidence
+
+- Expanded compact help: Studio `b5a67af584627245f3235ef3e79c3912b81a0e04`, Pages42534912119 succeeded. Ten instruction blocks moved into heading-adjacent info dialogs; collapsed-summary keyboard behavior, Escape/focus return and Effects-tab layout verified. Full staged suite1333 passes,16 live files match and downloaded help/usability tests pass. Evidence: `release-staging/20261108-static-help`.
 
 - Scheduled melee/area events: Arena `9eda269` and Studio `b202edd`; both Pages deployments succeeded. Live hashes matched 48 Arena /70 Studio files. Anonymous Arena import→learn→test connected three hits for21 damage; live Studio authoring and independent timing edits passed. Shared scenarios cover fixed startup-relative scheduling, misses, geometry, defense and interruption. Release evidence: `release-staging/20261108-scheduled-sequences`.
 - Version10 transport: classroom server63 deployed;15 anonymous in-memory bank checks passed. Existing formats remain readable and older clients cannot overwrite unsupported definitions. **Authenticated classroom-bank browser save/load remains unverified.**
@@ -37,7 +39,7 @@ Latest verified release suites: Arena639 and staged Studio1330 passed. Browser v
 
 Shared cross-attack combo tracking, optional damage scaling and counter-hit rules are delivered. Format15 adds optional hitstun deterioration and explicit per-event hitstun, preserving separate motion/knockdown/status recovery locks. Full release tests Arena560/Studio1295 pass; browser authoring/export/import smoke passed. Arena commit1e009f4 and Studio0efc647 are pushed; both Pages deployments succeeded and51 live files match the release. Server68 already supports15. See the latest dated entries and `release-staging/20261108-hitstun`.
 
-Next combat scope: projectile-created persistent areas, splitting/explosions and broader defensive mechanics. Homing and return are delivered. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
+Next combat scope: splitting/explosions and broader defensive mechanics. Homing, return and stationary impact areas are delivered. The expanded compact-help pass is delivered; subsequent authoring work includes inheritance and conditional/movement blocks. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
 
 ---
 
@@ -1416,3 +1418,49 @@ Next: browser author/edit/export/import/replay and visual QA, including clarity 
 - Browser QA: authoring, help popup, version-20 export/import, and debug-independent area rendering verified. Result summary now distinguishes the initial contact from area hits. Arena comparison reproduces 19 HP initial impact at frame 17 plus five 3 HP pulses at 18/33/48/63/78; area absent at frame 108. Full guard prevents damage from all pulses.
 - Evidence: release-staging/20261108-projectile-area/{browser-qa.json,studio-preview.jpg,arena-preview.jpg,studio-tests.txt,arena-tests.txt}. Server 73/version20 is live; client publication and live verification are next.
 - Still outstanding: custom area artwork, explosion/splitting and remaining report scope. No real student/classroom bank records used.
+
+### November 8 — impact-area20 delivered and live verified
+
+- Arena `7c3e18e05f146952444fd2e08d2a7a3bbfee7022`, Studio `6f176249625abcd44f54f763f856de394f178fb0`; Pages42534391508 /42534388221 both succeeded. **63 live files matched** (17 Arena,46 Studio); downloaded area authoring/transport/contact/help checks passed. Both current release sources are live.
+- Full release suites:653 Arena /1332 Studio; server73 format20 already live (25 tests). Browser screenshots and receipts are in `release-staging/20261108-projectile-area`. The result-count regression also passes against served code.
+- Scope remains incomplete. Next: compact help for remaining dense editor sections; then explosion/splitting and other audited combat/authoring requirements. Custom area artwork, broader device/accessibility testing and authenticated anonymous bank browser round-trip remain outstanding.
+
+### November 8 — expanded static section help (local, unpublished)
+
+- Ten explicitly marked instruction paragraphs now move into info dialogs next to their headings: tuned attacks, reskin starters, effect atlas, paths, character frames, VFX layers, damage/targeting, timing, hitboxes and status effects. Live counts, warnings, bank status and training privacy notice remain visible.
+- New `static-help.js` installs before library tabs/workspace reparenting. Context-help click cancels summary default activation and propagation; closing restores button focus. Idempotent setup avoids duplicate dialogs.
+- Focused help tests pass, including preservation of all instruction text, visible status/counts, summary click handling and return focus. Full Studio suite rerun is `/private/tmp/static-help-full-tests.txt`.
+- Still required before publication: scoped staging against published Studio6f176249, browser visual/keyboard QA (including closed summary and tabbed library), staged suite, publication and live-file verification. Do not bulk publish local design.js or HTML; preserve concurrent authoring/storage work.
+
+### November 8 — compact-help release staged and published to source
+
+- Scoped release baseline6f176249, commit `b5a67af584627245f3235ef3e79c3912b81a0e04`,16 files; unrelated root entries preserved. Staged full suite **1,333/1,333** passes.
+- Browser verified open and collapsed hitbox summary help, keyboard Enter/Escape, focus restoration, preserving collapse state, and Effects-tab layout. Screenshot: release-staging/20261108-static-help/browser-help.jpg.
+- Pages run42534912119 is in progress. Do not call the UI change live until terminal success plus live-file verification. Verifier: /private/tmp/verify_static_help_release.py.
+
+### November 8 — compact-help live delivery confirmed
+
+Pages42534912119 succeeded for Studio b5a67af584627245f3235ef3e79c3912b81a0e04. All16 served files match the scoped release; downloaded help/static-help/usability checks pass. Expanded compact help is delivered. Arena remains the verified impact-area20 release. Next combat milestone: explosions and projectile splitting; custom area artwork, additional combat and authoring mechanisms, authenticated bank browser verification and device/accessibility coverage remain outstanding.
+
+### November 8 — expanding explosion foundation (local, unpublished)
+
+- Added optional `projectileArea.blastFrames` for concentric elliptical expansion. It must be an integer1..duration and requires hitLimit1. Existing areas without it retain full-size rectangular repeated hits. The authored area bounds stay immutable; `impactAreaBox` samples expansion from the combat clock.
+- Arena and both Studio preview paths collide against sampled geometry. Shared `impact-area-view.js` renders the same ellipse/rectangle in Studio, Arena and comparison replay. No authored editor controls yet; no browser QA yet.
+- Format classifier marks blasts21 and rejects them in older containers; container acceptance, classroom capabilities/server and authoring controls are deliberately still pending. Do not publish this partial schema or describe explosions as delivered.
+- Three new tests verify concentric growth, ellipse corner misses and boundary reach, per-target single-hit budget, Arena/preview HP parity, strict values, and old-area behavior. Full suites pass: **656 Arena /1333 Studio**. Logs: /private/tmp/explosion-foundation-{arena,studio}.txt.
+- Next: finish format21 transport/server validation, explosion controls/preset/help, reaction/defense/sequence and pause tests, browser QA and scoped publication. Splitting remains a separate outstanding behavior. Broader original scope remains active.
+
+### November 8 — explosion authoring and client transport (local, unpublished)
+
+- Impact area selector adds “Expanding explosion · one hit” with120×120 bounds,20-frame lifetime,6-frame expansion,9 fixed damage. Interval/max-hit controls hide for explosions; expansion must fit lifetime. Switching behavior loads defaults; Undo restores previous settings. Compact help documents semantics and format21.
+- Both clients accept version21 design/bank/tree containers; Arena catalog accepts21; capability negotiation requests21 only when advertised. Format20 envelopes reject blastFrames rather than silently dropping it. Legacy format20 areas remain readable and classified20.
+- Added bank encode/decode, immutable old-bank preservation, capability negotiation and pre-PUT old-server refusal checks in both apps. Editor test covers save21/import, invalid expansion/lifetime rejection, hiding repeated-hit controls, behavior switch20 and Undo21.
+- Full suites: **657 Arena /1335 Studio**, logs `/private/tmp/explosion-controls-{arena,studio}.txt`. Minor diagnostic wording then clarified version20 vs21. No publication yet. Classroom service remains live73/format20; production writes of explosions safely refuse until server upgrade.
+- Next: server21 validation/capability upgrade through Sites workflow; expanded pause/defense/sequence checks, scoped staging/cache versions, browser visual QA and publication/live verification. Projectile splitting and broader original scope remain outstanding.
+
+### November 8 — explosion defense/sequence checks and server74 delivered
+
+- New tests prove pause/hitstop freeze expansion and budgets, invulnerability retains the single hit, shields absorb that hit once, area parry removes the blast without owner stun, and attached sequences cancel later projectile hits while preview/runtime HP stays equal through blast expiry. Full Arena suite **661/661** passes; Studio last full suite1335 passes.
+- Classroom server **74** is live at https://cyber-pet-classroom-settings.ragingaxolotl.chatgpt.site . Source8c9a6b5bf32f4888ae0e53457df666368db6480d; saved appgprj_6ac1778cd32081918ba530bb3c83b9d6~appgver_655a9d10db24819194f0f06c6accda9e; deployment appgdep_6af1065290d88191bf57b564d27dbd45 succeeded. Public audience preserved. Live capabilities1–21 plus revision protection verified.
+- **26/26** anonymous in-memory bank tests pass, including malformed blasts, format20 envelopes and old-client writes preserving stored data/revision. No real student/bank records accessed. Release evidence: release-staging/20261108-projectile-explosion/server-*.
+- Explosion clients remain LOCAL/UNPUBLISHED. Next: scoped Studio staging from live b5a67af584627245f3235ef3e79c3912b81a0e04; preserve static-help changes and unrelated local work, propagate cache versions, browser visual/edit/export/import checks, full staged suite, publish/live verify. Projectile splitting and broader original scope remain outstanding.
