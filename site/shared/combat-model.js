@@ -1,4 +1,4 @@
-import {validatePresentationEvents} from './presentation-events.js';
+import {validatePresentationEvents} from './presentation-events.js?v=20261109-presentation-release';
 import {validateAttackerMotion} from './attacker-motion.js?v=20261109-movement-release';
 import {validateThrow} from './throw-rules.js?v=20261109-throw-release';
 import {validateProjectileFlight} from './projectile-flight.js?v=20261109-flight';
@@ -9,7 +9,7 @@ import {validateHurtboxes} from './hurtboxes.js?v=20261109-hurtboxes';
 import {animationAnchorAt,validateAnchorBindings} from './animation-anchors.js?v=20261109-hurtboxes';
 import {guardContactRule,applyGuardRecovery,validateGuardInteraction} from './guard-interaction.js?v=20261109-guard';
 import {validateProjectileSplit} from './projectile-split.js?v=20261109-flight';
-import {simulateSplitPreview} from './split-preview.js?v=20261109-conditional-release';
+import {simulateSplitPreview} from './split-preview.js?v=20261109-presentation-release';
 import {validateProjectileArea,createImpactArea,claimAreaHit,impactAreaBox,impactAreaView,impactAreaAnchor} from './projectile-area.js?v=20261109-area-art';
 import {validateProjectileContact,consumesProjectile,CONTACT_END_REASON} from './projectile-contact.js?v=20261108-contact-final';
 import {createSteeringState,advanceSteering,validateProjectileSteering} from './projectile-steering.js?v=20261108-steering';
@@ -27,7 +27,7 @@ import {juggleLegacyReaction,resetGroundedJuggle} from './juggle-rules.js?v=2026
 import {castEnd,activeEnd} from './contact-timing.js?v=20261108-movement-cancels';
 import {validateCancelWindows} from './cancel-windows.js?v=20261108-movement-cancels';
 import {validateDefenseWindows,createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry} from './defense-windows.js?v=20261109-throw-release';
-import {requireGroupVersion} from './attack-format.js?v=20261109-conditional-release';
+import {requireGroupVersion} from './attack-format.js?v=20261109-presentation-release';
 import {validateHitboxGroups,activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './hitbox-groups.js?v=20261109-melee-clashes';
 import {legacyRecoveryEnd} from './recovery-timing.js?v=20261108-movement-cancels';
 import {hasLegacyMotion,sampleLegacyMotion} from './legacy-motion.js?v=20261108-movement-cancels';
@@ -35,7 +35,7 @@ import {statusDuration,statusMultiplier} from './status-rules.js?v=20261108-move
 import {pathSample} from './attack-motion.js?v=20261108-movement-cancels';
 import {HITBOX_SHAPES,shapeHitsRectangle,validateHitboxRotation} from './hitbox-shapes.js?v=20261109-rotation';
 import {validateHitSequence,advancePulseReaction} from './hit-sequence.js?v=20261109-conditional-release';
-import {simulateSequence} from './sequence-preview.js?v=20261109-conditional-release';
+import {simulateSequence} from './sequence-preview.js?v=20261109-presentation-release';
 // Proposed classroom playtest rules. All timing is in 60 Hz simulation frames.
 export const BALANCE={id:'classroom-playtest-v1',baseHP:100,hpPerStamina:2,baseEnergy:50,energyPerStamina:1,maxSpeedReduction:.15,maxFocusCostReduction:.2,baseGuardReduction:.35,maxFocusGuardBonus:.2,maxCharismaShieldBonus:.2,maxFocusStatusReduction:.25,statCap:99};
 export const STATS=['strength','speed','stamina','intelligence','charisma','focus'];
