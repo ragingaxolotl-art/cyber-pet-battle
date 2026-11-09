@@ -1,3 +1,4 @@
+import {createAttackerMotion,stepAttackerMotion,attackerMotionTiming} from './attacker-motion.js';
 import {ThrowController} from './throw-controller.js?v=20261109-throw-release';
 import {createFlightState,advanceFlight,reflectFlight} from './projectile-flight.js?v=20261109-flight';
 import {resolveMeleeClashes,meleeClashBoxes} from './melee-clashes.js?v=20261109-melee-clashes';
@@ -83,7 +84,7 @@ export class Arena{
  slots(){return this.decks?this.decks[this.set].slots:this.attacks.slice(this.set*KEYS.length,(this.set+1)*KEYS.length);}
  rotate(){if(this.paused||this.winner)return;this.set=(this.set+1)%(this.decks?.length||Math.ceil(this.attacks.length/KEYS.length));}
  reason(f,a,automatic=false){if(!a)return 'Empty slot';if(f.captured||f.holding)return 'Finish the throw first';return (this.hitstopRemaining>0?'Impact pause':'')||(f.blockstunUntil>this.frame?'Recovering from a block':'')||availability(f.pet,a)||(f.reaction!=='standing'?'Recovering from a hit':f.dodgeUntil>this.frame?'Finish your dodge':f.dashUntil>this.frame?'Finish your dash':f.guarding?'Lower your guard before attacking':f.cast&&!canCancel(f.cast,a,this.frame-f.cast.start,automatic)?'Finish the current move':f.stun>this.frame?'Recovering from a hit':(f.cooldowns.get(a.id)||0)>this.frame?'Cooling down':f.energy<Math.ceil(a.cost*f.cost)?'Not enough energy':'');}
- attack(f,a,automatic=false){if(this.paused||this.winner||this.reason(f,a,automatic))return false;const automaticDepth=automatic?(f.cast?.automaticDepth||0)+1:0;this.faceOpponents();a=mappedAttack(f.pet,a);const tm=timing(a,f.stats);if(a.hitEvents)tm.active=sequenceDuration(a);const cost=Math.ceil(a.cost*f.cost);f.energy-=cost;f.cooldowns.set(a.id,this.frame+Math.max(tm.cooldown,tm.startup+tm.active+tm.recovery));f.cast={a,tm,automaticDepth,start:this.frame+1,x:f.x,y:f.y,facing:f.facing,groupTracker:createGroupHitTracker(),defenseState:createDefenseState(),outcomes:new Set(),hits:0,lastHit:-999,impact:a.impactTrigger==='contact'?null:tm.startup,sequence:a.hitEvents?sequenceState(a.sequenceTiming==='cast'?tm.startup:null):null};return true;}
+ attack(f,a,automatic=false){if(this.paused||this.winner||this.reason(f,a,automatic))return false;const automaticDepth=automatic?(f.cast?.automaticDepth||0)+1:0;this.faceOpponents();a=mappedAttack(f.pet,a);let tm=timing(a,f.stats);if(a.hitEvents)tm.active=sequenceDuration(a);tm=attackerMotionTiming(a,tm);const cost=Math.ceil(a.cost*f.cost);f.energy-=cost;f.cooldowns.set(a.id,this.frame+Math.max(tm.cooldown,tm.startup+tm.active+tm.recovery));f.cast={a,tm,attackerMotion:a.attackerMotion?createAttackerMotion(a,f.facing):null,automaticDepth,start:this.frame+1,x:f.x,y:f.y,facing:f.facing,groupTracker:createGroupHitTracker(),defenseState:createDefenseState(),outcomes:new Set(),hits:0,lastHit:-999,impact:a.impactTrigger==='contact'?null:tm.startup,sequence:a.hitEvents?sequenceState(a.sequenceTiming==='cast'?tm.startup:null):null};return true;}
  airRecover(f){
   if(f.captured||f.holding)return 'Finish the throw first';
   if(this.paused||this.winner)return 'Start or resume the round first';
@@ -157,7 +158,7 @@ export class Arena{
    for(const s of f.statuses){if(statusTickDue(s,this.frame)){if(s.type==='regen')f.hp=Math.min(f.maxHP,f.hp+s.power);else if(['burn','poison'].includes(s.type))f.hp=Math.max(0,f.hp-s.power);s.next+=s.interval;}}
    f.statuses=f.statuses.filter(s=>s.until>this.frame);
    if(f.statuses.some(s=>s.type==='stun'))f.stun=Math.max(f.stun,this.frame+1);
-   if(throwLocked){f.guarding=false;f.moving=false;f.sprinting=false;continue;}
+   if(throwLocked){if(f.cast?.attackerMotion)f.cast.attackerMotion.cancelled=true;f.guarding=false;f.moving=false;f.sprinting=false;continue;}
    if(f.reaction!=='standing'||f.stun>this.frame)f.blockstunUntil=0;
    let direction=0,jump=false;f.crouch=false;f.sprinting=false;f.moving=false;f.guarding=f.blockstunUntil>this.frame||(f.reaction==='standing'&&(f===p?input:opponentInput).has('Shift')&&!f.cast&&f.dodgeUntil<=this.frame&&f.dashUntil<=this.frame&&f.stun<=this.frame&&!availability(f.pet,{motion:'block_side'}));
    if(f===p){direction=Number(input.has('ArrowRight'))-Number(input.has('ArrowLeft'));jump=input.has('ArrowUp');f.crouch=input.has('ArrowDown')&&f.y===0;}
@@ -168,7 +169,10 @@ export class Arena{
    if(f.reaction==='standing'&&f.dodgeUntil>this.frame&&f.stun<=this.frame){f.x-=f.facing*RULES.dodgeSpeed;}
    if(f.blockstunUntil<=this.frame&&f.reaction==='standing'&&!f.cast&&f.dodgeUntil<=this.frame&&f.dashUntil<=this.frame&&f.stun<=this.frame){const statusSpeed=movementMultiplier(f.statuses);
     if(direction){f.moving=true;f.sprinting=f===p&&direction===sprintDirection&&!f.guarding&&!f.crouch&&f.y===0;f.x+=direction*(RULES.move+f.stats.speed*.012)*statusSpeed*(f.crouch||f.guarding?.4:1)*(f.sprinting?RULES.sprintMultiplier:1);}if(jump&&f.y===0&&!f.crouch&&!f.guarding)f.vy=RULES.jump;}
-   if(!f.pulseOwned&&!f.legacyOwned&&f.reaction!=='wall'){f.vy+=RULES.gravity;f.y+=f.vy;}if(f.y>=0){f.y=0;f.vy=0;resetGroundedJuggle(f);if(f.reaction==='airborne'&&!f.pulseOwned&&!f.pulseMotion)knockDown(f,this.frame,(name,who)=>this.reactionEvent(name,who));}f.x=clamp(f.x,35,RULES.width-35);
+   let authoredVertical=false;
+   if(f.cast?.attackerMotion){const moved=stepAttackerMotion(f.cast.attackerMotion,this.frame-f.cast.start,f,{interrupted:f.reaction!=='standing'||f.stun>this.frame||f.hp<=0,minX:35,maxX:RULES.width-35});f.x=moved.x;f.y=moved.y;authoredVertical=moved.vertical;if(authoredVertical)f.vy=0;if(moved.active)f.moving=true;}
+   if(!authoredVertical&&!f.pulseOwned&&!f.legacyOwned&&f.reaction!=='wall'){f.vy+=RULES.gravity;f.y+=f.vy;}if(f.y>=0){f.y=0;f.vy=0;resetGroundedJuggle(f);if(f.reaction==='airborne'&&!f.pulseOwned&&!f.pulseMotion)knockDown(f,this.frame,(name,who)=>this.reactionEvent(name,who));}f.x=clamp(f.x,35,RULES.width-35);
+   if(f.cast?.attackerMotion&&!f.cast.projectileLaunched){f.cast.x=f.x;f.cast.y=f.y;}
   }
   this.throws.position();
   this.faceOpponents();p.backing=p.moving&&((input.has('ArrowRight')?1:0)-(input.has('ArrowLeft')?1:0))*p.facing<0;o.backing=false;
