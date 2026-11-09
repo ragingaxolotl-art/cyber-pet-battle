@@ -1,7 +1,7 @@
 import {startBoundaryBounce} from './bounce-rules.js?v=20261108-bounces';
 import {juggleLegacyReaction,resetGroundedJuggle} from './juggle-rules.js?v=20261108-bounces';
-import {RECOVERY_TIMING,legacyRecoveryEnd} from './recovery-timing.js?v=20261108-movement-cancels';
-import {sampleLegacyMotion,hasLegacyMotion} from './legacy-motion.js?v=20261108-movement-cancels';
+import {RECOVERY_TIMING,legacyRecoveryEnd} from './recovery-timing.js?v=20261109-momentum-release';
+import {sampleLegacyMotion,hasLegacyMotion} from './legacy-motion.js?v=20261109-momentum-release';
 export const REACTION={wallHold:RECOVERY_TIMING.wall,downHold:RECOVERY_TIMING.down,getUp:RECOVERY_TIMING.getUp,drag:.84};
 export function beginReaction(f,attack,direction,frame,countJuggle=true){
  // A completed juggle must reach the floor before another hit can relaunch it.

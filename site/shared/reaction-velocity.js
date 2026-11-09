@@ -1,4 +1,4 @@
-import {reactionAge} from './reaction-clock.js';
+import {reactionAge} from './reaction-clock.js?v=20261109-momentum-release';
 // Current velocity in arena pixels per combat frame. Authored arcs store zero
 // in fighter.vx/vy, so momentum blending must sample their actual derivative.
 // Reading motion never changes it. Positive Y points downward.

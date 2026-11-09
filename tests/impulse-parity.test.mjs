@@ -5,3 +5,13 @@ test('Studio and Arena match impulse travel and released momentum through landin
  const move=attack();validateAttack(move);const sim=simulate(move,stats,stats,{distance:60}),a=fighter('A',stats),b=fighter('B',stats),arena=new Arena(a,b,[move]);a.x=450;b.x=510;arena.ai=false;arena.paused=false;arena.attack(a,move);
  for(let age=0;age<100;age++){arena.tick();const expected=sim.frames[age].target;assert.ok(Math.abs(b.x-450-expected.x)<1e-8,'x at '+age);assert.ok(Math.abs(b.y-expected.y)<1e-8,'y at '+age);assert.equal(b.reaction,expected.reaction,'reaction at '+age);}
 });
+for(const mode of ['add','replace','redirect','extend','suspend','ignore'])test('repeated '+mode+' hit matches both simulations through recovery',()=>{
+ const move=attack();move.startup=1;move.hitEvents[0].impulse={mode:'replace',horizontal:1,vertical:-4,gravity:.2,drag:.98,duration:30};move.hitEvents.push({...structuredClone(move.hitEvents[0]),id:'hit_followup',offset:5,damage:3,impulse:{mode,horizontal:1,vertical:-2,gravity:.3,drag:.97,duration:12}});validateAttack(move);
+ const sim=simulate(move,stats,stats,{distance:60}),a=fighter('A',stats),b=fighter('B',stats),arena=new Arena(a,b,[move]);a.x=450;b.x=510;arena.ai=false;arena.paused=false;arena.attack(a,move);
+ for(let frame=0;frame<100;frame++){arena.tick();const expected=sim.frames[frame].target;assert.ok(Math.abs(b.x-450-expected.x)<1e-8,mode+' x at '+frame);assert.ok(Math.abs(b.y-expected.y)<1e-8,mode+' y at '+frame);assert.equal(b.reaction,expected.reaction??'standing',mode+' reaction at '+frame);}
+ assert.equal(b.maxHP-b.hp,13);assert.equal(sim.frames.at(-1).hits,2);
+});
+for(const bounce of [false,true])test('wall contact '+(bounce?'with bounce':'without bounce')+' matches at equivalent stage bounds',()=>{
+ const move=attack();move.box.w=250;move.hitEvents[0].impulse={mode:'replace',horizontal:10,vertical:-4,gravity:.3,drag:1,duration:30};if(bounce)move.hitEvents[0].bounces={wall:{height:20,distance:30,frames:15}};const sim=simulate(move,stats,stats,{distance:190}),a=fighter('A',stats),b=fighter('B',stats),arena=new Arena(a,b,[move]);a.x=705;b.x=895;arena.ai=false;arena.paused=false;arena.attack(a,move);
+ for(let age=0;age<100;age++){arena.tick();const expected=sim.frames[age].target;assert.ok(Math.abs(b.x-705-expected.x)<1e-8,'wall x '+age);assert.ok(Math.abs(b.y-expected.y)<1e-8,'wall y '+age);assert.equal(b.reaction,expected.reaction,'wall reaction '+age);}
+});

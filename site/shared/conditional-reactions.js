@@ -1,4 +1,4 @@
-import {validateImpulseReaction} from './impulse-reaction.js';
+import {validateImpulseReaction} from './impulse-reaction.js?v=20261109-momentum-release';
 import {validateBounces} from './bounce-rules.js';
 // Reaction alternatives are selected from the contact snapshot, before any
 // simultaneous hit changes the target. They never change damage or eligibility.

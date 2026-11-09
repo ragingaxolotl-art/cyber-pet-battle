@@ -1,4 +1,4 @@
-import {reactionAge} from './reaction-clock.js';
+import {reactionAge} from './reaction-clock.js?v=20261109-momentum-release';
 // Authored legacy displacement, sampled at 60 Hz from the most recent hit.
 // Stage bounds belong to each scene; axis and duration belong to the attack.
 export function sampleLegacyMotion(origin,attack,direction,elapsed,minX=-Infinity,maxX=Infinity) {
