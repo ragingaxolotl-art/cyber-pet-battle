@@ -23,3 +23,9 @@ test('split effects follow each ray center and retain artwork offsets through re
  c.splitRay.start=6;assert.deepEqual(render(c),[]);
  c.splitRay.start=3;c.a.projectileMode='attached';c.sequence={attached:true};assert.deepEqual(render(c)[0],['translate',290,-60]);
 });
+test('ballistic artwork follows flight center, reflected offsets and attached placement',()=>{
+ const c=cast();c.a.box={x:22,y:-52,w:54,h:44};c.flight={x:200,y:-80};
+ assert.deepEqual(render(c)[0],['translate',161,-70]);
+ c.projectileTransform={direction:-1,offset:999};assert.deepEqual(render(c)[0],['translate',239,-70]);
+ c.a.projectileMode='attached';c.sequence={attached:true};assert.deepEqual(render(c)[0],['translate',290,-60]);
+});
