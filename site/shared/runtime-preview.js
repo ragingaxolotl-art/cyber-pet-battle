@@ -1,5 +1,5 @@
-import {Arena, fighter, RULES} from './combat-runtime.js?v=20261109-movement-release';
-import {validateAttack, freshAttack} from './combat-model.js?v=20261109-movement-release';
+import {Arena, fighter, RULES} from './combat-runtime.js?v=20261109-conditional-release';
+import {validateAttack, freshAttack} from './combat-model.js?v=20261109-conditional-release';
 import {validateProjectileSplit} from './projectile-split.js?v=20261109-flight';
 import {validateRecoveryFrame, recoverInAir} from './air-recovery.js?v=20261109-throw-release';
 import {combatPreviewFrame} from './combat-preview-frame.js?v=20261109-movement-release';
