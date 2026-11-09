@@ -1861,3 +1861,36 @@ Prepared scoped54-file Studio release against published `91192006aa745d77ece4fe2
 ### Shared-hit browser QA passed
 
 Staged Studio on8791: created3-hit area sequence, linked Hit2 damage to Hit1, changed source6→17 and observed dependent17; Undo restored6 and retained link. Exported format27 with concrete damage[6,6,12]. Imported in local Arena8790, compared distance72/Boffset180/duration100: damage6/6/12 at frames35/40/45, matching Studio. Both browsers report no JS errors. Evidence/screenshots/anonymous export in `release-staging/20261109-hit-links`. Staged server session43981, browser tabs111/112 retained. Client publication still pending; next final Arena cache refresh/tests, scoped Studio publication, Pages job and live file verification. Server80 already live.
+
+### Shared hit settings27 verified live
+
+Arena `e80b5d123dc2c94d4f68cc1baea2c5ff25bf6cee`, Pages42548061694 succeeded. Studio `333f80f8cd1f01e994b3a26e3a3e04695444662f`, Pages42548074509 succeeded. All72 live hashes match (18 Arena,54 Studio); downloaded link/UI/format/clipboard/recipe tests pass. Release suites Arena801 / staged Studio1484 / server33. Browser source propagation, Undo and format27 export/import verified; Arena damage6/6/12 at35/40/45 matches Studio. Evidence `release-staging/20261109-hit-links`. Per-hit combat property inheritance is delivered; audio/VFX inheritance remains dependent on their event model. Remaining overall work: wider priority/throws, custom area artwork, expanded projectile target/travel rules, movement/conditional behavior blocks, audio/camera, more presets, broader UX/accessibility/device checks and signed-in anonymous classroom-bank browser verification. Full goal remains active.
+
+### Custom impact-area artwork started locally
+
+Current areas render collision geometry only. Added shared isolated `impact-area-art.js`: validated artwork reference/scale/rate/repeat settings, combat-frame sampling, aspect-preserving fit centered on sampled area bounds, expanding-blast sizing, and draw/fallback result. Three focused tests pass for timing, geometry immutability, expansion, missing artwork and invalid settings. Not integrated or published yet. Next: optional projectileArea.visual schema, frame snapshots and asset loading/rendering in both apps, editor selection/preview and format28 transport, full/browser parity and release. Collision geometry stays independent of artwork size.
+
+### Impact-area artwork runtime and preview integration local
+
+Optional projectileArea.visual validated by shared area schema; area creation deep-clones settings. Added impactAreaView snapshots carrying detached visual settings and combat age only when artwork exists. Ordinary/sequence/runtime preview paths now use them. Arena asset loader includes area-only references and renders selected art; Studio uses the same renderer and includes area artwork in review export. Missing art falls back to geometry; debug overlay remains available. Fixed export-expression syntax caught by full Studio run. Full Studio1488 passes; Arena804 passed before added fourth snapshot test, focused area-art4 passes. Unpublished; format28 gating/server, editor controls, visual/browser/parity checks, runtime replay artwork policy and scoped release remain.
+
+
+### Impact-area artwork controls and format28 local
+
+Added Area artwork controls inside the projectile Impact area panel: available effect selection, size 0.25–4, speed 0.25–4 and repeat. Compact contextual help explains artwork-only scaling and outline fallback. Controls use cloned validated commits and existing Undo; missing references remain visible and cannot be selected as new artwork. Tests exercise actual editor controls, invalid/blank values, unchanged damage geometry, artwork removal/Undo and persistence removal/Undo. Passed library effect map through projectile editor into the area editor.
+
+Client format28 now identifies projectileArea.visual; Studio/Arena design, bank, tree and catalog readers accept28, older envelopes reject artwork, and bank client capability negotiation requests28 only when supported. Anonymous bank/design roundtrip regression exists in both suites. Full local suites: Arena806/806 and Studio1490/1490, logs /private/tmp/area-art-controls-arena.txt and /private/tmp/area-art-controls-studio.txt. No browser QA or publication for this milestone yet. Classroom server still supports27: server28 transport/deployment, deeper artwork/runtime parity and lifetime checks, browser selection/playback/Undo/export verification, cache closure, frozen scoped release and live verification remain before publishing. Broader combat goal remains active.
+
+
+### Impact-area artwork server28 deployed
+
+Sites server version81 deployed successfully: source006b6b9098cb75d67fb3b32078a43e552612e8aa, saved appgprj_6ac1778cd32081918ba530bb3c83b9d6~appgver_2cd8a35d3b508191a7d87b0af80521bd, deployment appgdep_6af12ae6b53c819187dab040d5e60f03. Archive /private/tmp/combat-classroom-v28.tar.gz. Anonymous in-memory bank suite34/34 passed, including format28 artwork roundtrip, invalid visual settings, older-client reads/writes and downgrade rejection preserving saved revision. Live capability endpoint advertises1–28. Existing public audience preserved; no real student bank accessed. Source-helper opened fresh server80 before edits and packaged/pushed exact source.
+
+Added Arena combat regression proving artwork-only definition changes preserve complete preview results after removing render metadata, per-frame HP agrees with Arena, visible area ages span0–29 for30-frame lifetime and expired areas disappear. All14 projectile-area tests pass. Latest full suites remain Arena806 and Studio1490; new parity test makes expected Arena807. Two-attack comparison playback remains a schematic geometry view (as with character/projectile art). Studio/Arena artwork clients remain unpublished pending browser selection/playback/export QA, frozen scoped release tests, cache closure and live verification. Overall goal remains active.
+
+
+### Impact-area artwork browser QA and staged release
+
+Local Studio tab113 at8790 created anonymous Traveling bolt and selected Rotating Screen as impact-area artwork. Size2 and speed0.5 committed, repeat off then Undo restored repeat. Frame40 screenshot visibly shows artwork; no JavaScript errors. Arena-practice download19 contains version28 and exact visual settings. Imported into local Arena tab114, learned/equipped demo move and ran it: six contacts /34 damage; artwork visible in paused field, no JavaScript errors. Evidence copied to release-staging/20261109-area-art/browser-{studio,arena}.png, browser-qa.json and anonymous-browser-export.json. Only demo browser data used.
+
+Updated compatibility note to state artwork requires28. Scoped Studio release57files built against live333f80f8, retaining published recompute ordering. Frozen full suite1490/1490; Arena807/807 after cache closure. Server81 alreadylive. Client publication/live delivery verification next. Broader scope unchanged; area effect dropdown usability (1152 entries and duplicate names) merits follow-up searchable filtering. Full goal active.

@@ -19,3 +19,15 @@ test('comparison remains unfinished while an area is still active',()=>{const re
 test('area shields absorb each pulse before HP and armor does not spend reaction charges',()=>{const {arena,target}=setup();arena.training=false;arena.tick();target.shield=7;target.shieldUntil=100;const armor={...freshAttack(),startup:90,cost:0,defenseWindows:[{id:'defense_area_armor',kind:'armor',against:'area',start:0,duration:60,hits:2}]};validateAttack(armor);arena.attack(target,armor);const cast=target.cast;for(let i=0;i<12;i++)arena.tick();assert.equal(target.maxHP-target.hp,12);assert.equal(target.shield,0);assert.equal(target.cast,cast);assert.equal(cast.defenseState.get('defense_area_armor'),undefined);});
 test('area parry ends the area, records outcome and does not stun the distant owner',()=>{const {arena,owner,target}=setup();arena.training=false;arena.tick();const parry={...freshAttack(),startup:90,cost:0,defenseWindows:[{id:'defense_area_parry',kind:'parry',against:'area',start:0,duration:60,hits:1,stun:10}]};validateAttack(parry);arena.attack(target,parry);const ownerCast=owner.cast,defense=target.cast;arena.tick();assert.equal(target.maxHP-target.hp,7);assert.equal(owner.cast,ownerCast);assert.equal(defense.outcomes.has('parry'),true);assert.equal(arena.lastAreaContacts[0].parried,true);arena.tick();assert.equal(arena.areas.length,0);});
 test('spawn bound caps live areas without extending older areas',()=>{const {arena,owner}=setup();arena.training=false;owner.cast=null;const a={...move(),active:1,base:0,projectileArea:{...move().projectileArea,damage:0,duration:600}};for(let i=0;i<20;i++){assert.equal(arena.attack(owner,{...a,id:'attack_area_'+i}),true);arena.tick();arena.tick();}assert.equal(arena.areas.length,16);assert.ok(arena.events.some(e=>e.text.includes('AREA LIMIT')));assert.equal(arena.areas[0].end,602);});
+
+test('area artwork changes neither combat results nor lifetime and preview tracks its age',()=>{
+ const a=move(),stats={...defaultStats(),speed:0},options={distance:50,targetHP:1};
+ const plain=simulate(a,stats,stats,options);a.projectileArea.visual={effectId:'sample',scale:4,rate:.25,loop:false};
+ const decorated=simulate(a,stats,stats,options),withoutArt=structuredClone(decorated);
+ for(const frame of withoutArt.frames)for(const area of frame.areas){delete area.visual;delete area.age;}
+ assert.deepEqual(withoutArt,plain);
+ const visible=decorated.frames.filter(f=>f.areas.length);assert.equal(visible.length,30);assert.equal(visible[0].areas[0].age,0);assert.equal(visible.at(-1).areas[0].age,29);
+ const owner=fighter('A',stats),target=fighter('B',stats),arena=new Arena(owner,target,[a],{training:true});arena.ai=false;arena.paused=false;owner.x=300;target.x=350;arena.attack(owner,a);
+ for(let i=0;i<40;i++){arena.tick();assert.equal(target.hp,decorated.frames[i].target.hp,'frame '+i);}
+ assert.equal(arena.areas.length,0);
+});
