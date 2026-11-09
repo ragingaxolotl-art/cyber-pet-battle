@@ -20,7 +20,7 @@ import {createDefenseState,defenseSnapshot,claimArmor,isInvulnerable,claimParry,
 import {activeGroupBoxes,activeGroupContacts,createGroupHitTracker} from './hitbox-groups.js?v=20261109-rotation';
 import {refreshStatus,statusTickDue,statusMultiplier,movementMultiplier} from './status-rules.js?v=20261108-movement-cancels';
 import {beginReaction,advanceReaction,knockDown} from './combat-reactions.js?v=20261109-split';
-import {statsFor,timing,magnitude,worldBox,clamp} from './combat-model.js?v=20261109-rotation';
+import {statsFor,timing,magnitude,worldBox,clamp} from './combat-model.js?v=20261109-anchors';
 import {shapeHitsRectangle} from './hitbox-shapes.js?v=20261109-rotation';
 import {KEYS,availability,mappedAttack} from './combat-artwork.js?v=20261109-split';
 import {resetGroundedJuggle,sequenceState,sequenceDuration,sequenceOpportunities,applyPulseReaction,advancePulseReaction,hitResult} from './hit-sequence.js?v=20261108-bounces';

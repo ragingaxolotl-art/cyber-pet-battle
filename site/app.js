@@ -1,24 +1,24 @@
 import {impactAreaBox} from './shared/projectile-area.js?v=20261109-rotation';
 import {drawImpactArea} from './shared/impact-area-view.js?v=20261108-explosion';
 import {installTouchControls} from './touch-controls.js?v=20261108-air-recovery';
-import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261109-rotation';
+import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261109-anchors';
 import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261109-rotation';
-import {installMatchup} from './matchup.js?v=20261109-rotation';
+import {installMatchup} from './matchup.js?v=20261109-anchors';
 import {attackChecks} from './attack-checks.js?v=20261109-split';
 import {installHonours} from './honours-ui.js?v=20261108-movement-cancels';
 import {artworkDirection} from './shared/display.js?v=20261108-movement-cancels';
 import {preparePetPlacement,petPlacement} from './shared/pet-placement.js?v=20261108-movement-cancels';
-import {installWorkshop} from './workshop.js?v=20261109-rotation';
+import {installWorkshop} from './workshop.js?v=20261109-anchors';
 import {reactionMotion} from './reactions.js?v=20261109-split';
 import {SprintInput,DefenseInput} from './keyboard.js?v=20261108-movement-cancels';
-import {Arena,fighter,RULES} from './engine.js?v=20261109-rotation';
-import {KEYS,physicalCatalog,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261109-rotation';
-import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261109-rotation';
+import {Arena,fighter,RULES} from './engine.js?v=20261109-anchors';
+import {KEYS,physicalCatalog,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261109-anchors';
+import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261109-anchors';
 import {drawAttackEffect} from './effect-renderer.js?v=20261109-split';
-import {posePlayback} from './shared/pose-timing.js?v=20261108-movement-cancels';
+import {posePlayback,poseSourceFrames} from './shared/pose-timing.js?v=20261109-anchors';
 import {readBackup} from './shared/backups.js?v=20261108-movement-cancels';
 import {accountClient} from './account.js?v=20261108-movement-cancels';
-import {createClassroomBank} from './shared/attack-bank.js?v=20261109-rotation';
+import {createClassroomBank} from './shared/attack-bank.js?v=20261109-anchors';
 import {shapePoints} from './shared/hitbox-shapes.js?v=20261109-rotation';
 const $=id=>document.getElementById(id),canvas=$('arena'),ctx=canvas.getContext('2d'),account=accountClient();
 let workshop=null,decks=null,training=true;
@@ -51,7 +51,7 @@ $('openAttacks').onclick=()=>{pause();$('attackFile').click();};$('attackFile').
 $('teacherBank').onclick=()=>{pause();$('bankDialog').showModal();};$('closeBank').onclick=()=>{$('teacherPassword').value='';$('bankDialog').close();};
 $('bankForm').onsubmit=async e=>{e.preventDefault();const password=$('teacherPassword').value;$('teacherPassword').value='';$('bankStatus').textContent='Loading classroom attacks…';const bank=createClassroomBank(validateAttack);try{await bank.connect(password);const data=await bank.read();await useCatalog(validateCatalog(data.bank));$('bankDialog').close();}catch(err){$('bankStatus').textContent=err.message;}finally{try{await bank.disconnect();}catch{}}};
 function loadImage(url){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=url;});}
-function pose(f){let motion=reactionMotion(f)||(f.hp<=0?'defeated_side':f.dodgeUntil>arena.frame?'dodge_side':f.guarding?'block_side':f.stun>arena.frame?'hurt_side':f.y<0?'jump_side':f.sprinting?'running_side':f.moving?'walking_side':'ready_side'),index=Math.floor(arena.frame/8);if(f.cast){motion=f.cast.a.motion;const count=f.pet?.config.animations[motion]?.length||refs[motion]?.count||1;index=posePlayback(f.cast.a,count,arena.frame-f.cast.start,f.cast.tm,f.cast.impact).index;}
+function pose(f){let motion=reactionMotion(f)||(f.hp<=0?'defeated_side':f.dodgeUntil>arena.frame?'dodge_side':f.guarding?'block_side':f.stun>arena.frame?'hurt_side':f.y<0?'jump_side':f.sprinting?'running_side':f.moving?'walking_side':'ready_side'),index=Math.floor(arena.frame/8);if(f.cast){motion=f.cast.a.motion;const count=f.pet?.config.animations[motion]?.length||refs[motion]?.count||1;index=posePlayback(f.cast.a,count,arena.frame-f.cast.start,f.cast.tm,f.cast.impact).index;if(f.cast.a.animationAnchors)index=poseSourceFrames(f.cast.a,count)[index];}
  if(f.pet){const names=f.pet.config.animations[motion]||f.pet.config.animations.idle||f.pet.config.animations.idle_front;if(f.backing&&!f.cast)index=names.length-1-index%names.length;const name=names[index%names.length];return {image:f.pet.images.get(name),name,action:f.pet.config.animations[motion]?motion:(f.pet.config.animations.idle?'idle':'idle_front'),student:true};}const ref=refs[motion]||refs.ready_side;if(f.backing&&!f.cast)index=(ref?.count||1)-1-index%(ref?.count||1);return {image:images.get(ref?.url),ref,index:index%(ref?.count||1)};}
 function drawFighter(f,enemy){const x=f.x,y=RULES.ground+f.y;ctx.save();ctx.globalAlpha=.25;ctx.fillStyle='#050b17';ctx.beginPath();ctx.ellipse(x,RULES.ground+2,28,6,0,0,Math.PI*2);ctx.fill();ctx.restore();const p=pose(f);ctx.save();ctx.translate(x,y);ctx.scale(p.student?artworkDirection(f.pet.config,p.action,f.facing):f.facing,1);if(f.crouch)ctx.scale(1,.65);if(f.flash>arena.frame)ctx.globalAlpha=.55;
  if(p.image){if(p.student){const placement=petPlacement(f.pet,p.action,p.name);const bounds=f.pet.placementBounds.get(p.name);ctx.drawImage(p.image,bounds.x,bounds.y,bounds.w,bounds.h,placement.x,placement.y,placement.w,placement.h);}else{const s=p.ref.size,scale=1.4;ctx.drawImage(p.image,p.index*s,0,s,s,-p.ref.anchor[0]*scale,-p.ref.anchor[1]*scale,s*scale,s*scale);}}
