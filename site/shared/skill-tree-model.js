@@ -1,4 +1,4 @@
-import {attacksVersion,requireGroupVersion} from './attack-format.js?v=20261109-throw-release';
+import {attacksVersion,requireGroupVersion} from './attack-format.js?v=20261109-movement-release';
 // Learning order is a directed acyclic graph. Edges point from prerequisite to attack.
 export const TREE_KEY='cyber-pet-attack-skill-tree-v1';
 export function validateTree(tree,effectIds,validateAttack){
