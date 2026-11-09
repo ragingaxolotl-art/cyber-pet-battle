@@ -1,8 +1,8 @@
 import {traceHitbox} from './shared/hitbox-view.js?v=20261109-rotation';
 import {impactAreaBox} from './shared/projectile-area.js?v=20261109-area-art';
 import {drawImpactArea} from './shared/impact-area-view.js?v=20261108-explosion';
-import {Arena,fighter} from './engine.js?v=20261109-momentum-release';
-import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261109-momentum-release';
+import {Arena,fighter} from './engine.js?v=20261109-slow-motion-release';
+import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261109-slow-motion-release';
 // Isolated, deterministic comparison: no AI, saves, rewards, or pet-art restrictions.
 export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,energyA=100,energyB=100,placement='center',actionB='attack',followupA=null,followupFrame=12,movementA=null,recoveryBFrame=null,availableAttacks=[]}={}) {
  for(const [value,min,max] of [[energyA,0,100],[energyB,0,100],[distance,0,800],[offset,-180,180],[frames,1,900],[heightA,0,150],[heightB,0,150]])if(!Number.isInteger(value)||value<min||value>max)throw Error('Use whole energy percentages 0–100, distance 0–800, offset −180–180, height 0–150, and duration of 1–900 frames.');

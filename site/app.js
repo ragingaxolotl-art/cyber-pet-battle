@@ -1,30 +1,31 @@
-import {createPresentationAudio} from './shared/presentation-audio.js?v=20261109-presentation-release';
-import {createPresentationPlayer} from './shared/presentation-player.js?v=20261109-presentation-release';
+import {presentationTempo,consumePlaybackBudget} from './shared/presentation-tempo.js?v=20261109-slow-motion-release';
+import {createPresentationAudio} from './shared/presentation-audio.js?v=20261109-slow-motion-release';
+import {createPresentationPlayer} from './shared/presentation-player.js?v=20261109-slow-motion-release';
 import {presentationPreferences} from './shared/presentation-preferences.js?v=20261109-presentation-release';
-import {installPresentationControls} from './shared/presentation-controls.js?v=20261109-presentation-release';
+import {installPresentationControls} from './shared/presentation-controls.js?v=20261109-slow-motion-release';
 import {drawImpactAreaArt} from './shared/impact-area-art.js?v=20261109-area-art';
 import {traceHitbox} from './shared/hitbox-view.js';
 import {impactAreaBox} from './shared/projectile-area.js?v=20261109-area-art';
 import {drawImpactArea} from './shared/impact-area-view.js?v=20261108-explosion';
 import {installTouchControls} from './touch-controls.js?v=20261108-air-recovery';
-import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261109-momentum-release';
+import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261109-slow-motion-release';
 import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261109-melee-clashes';
-import {installMatchup} from './matchup.js?v=20261109-momentum-release';
+import {installMatchup} from './matchup.js?v=20261109-slow-motion-release';
 import {attackChecks} from './attack-checks.js?v=20261109-area-art';
 import {installHonours} from './honours-ui.js?v=20261108-movement-cancels';
 import {artworkDirection} from './shared/display.js?v=20261108-movement-cancels';
 import {preparePetPlacement,petPlacement} from './shared/pet-placement.js?v=20261108-movement-cancels';
-import {installWorkshop} from './workshop.js?v=20261109-momentum-release';
+import {installWorkshop} from './workshop.js?v=20261109-slow-motion-release';
 import {reactionMotion} from './reactions.js?v=20261109-momentum-release';
 import {SprintInput,DefenseInput} from './keyboard.js?v=20261108-movement-cancels';
-import {Arena,fighter,RULES} from './engine.js?v=20261109-momentum-release';
-import {KEYS,physicalCatalog,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261109-momentum-release';
-import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261109-momentum-release';
+import {Arena,fighter,RULES} from './engine.js?v=20261109-slow-motion-release';
+import {KEYS,physicalCatalog,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261109-slow-motion-release';
+import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261109-slow-motion-release';
 import {drawAttackEffect} from './effect-renderer.js?v=20261109-flight';
 import {posePlayback,poseSourceFrames} from './shared/pose-timing.js?v=20261109-hurtboxes';
 import {readBackup} from './shared/backups.js?v=20261108-movement-cancels';
 import {accountClient} from './account.js?v=20261109-tree-workspace';
-import {createClassroomBank} from './shared/attack-bank.js?v=20261109-momentum-release';
+import {createClassroomBank} from './shared/attack-bank.js?v=20261109-slow-motion-release';
 import {shapePoints} from './shared/hitbox-shapes.js?v=20261109-rotation';
 const $=id=>document.getElementById(id),canvas=$('arena'),ctx=canvas.getContext('2d'),account=accountClient();
 let workshop=null,decks=null,training=true;
@@ -79,7 +80,7 @@ function drawSourceBoxes(f,c,enemy){
 
 function render(){$('modeBadge').textContent=training?'TRAINING · unlimited energy · no XP rewards':'SPARRING · energy costs apply';$('guardHint').classList.toggle('active',(arena.fighters[0].guarding||arena.fighters[0].dodgeUntil>arena.frame)&&!arena.paused);ctx.imageSmoothingEnabled=false;ctx.fillStyle='#101a26';ctx.fillRect(0,0,960,450);const camera=battlePresentation.sample(arena.fighters.filter(f=>f.cast&&f.hp>0).map(f=>({key:f.cast,events:f.cast.a.presentationEvents,age:arena.frame-f.cast.start})),{...battlePreferences.get(),paused:arena.paused});ctx.save();if(!arena.paused){ctx.translate(480+camera.x,225+camera.y);ctx.scale(camera.zoom,camera.zoom);ctx.translate(-480,-225);}const bg=images.get('assets/arena.png');if(bg)ctx.drawImage(bg,0,0,960,450);else{ctx.fillStyle='#193247';ctx.fillRect(0,0,960,450);}const gradient=ctx.createLinearGradient(0,0,0,450);gradient.addColorStop(0,'#0e192544');gradient.addColorStop(1,'#0b172b88');ctx.fillStyle=gradient;ctx.fillRect(0,0,960,450);ctx.fillStyle='#111d2b30';ctx.fillRect(0,RULES.ground+5,960,80);ctx.strokeStyle='#7c98a760';ctx.beginPath();ctx.moveTo(0,RULES.ground+5);ctx.lineTo(960,RULES.ground+5);ctx.stroke();arena.fighters.forEach((f,i)=>{drawFighter(f,!!i);if(!f.cast?.projectileLaunched)drawEffects(f);if($('debugBoxes').checked){ctx.save();ctx.strokeStyle='#9fe7ff';ctx.lineWidth=1;for(const region of arena.hurtboxesFor(f)){traceHitbox(ctx,region,RULES.ground);ctx.stroke();}ctx.restore();}});for(const projectile of arena.projectiles.entries){drawEffects(projectile.owner,projectile.cast);drawSourceBoxes(projectile.owner,projectile.cast,projectile.owner===arena.fighters[1]);}for(const area of arena.areas){if(arena.frame<area.start||arena.frame>=area.end)continue;const box=impactAreaBox(area,arena.frame),visual=area.rule.visual;const drawn=visual&&drawImpactAreaArt(ctx,{visual,effect:effects[visual.effectId],image:effectImages.get(visual.effectId),box,age:arena.frame-area.start,ground:RULES.ground});if(!drawn||$('debugBoxes').checked)drawImpactArea(ctx,box,RULES.ground);}ctx.font='bold 17px monospace';ctx.textAlign='center';for(const e of arena.events){ctx.fillStyle='#f4ffd7';ctx.fillText(e.text,e.x,RULES.ground+e.y-(60-(e.until-arena.frame))*.45);}
  ctx.restore();for(const [i,prefix] of ['player','opponent'].entries()){const f=arena.fighters[i];$(prefix+'Name').textContent=f.name;$(prefix+'HP').max=f.maxHP;$(prefix+'HP').value=f.hp;$(prefix+'Health').textContent=Math.ceil(f.hp)+' HP';$(prefix+'Energy').textContent=Math.floor(f.energy)+' / '+f.maxEnergy+' energy';}$('dummyStats').textContent=training?`${arena.metrics.hits} hits · ${arena.metrics.damage} damage · ${arena.metrics.wallHits} wall hits · ${arena.metrics.knockdowns} knockdowns · ${arena.fighters[1].reaction.replace('_',' ')}`:'Computer opponent active';const seconds=Math.floor(arena.frame/60);$('timer').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');const f=arena.fighters[0];[...$('attackSlots').children,...$('fullscreenSlots').children].forEach((b,index)=>{const i=index%KEYS.length;const a=arena.slots()[i],locked=!a||!!availability(pet,a),cooldown=a?Math.max(0,(f.cooldowns.get(a.id)||0)-arena.frame):0;b.classList.toggle('locked',locked);b.classList.toggle('cooldown',cooldown>0);b.classList.toggle('active',f.cast?.a.id===a?.id&&!!a);b.querySelector('small').textContent=locked?(a?'Art required':'—'):cooldown?(cooldown/60).toFixed(1)+'s':(a.cost===0?'Ready · free':arena.reason(f,a)||'Ready · '+Math.ceil(a.cost*f.cost)+' energy');const why=arena.reason(f,a);b.title=why||a?.name||'Empty slot';b.setAttribute('aria-label',KEYS[i]+': '+(a?.name||'Empty')+' · '+(why||'Ready'));});$('lastAttackResult').textContent=arena.lastSequence?arena.lastSequence.attack+': '+arena.lastSequence.results.map((r,i)=>`${i+1} ${r.result}`).join(' · '):'Test an attack to inspect contacts.';}
-function loop(now){const dt=Math.min(100,now-last||0);last=now;if(!arena.paused){accumulator+=dt*(training?Number($('trainingSpeed').value):1);while(accumulator>=1000/60){const input=new Set([...keys,...touchInput.keys()]);if(!defenseInput.blocking(performance.now()))input.delete('Shift');if(input.has('Guard'))input.add('Shift');arena.tick(input,sprint.direction);if(arena.fighters[0].stun>arena.frame)sprint.clear();accumulator-=1000/60;if(arena.paused){showOverlay();break;}}}else accumulator=0;render();requestAnimationFrame(loop);}
+function loop(now){const dt=Math.min(100,now-last||0);last=now;if(!arena.paused){const result=consumePlaybackBudget(accumulator+dt*60/1000*(training?Number($('trainingSpeed').value):1),()=>presentationTempo(arena.fighters.filter(f=>f.cast&&f.hp>0).map(f=>({age:arena.frame-f.cast.start,events:f.cast.a.presentationEvents})),battlePreferences.get()),()=>{const input=new Set([...keys,...touchInput.keys()]);if(!defenseInput.blocking(performance.now()))input.delete('Shift');if(input.has('Guard'))input.add('Shift');arena.tick(input,sprint.direction);if(arena.fighters[0].stun>arena.frame)sprint.clear();if(arena.paused){showOverlay();return false;}});accumulator=result.budget;}else accumulator=0;render();requestAnimationFrame(loop);}
 async function loadEffects(list){if(!Object.keys(effects).length)effects=await (await fetch('effects.json')).json();for(const a of list)for(const visual of [...a.visuals,...(a.projectileArea?.visual?[a.projectileArea.visual]:[])]){const effect=effects[visual.effectId];if(!effect||effectImages.has(effect.id))continue;effectImages.set(effect.id,null);loadImage(effect.sheet).then(image=>{effectImages.set(effect.id,image);if(!image)status('An attack effect is not published in Attack Studio yet. Its hitbox still works.');});}}
 function drawEffects(f,c=f.cast){if(!c)return;const target=arena.fighters.find(other=>other!==f);for(const visual of c.a.visuals){const effect=effects[visual.effectId],image=effectImages.get(visual.effectId);if(effect&&image)drawAttackEffect(ctx,{cast:c,visual,effect,image,frame:arena.frame,target,ground:RULES.ground});}}
 $('arenaMode').onchange=()=>{training=$('arenaMode').value==='training';$('dummyControls').hidden=!training;reset();};
