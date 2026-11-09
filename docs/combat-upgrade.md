@@ -1,6 +1,6 @@
 # Combat tools upgrade — November 5, 2026
 
-## Current status — November 8, 2026 (reconciled through verified impact-area20 release)
+## Current status — November 8, 2026 (reconciled through verified explosion21 release)
 
 This overview supersedes the historical entries below. The overall goal is **not complete**; historical deferrals do not remove requirements.
 
@@ -11,13 +11,13 @@ This overview supersedes the historical entries below. The overall goal is **not
 | Geometry | Multiple grouped hitboxes and shared hit budgets | Rotation, animation anchors and authored hurtboxes |
 | Defense/interactions | Same-frame trades, armor, invulnerability, parry, projectile durability/clashes, reflection and absorption | Wider priority, guard break/crush and throws |
 | Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Broader physical-device QA and additional conditional transitions |
-| Projectiles | Verified live independent lifetime, durability, reflection, absorption energy, homing and return. Single-contact/repeated policy (format19) and stationary impact areas (format20) verified live | Splitting, explosion, custom area artwork and expanded travel/target behavior |
+| Projectiles | Verified live independent lifetime, durability, reflection, absorption energy, homing and return. Single-contact/repeated policy (format19) and stationary impact areas (format20) and expanding single-hit explosions (format21) verified live | Splitting, custom area artwork and expanded travel/target behavior |
 | Impact timing | Authored hitstop/blockstop/blockstun; separate combat/playback clocks; shared preview and projectile scenarios | Broader interaction and device coverage |
-| Saving | Version1–20 clients verified live. Server73/version20 live; revision protection, local recovery, unsupported-write refusal | Authenticated anonymous classroom-bank browser round trip and future migrations |
+| Saving | Version1–21 clients verified live. Server74/version21 live; revision protection, local recovery, unsupported-write refusal | Authenticated anonymous classroom-bank browser round trip and future migrations |
 | Authoring | Quick Edit, selected hits, basic/advanced, undo/redo/recovery, timeline zoom and grouped edits, reusable reaction templates, direct animation/target/attacker placement, both docked sides scrolling, compact section help | Persistent property inheritance, movement/conditional sequence blocks, audio/camera, more presets and broader help rollout |
 | Testing | Two-attack comparison, replay, saved scenarios, diagnostics and shared regression cases | Remaining scenario coverage, usability checks and classroom-device playtesting |
 
-Latest verified release suites: Arena653 and staged Studio1332 passed. Browser verified version20 authoring/export/import, separate area-hit counts, rendering without debug boxes, five pulses, expiry and guard. Arena42534391508 and Studio42534388221 succeeded;63 live file hashes match (17 Arena,46 Studio), and downloaded editor/format/help checks pass. Server73 supports formats1–20 with25 anonymous in-memory tests. Earlier release evidence remains in release-staging. These counts do not establish completion of untested browser/device workflows or the full report.
+Latest verified release suites: **Arena662 / staged Studio1335** passed. Browser verified explosion authoring, format21 export→Arena import, a visible expanding ellipse, one9-HP blast after19-HP contact, and expiry. Arena42535869955 /Studio42535873153 succeeded;**65 live files** match (18 Arena,47 Studio), and downloaded explosion editor/format/area/help checks pass. Server74 supports formats1–21 with26 anonymous in-memory tests. These counts do not establish completion of untested browser/device workflows or the full report.
 
 ### Latest delivered milestones and evidence
 
@@ -39,7 +39,7 @@ Latest verified release suites: Arena653 and staged Studio1332 passed. Browser v
 
 Shared cross-attack combo tracking, optional damage scaling and counter-hit rules are delivered. Format15 adds optional hitstun deterioration and explicit per-event hitstun, preserving separate motion/knockdown/status recovery locks. Full release tests Arena560/Studio1295 pass; browser authoring/export/import smoke passed. Arena commit1e009f4 and Studio0efc647 are pushed; both Pages deployments succeeded and51 live files match the release. Server68 already supports15. See the latest dated entries and `release-staging/20261108-hitstun`.
 
-Next combat scope: splitting/explosions and broader defensive mechanics. Homing, return and stationary impact areas are delivered. The expanded compact-help pass is delivered; subsequent authoring work includes inheritance and conditional/movement blocks. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
+Next combat scope: projectile splitting and broader defensive mechanics. Homing, return and stationary impact areas are delivered. The expanded compact-help pass is delivered; subsequent authoring work includes inheritance and conditional/movement blocks. Additional authoring, anchors/hurtboxes, conditional behavior, authenticated anonymous bank browser verification, and classroom-device/accessibility checks remain. Historical local-only notes below do not describe current release state. The original scope remains active.
 
 ---
 
@@ -1464,3 +1464,108 @@ Pages42534912119 succeeded for Studio b5a67af584627245f3235ef3e79c3912b81a0e04. 
 - Classroom server **74** is live at https://cyber-pet-classroom-settings.ragingaxolotl.chatgpt.site . Source8c9a6b5bf32f4888ae0e53457df666368db6480d; saved appgprj_6ac1778cd32081918ba530bb3c83b9d6~appgver_655a9d10db24819194f0f06c6accda9e; deployment appgdep_6af1065290d88191bf57b564d27dbd45 succeeded. Public audience preserved. Live capabilities1–21 plus revision protection verified.
 - **26/26** anonymous in-memory bank tests pass, including malformed blasts, format20 envelopes and old-client writes preserving stored data/revision. No real student/bank records accessed. Release evidence: release-staging/20261108-projectile-explosion/server-*.
 - Explosion clients remain LOCAL/UNPUBLISHED. Next: scoped Studio staging from live b5a67af584627245f3235ef3e79c3912b81a0e04; preserve static-help changes and unrelated local work, propagate cache versions, browser visual/edit/export/import checks, full staged suite, publish/live verify. Projectile splitting and broader original scope remain outstanding.
+
+### November 8 — explosion clients validated and source published
+
+- Scoped Studio baselineb5a67af; release commit `e17c3540c7a27f1bb70a8b8fe21a4d49df56a31d` (47 files, unrelated root entries preserved). Arena `8a8ded0c11d77d5d30cdacc4f7a8809d5cbc4350`. Full release suites **662 Arena /1335 Studio**.
+- Browser: selector and 120×120 expanding ellipse visible without debug, exported format21 imported into Arena, initial19 at frame17 plus one blast9 at18, expanded replay23 and expired38. Screenshot/test receipts in release-staging/20261108-projectile-explosion. Added replay growth/expiry regression.
+- Arena Pages42535869955 succeeded; Studio Pages42535873153 still in progress at this entry. Watch sessions82327 (Studio),75475 (Arena, likely completed). Do not restart them just because observation expires. Live verifier ready: /private/tmp/verify_projectile_explosion_release.py.
+- Required next: terminal Studio success, live-file verification and downloaded tests, update current overview. Then splitting and remaining original combat/authoring/device scope.
+
+### November 8 — explosion21 live verification complete
+
+Both client deployments succeeded. All65 changed live files match; downloaded editor/format/area/help checks pass. Explosions are delivered with editable expansion, bounds, lifetime and fixed single-hit damage. They do not add separate blast knockback/status or authored VFX; those are still potential extensions. Splitting remains next. Overall scope remains active.
+
+### November 8 — projectile splitting geometry foundation (local, not integrated)
+
+- New shared projectile-split.js validates a bounded timed split:2–5 children,1–300-frame delay before parent lifetime,0–180° spread,1–30px/frame speed,1–300-frame child lifetime. A fan samples explicit direction, with symmetric equal-speed rays. Children begin the frame after splitting.
+- Child definition is a deep copy retaining combat/artwork settings; removes recursive splitting and parent steering/path, starts immediately with its own lifetime-sized active window. Runtime must create fresh casts/group/sequence tracking without charging another owner action.
+- Four focused helper tests pass: fan symmetry/speed, launch-relative exact timing, independent definition/no recursive split, malformed/bounded inputs. This is **foundation only**: not imported by combat validation or runtime, not versioned, no editor controls, no publication.
+- Next: integrate child registry spawning with owner16 cap and atomic no-partial split; preserve current ownership/reflection and no lifetime renewal; implement ray travel and collision in both previews/Arena; add actual split lifecycle/defense tests, format22 transport/server, editor controls, browser/release verification. Parent active window vs delay needs a visible diagnostic. Do not describe splitting as functional until integrated.
+
+### November 8 — atomic split registry operation (local, unpublished)
+
+- ProjectileRegistry.replaceWithChildren validates live parent,2–5 separate non-recursive child casts, owner16 capacity, next-frame startup and lifetime in a temporary registry before committing. A failed child/cap check leaves parent/siblings/ID counter and caller launch flags unchanged. Successful replacement keeps current owner/target and gives each child its own entity/expiry.
+- Four added tests cover replacement/expiry/ownership, capacity rejection, invalid later child rollback, and dead/expired/recursive rejection. Full suites: **670 Arena /1335 Studio** (`/private/tmp/split-registry-{arena,studio}.txt`).
+- Still no runtime split trigger, ray collision integration or Studio multi-source preview. Next integration must create fresh group/sequence/defense state per child, preserve reflected ownership and current travel direction, avoid same-frame contacts, and resolve reflection of child rays correctly. Then format22/client/server/editor, browser QA/publication. This registry method alone is not completed splitting.
+
+### November 8 — Arena timed split runtime (local, unpublished)
+
+- Arena now calls splitDue after projectile steering and before collision snapshots; replaces live parent with fresh child casts/rays using the atomic registry method. Children are excluded from collisions/clashes until their next-frame spawn. Owner recovery/cast remains independent. Direction follows steering or sampled authored travel (including reflection).
+- prepareCast samples ray centers and translates grouped hitboxes consistently. Child reflection resets the ray origin at its current position and reverses vx without renewing registry expiry. Fresh per-child group/sequence/defense/outcome state avoids shared hit budgets.
+- Three new runtime tests pass: next-frame children preserve owner action, child reflection preserves position/expiry and reverses travel, and three overlapping children each hit once for12 total damage. Full Arena suite **673/673** passes (/private/tmp/split-runtime-arena.txt).
+- Still unfinished: Studio multi-source preview; child artwork/VFX trajectory (existing rendering handles steering but must explicitly handle rays); runtime split diagnostics/logs; capacity/reflect-parent/defense/sequence integration cases; format22 validation/transport/server and controls. New split data is not yet accepted by shared validateAttack; no published files changed. Resolve split speed bound30 versus existing projectile speed12 before exposing controls.
+
+### November 8 — split child artwork follows collision travel (local)
+
+- Arena effect renderer samples splitRayPosition and uses the same authored offset mapping as steered projectiles. Reflected child artwork mirrors offsets without applying the world reflection translation a second time; attached sequences still follow targets. Children render only from their activation frame.
+- Renderer regression covers ray motion, reflected offsets, pre-spawn invisibility and attached fallback. Split speed bound is now1–12px/frame, matching validated projectileSpeed, with explicit13 rejection test. Focused8 tests pass; full Arena run `/private/tmp/split-artwork-arena.txt`.
+- Preview integration audit: existing simulate/sequence-preview each assume one source. Independently simulating then summing children would be wrong because target reactions/status/combo/defense are shared. Next work must provide one shared target state for all sources (prefer reuse of Arena core with a preview adapter over duplicating another combat resolver). Arena engine depends on shared modules plus pure reactions/catalog; preserve legacy preview semantics/options or explicitly diagnose mismatches. No Studio split preview yet; no publication.
+
+### Shared split-preview runtime extraction verified locally
+
+Extracted Arena combat runtime, reaction resolver and artwork mapping into shared modules, with compatibility re-exports at existing Arena entry points and matching Studio copies. Full regression suites pass: Arena 674/674 and Studio 1335/1335 (logs /private/tmp/shared-runtime-arena.txt and /private/tmp/shared-runtime-studio.txt). This is local groundwork only: Studio multi-projectile preview integration, split authoring/validation/versioning, browser QA and publication remain unfinished. Splitting is not delivered. Previously published direct animation/target/attacker movement and both-side scrolling remain delivered; broader goal stays active.
+
+### Split replay snapshots verified locally
+
+Added matching combat-preview-frame.js modules for detached runtime replay snapshots: all active projectile children, IDs/current ownership, prepared collision boxes, authored artwork data, steering/rays, fighter state, areas and contacts. Future-start children are excluded until activation. Three regressions verify activation, isolation from live simulation during scrubbing, and reflection ownership/trajectory. Full suites pass: Arena 677/677 and Studio 1338/1338; logs /private/tmp/split-snapshot-arena.txt and /private/tmp/split-snapshot-studio.txt. Not wired into Studio preview yet and not published. Next integrate runtime preview options/rendering, then split authoring/schema/server support, parity/browser checks and scoped publication. Overall goal remains active.
+
+### Runtime preview adapter verified locally
+
+Added shared runtime-preview.js running all split children against one Arena target, with bounded combat/presentation frames, position/health/energy validation, failed-cast diagnostics and detached replay frames. New tests compare target HP and active children every frame against direct Arena execution, confirm energy rejection and authored-definition preservation. Contact parity exposed fighter objects in combo snapshots; replay now replaces those identities with fighter indices. Full Arena 680/680 and Studio 1341/1341 pass (logs /private/tmp/runtime-preview-arena.txt and /private/tmp/runtime-preview-studio.txt). Not yet wired into editor simulate/render: remaining adapter work includes existing test-bench guard, incoming-hit, resistance, facing and recovery options, coordinate conversion, output compatibility and child artwork. Split UI/schema/server/release/browser QA remain. No publication or completion claim.
+
+### Runtime preview facing and recovery options
+
+Shared adapter now preserves explicitly authored projectile facing independently of target placement and schedules one target recovery attempt using Studio attack-relative frame numbering. Validates recovery/facing input and reports pending/rejected/successful attempts. Regressions cover firing away, frame-zero rejection, out-of-range input and successful airborne recovery. Arena full suite 683/683 passes. Studio full run 1342/1344: two failures in usability-tree and workflow-build-path expect Add after selected attack but current tree UI says Add selected to tree (0); these files were not modified by this milestone and concurrent tree work remains preserved. Logs /private/tmp/runtime-options-{arena,studio}.txt. Preview modules still not editor-connected or published. Next retain guard/resistance/incoming-hit controls, integrate output/rendering, then schema/editor/server and browser release checks.
+
+### Shared preview guard and resistance
+
+Arena tick now accepts optional opponent input for guarding, retaining existing default behavior. Runtime preview supplies Shift when guard is selected. Target damageResistance defaults to zero and is applied consistently to ordinary, sequence and impact-area damage; preview validates -50..75 percent. New regressions exercise all three child contacts blocked, resistance/vulnerability, unblockable behavior and invalid input. Arena 685/685; Studio 1346/1348 with the same two tree-label failures (usability-tree/workflow-build-path), outside changed files. Logs /private/tmp/runtime-guard-{arena,studio}.txt. Still local/unpublished and not connected to editor simulate/render. Next incoming-hit support and editor output/coordinate/render integration, then split authoring/versioned persistence/server, browser QA and release.
+
+### Scheduled incoming hit in shared preview
+
+Runtime preview now schedules an ordinary one-frame melee test contact through Arena's action/defense resolver at the requested combat frame, once across hitstop. Reports attempted/start rejection, validates damage/frame limits, and retains launched independent children after interruption. Three new regressions verify startup cancellation, post-launch persistence, armor and invulnerability. Both full suites now pass: Arena 688/688, Studio 1352/1352 (logs /private/tmp/runtime-incoming-{arena,studio}.txt); prior tree-label failures no longer present in current concurrently updated tree. No changes to tree files by this milestone. Remaining: connect runtime results to Studio's coordinate/output/rendering contract, split schema/editor/server support, browser QA and scoped release. Splitting remains unpublished.
+
+### Split simulation connected to public Studio model
+
+Added split-preview.js adapter and routed simulate() for projectileSplit through it. Converts Arena ticks to zero-based Studio frames, centers relative coordinates, exposes all child collision boxes, target/owner state, contacts, impact pause, modifiers and drawable energy-failure state. Snapshot now includes detached feedback and reaction timing. Public simulate regressions verify child activation frame, relative positions, all three hits/12 damage, and failed-cast rendering. Full suites Arena 690/690, Studio 1354/1354 pass; logs /private/tmp/split-adapter-{arena,studio}.txt. Still unpublished. Remaining integration: child-specific artwork renderer and drag targets; richer per-child sequence hit-results/impact metadata (currently hitResults empty); ensure wall/preview coordinate semantics and stopped-frame rendering; format validation/editor/server, browser QA and release. Shared runtime uses real Arena stage boundaries; adapter origin480 means boundaries differ from legacy Studio simulated walls and need reconciliation or explicit UI representation before release.
+
+### Split child artwork connected locally
+
+Added shared projectile-preview-view.js and Studio draw branch consuming all child snapshots. Each child uses its own age/impact, collision-derived travel center, artwork offset, facing, optional path/ray orientation, opacity and frame selection. Attached child follows target. Visible instances supply the existing larger-grab hit targets; handles preserve authored layer index so editing shared child artwork remains possible. Snapshots now expose per-cast impact time. Two regressions check separate child draw positions/handles, attachment and hidden layer exclusion. Full suites Arena 692/692 and Studio 1356/1356 pass (logs /private/tmp/split-render-{arena,studio}.txt). Browser visual/drag verification pending; no release. Remaining per-child sequence results and impact telemetry, stage-boundary/ended-preview semantics, format22 validation/editor/server and browser/publication.
+
+### Per-child sequence result telemetry
+
+Runtime captures newly emitted sequence results during collision resolution, including consumed projectiles removed that frame. Detached records carry owner/projectile identity and global combat time. Split adapter preserves results with Studio zero-based times; sequence result table labels projectile IDs. Regression verifies three distinct connected results survive single-contact child removal. Full suites Arena 693/693 and Studio 1357/1357 pass; logs /private/tmp/split-reports-{arena,studio}.txt. Remaining diagnostic gap: hits never opened before lifetime expiry need explicit terminal reporting rather than only resolver-generated misses. Still unpublished; browser checks, stage boundaries/ended-preview state, split schema/editor/server and release remain.
+
+### Split terminal diagnostics and central validation
+
+Runtime tracks projectile removal through each combat tick and emits unresolved sequence-hit diagnostics once. Parent split replacement is explicitly Replaced; child expiry produces Missed with expiry reason and no invented contact frame. Captures children removed by contact in their first active frame. Central validateAttack now invokes validateProjectileSplit, rejecting invalid counts/lifetimes/delivery before preview/import use. Tests verify three unopened children expire with distinct single records and malformed split rejection. Full Arena 695/695, Studio 1359/1359 pass (logs /private/tmp/split-validation-{arena,studio}.txt). Still unpublished. Next version22 transport/editor/server, browser preview/drag verification, boundary and end-of-preview checks before release.
+
+### Split format22 client protection
+
+attackVersion now selects22 for projectileSplit, and older containers reject it explicitly. Updated client bank/project/tree and Arena catalog accepted versions, classroom-bank capability negotiation, and split compatibility diagnostic. New bank roundtrip test verifies immutable existing-bank handling, encoded roundtrip and rejection before PUT when server lacks22. Full Arena696/696 and Studio1360/1360 pass; logs /private/tmp/split-format-{arena,studio}.txt. Live server remains format21 and no client release has been published. Next split authoring controls, server22 support, browser/drag verification and stage-boundary/ended-preview checks before scoped release.
+
+### Split inspector authoring wired locally
+
+Added projectile-split-editor.js with on/off fan behavior and five validated fields (delay, count, spread, speed, lifetime), plus compact contextual help. Parent lifetime remains authoritative; enabling at an impossible one-frame lifetime rejects instead of silently changing it. Turning independent persistence off clears split settings. Studio commit callback persists/removes split definition through normal Undo workflow. Real editor-event regression passes save22, invalid counts, change/Undo, project import and persistence-off cleanup. Full Arena696/696 and Studio1361/1361 pass; logs /private/tmp/split-editor-{arena,studio}.txt. Browser visual and drag QA still pending. Live server still21; server22 and scoped client release remain, along with stage-boundary and ended-preview checks. No publication claim.
+
+### Split browser artwork and drag QA
+
+Fresh local asset-served origin http://127.0.0.1:8781/design.html, IAB tab95. Created anonymous Traveling bolt, enabled independent persistence and split fan, added Rotating Screen artwork. Frame60 visibly shows three separated child effects/hitboxes. Move animation drag on middle child handle changed layer offsets0/0 to20/-20; one Undo restored0/0, Redo restored20/-20. No browser error logs during playback. Artwork began later because Add layer authored start18, inherited by each child; at child age32 effects visibly render. Screenshot /private/tmp/cyber-pet-split-drag.jpg. Temporary QA root /private/tmp/cyber-pet-split-browser symlinks dist and compiler artwork; server8781 session45855, original asset-less8780 session99977 still running. Tab marked handoff. Browser not published. Next stage-boundary/end-frame review and server22/client scoped release.
+
+### Split preview boundary/end-state review
+
+Corrected preview horizon to include child impact-area duration; a600-frame area now finishes before the timeline ends. Replay excludes projectiles/areas whose owner or target is defeated, and carries guard state. Converted combo identity indices to Studio self/target names so outgoing combo summary displays. Split simulation exposes actual Arena boundaries (-445,+445 relative to centered attacker); wall-slam drawing uses these rather than legacy234 marker. Diagnostic explains close-up viewport may crop walls and Arena comparison supplies full-stage view. Tests cover boundary metadata, named combo telemetry and area expiry before end. Full Arena698/698, Studio1363/1363 pass (logs /private/tmp/split-end-{arena,studio}.txt). Browser split artwork/drag already verified last turn; latest marker/diagnostic changes not separately browser-checked. Next server22 support and scoped release preparation. No publication yet.
+
+### Classroom server75 deployed: format22 splitting
+
+Sites source opened fresh at74; public audience preserved. Added shared split validator and version22 capability/container/header gates. Anonymous in-memory server suite27/27 passes, including rejected malformed/older-client writes preserving saved bank/revision. Build/package succeeded. Source a1f5ce6848a550f9fa2c12f0bcf2bb6bfb363877; saved version75 appgprj_6ac1778cd32081918ba530bb3c83b9d6~appgver_bc5877ad9cf4819181ba8c68f9c00e04; deployment appgdep_6af10ead162c8191b63b59bc2efb3e84 succeeded. URL https://cyber-pet-classroom-settings.ragingaxolotl.chatgpt.site. Archive /private/tmp/combat-classroom-v22.tar.gz; server test log /private/tmp/split-server-tests.txt. No real classroom bank data accessed. Client split changes remain local: next scoped Studio/Arena staging, cache closure, frozen tests/browser export comparison, client publication and live verification.
+
+### Split client candidates staged and tested
+
+Scoped Studio candidate built atop published f16e7684fb776771a6ec2e4c2fa25471028dfceb using /private/tmp/stage_projectile_split_release.py.56 changed/new files including transitive import-cache closure; published bank/tree/design/sequence/projectile-editor entry points narrowly patched, preserving unrelated concurrent work. Snapshot full suite1363/1363 passes; Arena cache closure28 files and full698/698 pass. Evidence release-staging/20261109-projectile-split includes both logs, server75 evidence and prior local browser drag screenshot. Publisher /private/tmp/publish_studio_projectile_split.py prepared but NOT run. Next frozen-candidate browser export/Arena comparison and release diff review, then guarded client publication and live hashes/Pages verification. Overall goal active.
+
+### Frozen split export verified in Arena browser
+
+Staged Studio8782 tab96 authored split3/30deg/speed4/life60/delay3, startup0,active100,base4,coefficient0,knockback0,hitstun0,single contact. Export file cyber-pet-arena-practice (12).json is format22; attack attack_377c9de64baa4931a3febf6569edceef. Imported to local Arena8768 tab97, comparison distance120 Boffset180 duration60: three child contacts at frame10,12 damage, matching Studio. Screenshot /private/tmp/cyber-pet-split-arena.jpg and evidence browser-qa.json/export saved in release-staging/20261109-projectile-split. Corrected empty ordinary-hit results table (omit hitResults when no hitEvents);8 focused frozen tests pass. Diff whitespace check and56-file publisher dry-run pass. Clients not yet published. Next final diff inspection, guarded Studio publication + Arena commit/push and exact Pages/live-hash verification.

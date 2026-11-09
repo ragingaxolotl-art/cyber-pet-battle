@@ -16,3 +16,10 @@ test('steered effects retain authored offsets and mirror them after reflection',
  c.projectileTransform={direction:-1,offset:999};assert.deepEqual(render(c)[0],['translate',239,-70]);
  c.a.projectileMode='attached';c.sequence={attached:true};assert.deepEqual(render(c)[0],['translate',290,-60]);
 });
+test('split effects follow each ray center and retain artwork offsets through reflection',()=>{
+ const c=cast();c.a.box={x:22,y:-52,w:54,h:44};c.splitRay={x:200,y:-80,vx:4,vy:-2,start:3};
+ assert.deepEqual(render(c)[0],['translate',169,-74]);
+ c.splitRay={x:208,y:-84,vx:-4,vy:-2,start:5};c.projectileTransform={direction:-1,offset:999};assert.deepEqual(render(c)[0],['translate',247,-74]);
+ c.splitRay.start=6;assert.deepEqual(render(c),[]);
+ c.splitRay.start=3;c.a.projectileMode='attached';c.sequence={attached:true};assert.deepEqual(render(c)[0],['translate',290,-60]);
+});
