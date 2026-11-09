@@ -1,6 +1,6 @@
 # Combat tools upgrade — November 5, 2026
 
-## Current status — November 9, 2026 (reconciled through verified rotation24 release)
+## Current status — November 9, 2026 (reconciled through verified anchors25 release)
 
 This overview supersedes the historical entries below. The overall goal is **not complete**; historical deferrals do not remove requirements.
 
@@ -8,16 +8,16 @@ This overview supersedes the historical entries below. The overall goal is **not
 | --- | --- | --- |
 | Arena controls | Nine slots including C beside X; mobile movement/block/dodge; input cleanup across focus loss, menus and restart | Physical multitouch and broader keyboard/accessibility playtesting |
 | Independent hits | Contact-relative projectile sequences; cast-relative melee/area sequences; per-hit damage/reactions, attached/repeated contact and common juggle budget | Expanded event behaviors; neutral air recovery and bounded wall/floor bounces verified live |
-| Geometry | Multiple grouped hitboxes, shared hit budgets and rotated shapes with mirrored collision/rendering/resize support | Animation anchors and authored hurtboxes |
+| Geometry | Multiple grouped hitboxes, shared hit budgets, rotated shapes and authored animation anchors with visual placement | Authored hurtboxes |
 | Defense/interactions | Same-frame trades, armor, invulnerability, parry, projectile durability/clashes, reflection, absorption and guard break/crush | Wider priority and throws |
 | Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Broader physical-device QA and additional conditional transitions |
 | Projectiles | Verified live independent lifetime, durability, reflection, absorption energy, homing and return. Single-contact/repeated policy (format19) and stationary impact areas (format20) and expanding single-hit explosions (format21), and timed fan splitting (format22) verified live | Custom area artwork and expanded travel/target behavior |
 | Impact timing | Authored hitstop/blockstop/blockstun; separate combat/playback clocks; shared preview and projectile scenarios | Broader interaction and device coverage |
-| Saving | Version1–24 clients verified live. Server77/version24 live; revision protection, local recovery, unsupported-write refusal | Authenticated anonymous classroom-bank browser round trip and future migrations |
+| Saving | Version1–25 clients verified live. Server78/version25 live; revision protection, local recovery, unsupported-write refusal | Authenticated anonymous classroom-bank browser round trip and future migrations |
 | Authoring | Quick Edit, selected hits, basic/advanced, undo/redo/recovery, timeline zoom and grouped edits, reusable reaction templates, direct animation/target/attacker placement, both docked sides scrolling, compact section help | Persistent property inheritance, movement/conditional sequence blocks, audio/camera, more presets and broader help rollout |
 | Testing | Two-attack comparison, replay, saved scenarios, diagnostics and shared regression cases | Remaining scenario coverage, usability checks and classroom-device playtesting |
 
-Latest verified release suites: **Arena763 / staged Studio1429 / server30** passed. Browser verified 45-degree hitbox resizing, Undo, readable help and format24 export→Arena import; both applications reported19 damage at frame29. Arena42542192807 / Studio42542206880 succeeded; **81 live files** match (24 Arena,57 Studio), and downloaded rotation editor/format/projectile/resize/runtime/geometry tests pass. Server77 supports formats1–24 with revision protection. Evidence: `release-staging/20261109-rotation`. Authenticated classroom-bank browser save/load and physical-device workflows remain unverified. The full goal remains active.
+Latest verified release suites: **Arena783 / staged Studio1454 / server31** passed. Browser verified anchor creation, drag/Undo, help, bound format25 export and Arena import (19 damage at frame29 in both apps). Arena42544482402 / Studio42544494857 succeeded. **74 live files** match (19 Arena,55 Studio), and downloaded anchor tests pass. Server78 supports formats1–25 with revision protection. Evidence: `release-staging/20261109-anchors`. Authenticated classroom-bank browser save/load and physical-device workflows remain unverified. The full goal remains active.
 
 ### Latest delivered milestones and evidence
 
@@ -1745,3 +1745,79 @@ Release audit: normalize cache query suffixes and compare local design.js with r
 ### Anchor browser authoring checks passed; Arena import pending
 
 IAB2 tab105 anchorTab on frozen8787. Created12 anchor frames, native drag marker[626,447]→[651,430] changed(0,-35)→(15,-45); Undo restoredX0. Screenshot /private/tmp/anchor-preview.jpg copied browser-editor.jpg. Compact help popup readable. Primary hitbox bound to hand; preview reports19damage at29f. Export(16).json validated format25 and binding, copied anonymous-browser-export.json. browser-qa.json records evidence and Arena import pending. Tab105 markedhandoff; CUA bindings anchorTab/anchorFS/anchorExportPath. Need next browser Arena import/comparison, then Arena cacheclosure/fulltests, scoped publish andliveverify. No app publication yet; server78/25live. Full goal active.
+
+
+### Anchor apps published to main; Pages jobs in progress
+
+Browser Arena tab106 anchorArena imported anonymous format25 export; comparison distance72, Boffset180, duration100 reports19damage atframe29, matching Studio. NoJSerrors. Screenshot /private/tmp/anchor-arena.jpg copied browser-arena.jpg; browser-qa.json updated. Tab106 markedhandoff. Arena cacheclosure updated; full783/783 passes in release arena-tests.txt. Arena commit78ea509c2de188d657d2c72e97903893008bc1df pushedmain; Pages42544482402 confirmed in_progress. Studio scoped55file commit1f803300dd96787e29b2ac9ca67357b80b91cf80 pushedmain preserving unrelated rootentries; Pages42544494857 confirmed in_progress. DO NOT restart publication. /private/tmp/verify_anchor_release.py ready: after both exactjobs succeed, verifies live changed Arena files+55Studiofiles and downloaded anchor UI/frame/format/projectile/binding/timing tests. Need liveverify and overview reconciliation before claiming delivered. Server78/format25 already verified live. Full goal active; next authored hurtboxes after anchor release finishes.
+
+
+### Anchor deployment wait verified; hurtbox integration audit
+
+Arena Pages42544482402 completed SUCCESS at78ea509c2de188d657d2c72e97903893008bc1df. Studio42544494857 remains in_progress at1f803300dd96787e29b2ac9ca67357b80b91cf80; exact ghwatch session94363 confirmed build/uploadartifact live. Resume this handle or exactjob; do not restart deployment. Live verifier ready /private/tmp/verify_anchor_release.py aftersuccess.
+
+Hurtbox audit: combat-runtime prepareCast builds crouch34/standing60 rectangle at247; another sequence path272; persistent impact-area overlap333 has its own rectangle. Legacy Studio combat-model151 and sequence-preview46 use standing rectangle; auto-contact helper combat-model242 another. Matchup replay draws fixed28x60 rectangles independently. Authored hurtboxes must feed all contact paths, preserve ordinary/crouched legacy defaults, use shared authored pose timing and facing, avoid multiplying damage for overlapping vulnerable shapes, and record actual regions in replay. Defending action's hurtboxes must stop on interruption/recovery according to explicit action timeline; independent projectiles must not keep an old owner hurtbox active. No hurtbox implementation yet. Full goal active.
+
+
+### Anchors25 live verified; hurtbox foundation local
+
+Studio42544494857 completed SUCCESS. /private/tmp/verify_anchor_release.py verified74livefiles and downloaded anchor tests. No further anchor deployment needed. Added shared hurtboxes.js (not wired/published): validates1–300frames/1–8regions, shape/rotation/bounds/count consistency; samples authored pose, mirrors regions, retains standing/crouch defaults. Boolean touchesHurtboxes avoids duplicate damage from overlapping regions. Three regressions; full local Arena786/786 Studio1457/1457 pass (/private/tmp/hurtbox-foundation-{arena,studio}.txt). Next integrate defender action lifetime and all runtime/preview/area collision paths plus replay, then visual authoring/transport/browserQA. Hurtbox module is foundation only, not user-visible feature. Full overall goal active.
+
+
+### Hurtbox runtime contact integration local
+
+Both shared combat-model validators now call validateHurtboxes. Arena.hurtboxesFor resolves defender cast age/lifetime and supplies authored regions only while action remains active; normal/crouched default otherwise. prepareCast ordinary/grouped/sequence contact uses boolean touchesHurtboxes; persistent area overlap also uses actual regions. Snapshot retains targetRegions plus first region targetBox for existing area anchor API. Three runtime regressions verify actual authored miss, overlapping-region damage once, expiry/interruption fallback. Full Arena789/789 Studio1460/1460 pass (/private/tmp/hurtbox-runtime-{arena,studio}.txt). NOT published. Remaining: impactAreaAnchor must inspect all targetRegions (currently firstregion fallback); source/render poseFrameCount must honor hurtbox-only sequences; legacy/singleattack previews and replay/display; simultaneous interruption/snapshot and projectile/area regressions; frame editing/visual authoring; version26/server; browser/scoped publication. Full goal active.
+
+
+### Hurtbox-only timing and impact-area origin corrected locally
+
+poseFrameCount/poseSourceFrames/posePlayback now honor hurtbox-only authored frame count and cast-relative synced clock; Arena/Studio source-frame mapping enabled for hurtboxes as well as anchors. Existing attacks retain prior timing. impactAreaAnchor accepts a region list and chooses the group's hitbox that overlaps any actual vulnerable shape; runtime passes snapshot.targetRegions. Added timing-varying-artwork and second-region contact-origin regressions. Full Arena791/791 Studio1462/1462 pass (/private/tmp/hurtbox-timing-{arena,studio}.txt). NOT published. Next replay/display actual regions, previews, all contact-type/simultaneous tests, visual editor/frame synchronization, version26/server/browser publication. Full goal active.
+
+
+### Hurtbox Arena display/replay integrated locally
+
+Arena debug collision display traces actual hurtboxes from hurtboxesFor using shared shape renderer. Comparison snapshots clone each fighter's current hurtbox list and replay draws these shapes instead of fixed body rectangles (legacy fallback retained). Shared combatPreviewFrame now includes detached hurtbox lists for Studio runtime previews. New Arena regression verifies authored ellipse/rotation snapshot, immutability after attack edit, and legacy body after action end. Full Arena792/792 passes; Studio suite /private/tmp/hurtbox-replay-studio.txt checked separately. NOT published or browser verified. Replay snapshots describe post-tick fighter state, not a claim to visualize pre-contact geometry after interruption; contact-specific overlay remains to consider. Next Studio preview draw/editor, interaction coverage, frame mutation preservation and format26/server/browser release. Full goal active.
+
+
+### Hurtbox frame mutations synchronized locally
+
+Studio remapHurtboxFrames deep-copies geometry using authored position mappings. frameEditor applies it on reorder/delete/duplicate/reset alongside anchors and durations. Extended actual-control DOM regression verifies reordered shape, duplicate counts, delete/Undo restoration with anchors+hurtboxes together. Pure regression verifies duplicate geometry can be edited without affecting original/other copy. Full Arena792/792 Studio1463/1463 pass (/private/tmp/hurtbox-frames-{arena,studio}.txt). Local only, no browserQA/publication. Current test imports hurtboxes in25 because version26 transport is still pending; update fixture when gating lands. Next hurtbox visual editor+Studio draw/lifetime integration, interaction coverage, version26/server/browser release. Full goal active.
+
+
+### Hurtbox numeric authoring implemented locally
+
+Studio hurtbox-editor.js adds opt-in per-frame regions, frame/region selectors, shape/X/Y/width/height/rotation, duplicate/delete (minimum1 maximum8), copy allframes and return default body. Cloned validated commits use existing history; removal explicitly deletes live hurtboxes before Object.assign. Compact info clarifies vulnerability versus defense windows. UI regression verifies creation/frame count, width/Undo, independent duplicate edit, invalidwidth0 rejection, copyall, default reset/Undo. Arena792/792 passes; Studio full result in /private/tmp/hurtbox-editor-studio.txt. This is numeric controls only: direct preview/drawing/dragging still pending, no browserQA or publication. Next Studio visual integration and attack lifetime parity, complete runtime cases, format26/server transport, scoped browser release. Full goal active.
+
+
+### Hurtbox pose preview and dragging local
+
+Place hurtbox in preview selects explicit authored pose and draws all regions, highlighting selected blue region. Frame/region selection updates active placement preview. Pointer picking uses actual rotated shape; facing-aware dragging clamps offsets±500, commits once on release, cancellation restores original. Play/reset/scrub and Return to combat playback exit override. Extended UI test verifies drag(55,-60)→(65,-55), Undo and cancel restoration. Full Arena792/792 Studio1464/1464 pass (/private/tmp/hurtbox-drag-{arena,studio}.txt). No browserQA/publication. Still need normal Studio playback vulnerable-region overlay/lifetime and incoming-test semantics, resizing handles, more interaction tests, format26/server, frozen scoped release/browser/liveverify. Full goal active.
+
+
+### Hurtbox resize handles local
+
+Selected authored hurtbox now draws width/height/corner handles through existing hitboxResizeHandles. Pointer picking prioritizes handles; resizing uses shared resizeHitbox with local-axis rotation/facing/bounds behavior; ordinary region drag unchanged. UI regression verifies width28→38 through pointer gesture thenUndo28. Existing shared rotated-resize tests cover geometry. Full Arena792/792 and Studio1464/1464 pass (/private/tmp/hurtbox-resize-{arena,studio}.txt). Still no hurtbox browserQA/publication. Next normal playback overlay/lifetime, incoming-test semantics and interaction coverage, format26/server transport, frozen release/browser verification. Full goal active.
+
+### Local hurtbox playback verification
+
+Studio playback now supplies authored attacker vulnerable regions while the owner action is active and restores the default body after completion or interruption. The normal preview draws these regions when collision boxes are enabled; split-projectile playback converts runtime regions into Studio coordinates. Focused completion/interruption coverage passes. Full suites: Arena793 / Studio1465, zero failures (`/private/tmp/hurtbox-playback-arena.txt`, `/private/tmp/hurtbox-playback-studio.txt`). These hurtbox changes remain local and unpublished. Still required: format26 client/server compatibility, broader combat interaction coverage, browser verification, scoped release and live verification. The overall goal remains active.
+
+### Local hurtbox format26 client protection
+
+Authored hurtboxes now select format26. Studio/Arena projects, banks, catalog imports and learning trees accept26 and reject hurtbox definitions mislabeled as older formats. Classroom-bank reads negotiate26 when offered; writes to a server lacking26 fail before PUT. Anonymous roundtrip and older-server refusal tests cover bank preservation, project imports and learning trees. Updated the combined frame-editor fixture to26. Full suites: Arena795 / Studio1467, zero failures (`/private/tmp/hurtbox-format-arena.txt`, `/private/tmp/hurtbox-format-studio.txt`). This milestone remains local: server26 support, browser QA, additional runtime interaction checks and scoped publication/live verification are still required.
+
+### Classroom server79 / format26 published
+
+Published server source `6d00a9eda30db7d6d7e8f4539744d10e1da8203d`, saved version79 `appgprj_6ac1778cd32081918ba530bb3c83b9d6~appgver_ecccfad04644819192cd5ce9db1fe516`; deployment `appgdep_6af122990fe8819192a56ffa25f0e29e` succeeded. Shared hurtbox validation now protects bank writes; capabilities and client negotiation support26. All32 anonymous bank tests pass, including geometry/frame-count rejection, old-client refusal, roundtrip and revision preservation. Build succeeded. No real student data was accessed. Client hurtbox editing is still local; remaining work is browser QA, wider interaction checks, scoped client publication and live verification. Authenticated anonymous browser bank roundtrip remains unverified.
+
+### Hurtbox browser authoring check and placement fix
+
+Local browser QA on port8790 verified12-frame region creation, selected-pose placement, drag (-14,-60)→(6,-70), one Undo restoring(-14,-60), width resize28→38.119 and one Undo restoring28. No browser JavaScript errors. Found and fixed explicit placement leaving the preview offscreen: both hurtbox and anchor placement now scroll the canvas into view; selection-only updates retain the current view. Browser verified canvas y296 after placement. Updated local design.js cache key in design.html; a fresh query/tab was required because the previous tab retained old HTML across reload. Three focused editor tests pass; previous full suites795/1467 remain the latest full-suite evidence. Screenshot `/private/tmp/hurtbox-preview-qa.png`. Preview server session62669 at8790, browser tab108 retained. Still required: broader hurtbox combat interactions, export/import browser roundtrip, frozen scoped release suites and client publication/live verification.
+
+### Hurtbox interaction regression checks
+
+Added four shared runtime cases: same-frame trades retain both collision snapshots despite interruption; ordinary and grouped projectiles hit a second vulnerable region even when the first misses; overlapping regions do not duplicate damage; a pose transition changes a projectile miss into a hit at the authored time. Full suites Arena799 / Studio1471 pass (`/private/tmp/hurtbox-interactions-{arena,studio}.txt`). Subsequently added a hurtbox diagnostic explaining format26, action-lifetime fallback, and the limitation of Studio's abstract incoming-damage probe; Arena comparison is needed for incoming geometry. That final diagnostic text still needs the staged release check. Pending: browser export/import and Arena behavior verification, scoped client staging/publication/live checks. Server79/format26 is already live.
+
+### Hurtbox release staged and browser roundtrip checked
+
+Scoped staging built against published Studio `1f803300dd96787e29b2ac9ca67357b80b91cf80`:60 files including transitive cache refresh; published recompute ordering preserved. Frozen Studio suite1471 passes. Evidence `release-staging/20261109-hurtboxes`. Browser exported authored12-frame regions as format26, imported into local Arena, ran at distance72/offset180/duration100:19 damage at frame29, matching Studio. No Arena JavaScript errors. Anonymous export and editor/Arena screenshots retained in release evidence. Browser tabs109/110 retained; server8790 session62669. Still pending: review staged diffs/cache closure, Arena release tests/commit, client publication and live file verification. Server79 is already published.
