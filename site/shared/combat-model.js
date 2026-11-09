@@ -90,7 +90,7 @@ export function validateAttack(a,ids){
  return a;
 }
 export function validateDesign(p,ids){
- if(p?.format!=='cyber-pet-combat-design'||![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30].includes(p.version)||!Array.isArray(p.attacks)||p.attacks.length<1||p.attacks.length>256)fail('Choose a version 1–30 Combat Design project (1–256 attacks).');
+ if(p?.format!=='cyber-pet-combat-design'||![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31].includes(p.version)||!Array.isArray(p.attacks)||p.attacks.length<1||p.attacks.length>256)fail('Choose a version 1–31 Combat Design project (1–256 attacks).');
  requireGroupVersion(p.version,p.attacks);
  if(p.testBench){for(const side of ['attacker','target'])statsFor(p.testBench[side]);validateSandbox(p.testBench.options);}
  if(p.version===1&&p.attacks.some(a=>a.hitEvents))fail('Independent hit sequences require a version 2 project.');
