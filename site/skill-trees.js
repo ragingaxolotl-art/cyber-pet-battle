@@ -1,6 +1,6 @@
-import {attacksVersion} from './shared/attack-format.js?v=20261109-hurtboxes';
-import {freshAttack,validateAttack} from './shared/combat-model.js?v=20261109-hurtboxes';
-import {validateTree} from './shared/skill-tree-model.js?v=20261109-hurtboxes';
+import {attacksVersion} from './shared/attack-format.js?v=20261109-hit-links';
+import {freshAttack,validateAttack} from './shared/combat-model.js?v=20261109-hit-links';
+import {validateTree} from './shared/skill-tree-model.js?v=20261109-hit-links';
 export const STUDIO_TREE_KEY='cyber-pet-attack-skill-tree-v1';
 export function checkPlayableTree(tree,effectIds){
  validateTree(tree,new Set([...effectIds,'']),validateAttack);

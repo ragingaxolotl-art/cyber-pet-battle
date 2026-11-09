@@ -1,5 +1,5 @@
-import {requireGroupVersion} from './shared/attack-format.js?v=20261109-hurtboxes';
-import {freshAttack,validateAttack,STATS} from './shared/combat-model.js?v=20261109-hurtboxes';
+import {requireGroupVersion} from './shared/attack-format.js?v=20261109-hit-links';
+import {freshAttack,validateAttack,STATS} from './shared/combat-model.js?v=20261109-hit-links';
 export {KEYS,availability,mappedAttack} from './shared/combat-artwork.js?v=20261109-split';
 const definitions=[
  ['upper','Upper hit','upper_hit_side',14,18,46],['lower','Low kick','lower_hit_side',12,13,50],['thrust','Straight hit','thrust_hit_side',12,10,55],['sweep','Sweep','sweep_hit_side',15,20,64],['bash','Body bash','body_bash_side',20,25,42],['spin','Spin hit','spin_hit_side',18,22,58],['slam','Ground slam','ground_slam_side',26,34,82],['push','Push strike','side_push_side',10,14,58],
@@ -11,7 +11,7 @@ export function defaultCatalog(){return definitions.map(([id,name,motion,base,co
  if(i===8||i===9) a.delivery='area';
  if(i===10)Object.assign(a,{delivery:'self',payload:'energy',base:18,cooldown:180});return a;
 }).concat(['shield','block','dodge'].map((kind,i)=>{const a=freshAttack('shield');return {...a,id:'attack_'+kind,name:['Protective shield','Guard','Dodge'][i],motion:['channel_power_side','block_side','dodge_side'][i],payload:kind,base:30,cost:kind==='shield'?18:6,startup:3,active:kind==='shield'?12:24,recovery:12,cooldown:90};}));}
-export function validateCatalog(data){if(data?.format==='cyber-pet-combat-design'&&![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26].includes(data.version))throw Error('Unsupported Combat Design version.');const list=data?.attacks;if(!Array.isArray(list)||!list.length||list.length>256)throw Error('Choose an Attack Studio project or attack-bank JSON with 1–256 attacks.');requireGroupVersion(data.version??1,list);const ids=new Set();const result=structuredClone(list);for(const a of result){validateAttack(a);if(ids.has(a.id))throw Error('Duplicate attack ID.');ids.add(a.id);}return result;}
+export function validateCatalog(data){if(data?.format==='cyber-pet-combat-design'&&![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27].includes(data.version))throw Error('Unsupported Combat Design version.');const list=data?.attacks;if(!Array.isArray(list)||!list.length||list.length>256)throw Error('Choose an Attack Studio project or attack-bank JSON with 1–256 attacks.');requireGroupVersion(data.version??1,list);const ids=new Set();const result=structuredClone(list);for(const a of result){validateAttack(a);if(ids.has(a.id))throw Error('Duplicate attack ID.');ids.add(a.id);}return result;}
 export function petStats(pet){return Object.fromEntries(STATS.map(k=>{const n=Number(pet?.skills?.[k]);return [k,Number.isFinite(n)?Math.round(Math.min(99,Math.max(0,n))):0];}));}
 
 // Physical attacks occupy a permanent first deck, independent of teacher banks.

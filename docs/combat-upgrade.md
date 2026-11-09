@@ -1,6 +1,6 @@
 # Combat tools upgrade — November 5, 2026
 
-## Current status — November 9, 2026 (reconciled through verified anchors25 release)
+## Current status — November 9, 2026 (reconciled through verified hurtboxes26 release)
 
 This overview supersedes the historical entries below. The overall goal is **not complete**; historical deferrals do not remove requirements.
 
@@ -8,12 +8,12 @@ This overview supersedes the historical entries below. The overall goal is **not
 | --- | --- | --- |
 | Arena controls | Nine slots including C beside X; mobile movement/block/dodge; input cleanup across focus loss, menus and restart | Physical multitouch and broader keyboard/accessibility playtesting |
 | Independent hits | Contact-relative projectile sequences; cast-relative melee/area sequences; per-hit damage/reactions, attached/repeated contact and common juggle budget | Expanded event behaviors; neutral air recovery and bounded wall/floor bounces verified live |
-| Geometry | Multiple grouped hitboxes, shared hit budgets, rotated shapes and authored animation anchors with visual placement | Authored hurtboxes |
+| Geometry | Multiple grouped hitboxes, shared hit budgets, rotated shapes, authored animation anchors and per-frame hurtboxes with visual placement | Broader interaction and device checks |
 | Defense/interactions | Same-frame trades, armor, invulnerability, parry, projectile durability/clashes, reflection, absorption and guard break/crush | Wider priority and throws |
 | Follow-ups | Manual/automatic attack-to-attack windows; manual jump/dodge/dash windows with timing, conditions and costs; bounded automatic chains | Broader physical-device QA and additional conditional transitions |
 | Projectiles | Verified live independent lifetime, durability, reflection, absorption energy, homing and return. Single-contact/repeated policy (format19) and stationary impact areas (format20) and expanding single-hit explosions (format21), and timed fan splitting (format22) verified live | Custom area artwork and expanded travel/target behavior |
 | Impact timing | Authored hitstop/blockstop/blockstun; separate combat/playback clocks; shared preview and projectile scenarios | Broader interaction and device coverage |
-| Saving | Version1–25 clients verified live. Server78/version25 live; revision protection, local recovery, unsupported-write refusal | Authenticated anonymous classroom-bank browser round trip and future migrations |
+| Saving | Version1–26 clients verified live. Server79/version26 live; revision protection, local recovery, unsupported-write refusal | Authenticated anonymous classroom-bank browser round trip and future migrations |
 | Authoring | Quick Edit, selected hits, basic/advanced, undo/redo/recovery, timeline zoom and grouped edits, reusable reaction templates, direct animation/target/attacker placement, both docked sides scrolling, compact section help | Persistent property inheritance, movement/conditional sequence blocks, audio/camera, more presets and broader help rollout |
 | Testing | Two-attack comparison, replay, saved scenarios, diagnostics and shared regression cases | Remaining scenario coverage, usability checks and classroom-device playtesting |
 
@@ -1821,3 +1821,43 @@ Added four shared runtime cases: same-frame trades retain both collision snapsho
 ### Hurtbox release staged and browser roundtrip checked
 
 Scoped staging built against published Studio `1f803300dd96787e29b2ac9ca67357b80b91cf80`:60 files including transitive cache refresh; published recompute ordering preserved. Frozen Studio suite1471 passes. Evidence `release-staging/20261109-hurtboxes`. Browser exported authored12-frame regions as format26, imported into local Arena, ran at distance72/offset180/duration100:19 damage at frame29, matching Studio. No Arena JavaScript errors. Anonymous export and editor/Arena screenshots retained in release evidence. Browser tabs109/110 retained; server8790 session62669. Still pending: review staged diffs/cache closure, Arena release tests/commit, client publication and live file verification. Server79 is already published.
+
+### Hurtboxes26 release verified live
+
+Arena `a089510e1f50abbe5d7a4b8b92b85d4f81875738`, Pages42546756090 succeeded. Studio `91192006aa745d77ece4fe29ae6cf8bde1642ab3`, Pages42546768326 succeeded. All84 live file hashes match (24 Arena,60 Studio); downloaded hurtbox/editor/frame tests pass. Initial CDN503 on one file resolved on verification retry. Release suites Arena799 / staged Studio1471; server79 supports26 with32 bank tests. Evidence: `release-staging/20261109-hurtboxes`. Authored per-frame vulnerable regions, preview drag/resize/Undo, default-body fallback, runtime collisions, replay and version26 transport are delivered. Remaining overall scope includes wider priority/throws, custom area artwork and travel/target rules, property inheritance, movement/conditional blocks, audio/camera, expanded presets, broader accessibility/physical-device QA and authenticated anonymous classroom-bank browser roundtrip. Full goal remains active.
+
+### Persistent hit-property inheritance started locally
+
+Audit confirms batch editing and linked elemental reskins exist, but per-hit persistent property inheritance does not. Added isolated `hit-property-links.js` authoring model with source/target links, per-field overrides, chained propagation, deep-copy isolation, optional-value deletion and cycle/competing-source rejection. Timing/IDs are excluded from inherited fields. Four focused tests pass. Not integrated into editing, saving or runtime and not published. Next: editor controls and mutation handling (deletion/duplication/Quick Edit/clipboard), validation and format protection, bank roundtrip, UI and runtime parity checks. Existing concrete hit values remain required; resolve before save rather than relying on runtime to infer authoring links. Audio/VFX event-level inheritance needs the corresponding event model, still outstanding.
+
+### Shared hit settings editor wired locally
+
+Added a selected-hit Shared hit settings disclosure with source-hit selection, property checkboxes, link and unlink controls. Sequence editor commits reconcile source edits, individual overrides, deleted sources and ordinary-attack conversion; resolved values are validated before saving. Six focused model tests and full Studio1477 pass. Unpublished and incomplete: need actual-control UI tests/browser QA, global mutation-path integration (timeline/clipboard and Quick Edit identity behavior), shared validation/version27/server transport protection, runtime materialized-value consistency checks and scoped release. Source deletion retains last materialized values; independent duplicate behavior must be explicitly verified.
+
+### Shared-hit actual-control and Quick Edit checks
+
+Added DOM-harness integration test running actual Studio controls and saved drafts: create sequence, link second-hit damage, edit source, Undo, target override, unlink, Undo and ordinary conversion. Fixed design commit deletion list so removed hitPropertyLinks metadata is actually removed. Added Quick Edit grow/shrink check: retained links survive; added hits are independent; deleting the source keeps retained concrete damage. Seven model tests plus one actual-control test pass. This is headless UI evidence, not browser QA. Last full suite1477 predates these two extra tests. Remaining: timeline/clipboard mutation paths, shared format validation/version27 server protection, browser QA, staged release.
+
+### Shared-hit timeline clipboard integration
+
+Timeline copies resolve concrete values and retain only links whose source and target are both selected. Paste assigns new hit IDs and remaps those internal links, including across attacks. Copying only a dependent bakes its value without an external reference. Timeline commits reconcile link overrides/removals and validate resolved values. Nine focused UI/clipboard checks and full Studio1481 pass (`/private/tmp/hit-links-clipboard-tests.txt`). Not published. Next: shared validator and format27 clients/server, consistency checks for materialized values and browser authoring/export/import verification, then scoped publication.
+
+### Shared-hit format27 clients and consistency validation
+
+Shared module now validates source links and concrete resolved values without mutation; malformed links or stale values are rejected. Projects/banks/learning trees/catalog accept27, older-format containers reject link metadata, and bank reads negotiate27 when offered. Added shared bank/project roundtrip and stale-value checks. Sequence mutations resolve before validation; batch and bounce commits avoid double reconciliation (which could mistake propagated values for overrides). Full Arena801 passes; Studio1481 passed before two additional format tests/final bounce handling, then21 focused link/format/bounce checks pass. Need full final suite and explicit linked batch/bounce UI coverage. Server still79/format26: update required before release. Feature remains unpublished.
+
+### Linked batch/bounce controls and recipe replacement verified
+
+Expanded actual-control UI test: batch-edit source damage propagates and preserves links; Undo restores values; linking bounces, adding/changing source bounce, Undo, and overriding/removing target bounce work through saved drafts. Found recipe replacement retained obsolete links to removed hits; fixed recipe builder to drop old links when generating independent hit identities, with source-immutability regression coverage. Full Studio1484 passes (`/private/tmp/hit-links-final-editor.txt`). Still local/unpublished. Next required release work: classroom server format27, browser link/export/import verification, scoped staging/full parity and publication/live verification.
+
+### Classroom server80 / format27 published
+
+Server source `3fce337a5047a8dfa585cdad7f6d02b67123e1dc`, saved80 `appgprj_6ac1778cd32081918ba530bb3c83b9d6~appgver_55f07c1e858481919f49854536aafedc`; deployment `appgdep_6af12726c0248191a0b3bb5af4ac4abd` succeeded. Added shared hit-link validator and format27 capabilities/client negotiation.33 anonymous bank tests pass, including roundtrip, stale materialized values, missing sources, cycles, older-client refusal and unchanged saved revisions after rejected writes. Build succeeded. No real student data accessed. Client feature remains unpublished pending browser verification and staged release.
+
+### Shared-hit release staged
+
+Prepared scoped54-file Studio release against published `91192006aa745d77ece4fe29ae6cf8bde1642ab3`, preserving unrelated published recompute ordering and applying only the reviewed timeline callback update. Frozen staged Studio1484 tests pass (`release-staging/20261109-hit-links/studio-tests.txt`). Staging script `/private/tmp/stage_hit_links_release.py`, publisher `/private/tmp/publish_studio_hit_links.py` (not executed). Client feature remains unpublished. Next: browser QA of staged build including link/source-edit/Undo and format27 export→Arena import, then final Arena cache closure/tests, publication and live hash verification. Server80/format27 is already live.
+
+### Shared-hit browser QA passed
+
+Staged Studio on8791: created3-hit area sequence, linked Hit2 damage to Hit1, changed source6→17 and observed dependent17; Undo restored6 and retained link. Exported format27 with concrete damage[6,6,12]. Imported in local Arena8790, compared distance72/Boffset180/duration100: damage6/6/12 at frames35/40/45, matching Studio. Both browsers report no JS errors. Evidence/screenshots/anonymous export in `release-staging/20261109-hit-links`. Staged server session43981, browser tabs111/112 retained. Client publication still pending; next final Arena cache refresh/tests, scoped Studio publication, Pages job and live file verification. Server80 already live.
