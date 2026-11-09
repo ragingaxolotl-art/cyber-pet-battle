@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {freshAttack,defaultStats,validateAttack,validateDesign,simulate} from '../site/shared/combat-model.js';import {attacksVersion} from '../site/shared/attack-format.js';import {validateCatalog} from '../site/catalog.js';import {Arena,fighter} from '../site/engine.js';
+const events=[{id:'present_hit',kind:'sound',start:0,duration:12,preset:'impact',volume:.5},{id:'present_camera',kind:'shake',start:1,duration:20,amount:3}];
+test('format34 round trip refuses old labels and rejects invalid presentation data',()=>{const a=freshAttack();a.presentationEvents=events;validateAttack(a);assert.equal(attacksVersion([a]),34);const p={format:'cyber-pet-combat-design',version:34,attacks:[a]};validateDesign(p);assert.deepEqual(validateCatalog(p)[0].presentationEvents,events);assert.throws(()=>validateCatalog({...p,version:33}),/34/);assert.throws(()=>validateAttack({...a,presentationEvents:[{...events[0],volume:2}]}));});
+test('sound/camera declarations never affect Studio simulation or Arena combat',()=>{
+ const a=freshAttack(),b={...a,presentationEvents:events};assert.deepEqual(simulate(a,defaultStats(),defaultStats(),{}),simulate(b,defaultStats(),defaultStats(),{}));
+ const run=attack=>{const arena=new Arena(fighter('A',defaultStats()),fighter('B',defaultStats()),[attack],{training:true});arena.paused=false;arena.attack(arena.fighters[0],attack);for(let i=0;i<180;i++)arena.tick(new Set());return {frame:arena.frame,metrics:arena.metrics,fighters:arena.fighters.map(f=>({hp:f.hp,x:f.x,y:f.y,energy:f.energy,stun:f.stun}))};};assert.deepEqual(run(a),run(b));
+});

@@ -1,3 +1,4 @@
+import {validatePresentationEvents} from './presentation-events.js';
 import {validateAttackerMotion} from './attacker-motion.js?v=20261109-movement-release';
 import {validateThrow} from './throw-rules.js?v=20261109-throw-release';
 import {validateProjectileFlight} from './projectile-flight.js?v=20261109-flight';
@@ -50,6 +51,7 @@ const fail=s=>{throw Error(s);};
 function num(o,key,min,max,integer=false){const v=o[key];if(typeof v!=='number'||!Number.isFinite(v)||v<min||v>max||(integer&&!Number.isInteger(v)))fail(`${key} must be ${integer?'a whole number ':''}between ${min} and ${max}.`);}
 export function validateAttack(a,ids){
  if(!a||typeof a!=='object')fail('Invalid attack.');
+ validatePresentationEvents(a.presentationEvents);
  validateAttackerMotion(a);validateThrow(a);validateProjectileFlight(a);validateMeleeClash(a);validateHitSequence(a);validateAnchorBindings(a);validateHurtboxes(a);validateHitPropertyLinks(a);
  validateMovementCancels(a.movementCancels);
  validateContactFeedback(a.contactFeedback);validateComboScaling(a.comboScaling);validateCounterHit(a.counterHit);validateHitstunScaling(a.hitstunScaling);validateBounces(a.bounces);
@@ -91,7 +93,7 @@ export function validateAttack(a,ids){
  return a;
 }
 export function validateDesign(p,ids){
- if(p?.format!=='cyber-pet-combat-design'||![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33].includes(p.version)||!Array.isArray(p.attacks)||p.attacks.length<1||p.attacks.length>256)fail('Choose a version 1–33 Combat Design project (1–256 attacks).');
+ if(p?.format!=='cyber-pet-combat-design'||![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34].includes(p.version)||!Array.isArray(p.attacks)||p.attacks.length<1||p.attacks.length>256)fail('Choose a version 1–34 Combat Design project (1–256 attacks).');
  requireGroupVersion(p.version,p.attacks);
  if(p.testBench){for(const side of ['attacker','target'])statsFor(p.testBench[side]);validateSandbox(p.testBench.options);}
  if(p.version===1&&p.attacks.some(a=>a.hitEvents))fail('Independent hit sequences require a version 2 project.');
