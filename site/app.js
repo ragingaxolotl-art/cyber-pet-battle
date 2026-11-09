@@ -1,25 +1,25 @@
-import {impactAreaBox} from './shared/projectile-area.js?v=20261108-explosion';
+import {impactAreaBox} from './shared/projectile-area.js?v=20261109-rotation';
 import {drawImpactArea} from './shared/impact-area-view.js?v=20261108-explosion';
 import {installTouchControls} from './touch-controls.js?v=20261108-air-recovery';
-import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261109-guard';
-import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261108-movement-cancels';
-import {installMatchup} from './matchup.js?v=20261109-guard';
+import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261109-rotation';
+import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261109-rotation';
+import {installMatchup} from './matchup.js?v=20261109-rotation';
 import {attackChecks} from './attack-checks.js?v=20261109-split';
 import {installHonours} from './honours-ui.js?v=20261108-movement-cancels';
 import {artworkDirection} from './shared/display.js?v=20261108-movement-cancels';
 import {preparePetPlacement,petPlacement} from './shared/pet-placement.js?v=20261108-movement-cancels';
-import {installWorkshop} from './workshop.js?v=20261109-guard';
+import {installWorkshop} from './workshop.js?v=20261109-rotation';
 import {reactionMotion} from './reactions.js?v=20261109-split';
 import {SprintInput,DefenseInput} from './keyboard.js?v=20261108-movement-cancels';
-import {Arena,fighter,RULES} from './engine.js?v=20261109-guard';
-import {KEYS,physicalCatalog,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261109-guard';
-import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261109-guard';
+import {Arena,fighter,RULES} from './engine.js?v=20261109-rotation';
+import {KEYS,physicalCatalog,defaultCatalog,validateCatalog,availability,petStats,withPhysicalDeck} from './catalog.js?v=20261109-rotation';
+import {defaultStats,worldBox,validateAttack} from './shared/combat-model.js?v=20261109-rotation';
 import {drawAttackEffect} from './effect-renderer.js?v=20261109-split';
 import {posePlayback} from './shared/pose-timing.js?v=20261108-movement-cancels';
 import {readBackup} from './shared/backups.js?v=20261108-movement-cancels';
 import {accountClient} from './account.js?v=20261108-movement-cancels';
-import {createClassroomBank} from './shared/attack-bank.js?v=20261109-guard';
-import {shapePoints} from './shared/hitbox-shapes.js?v=20261108-movement-cancels';
+import {createClassroomBank} from './shared/attack-bank.js?v=20261109-rotation';
+import {shapePoints} from './shared/hitbox-shapes.js?v=20261109-rotation';
 const $=id=>document.getElementById(id),canvas=$('arena'),ctx=canvas.getContext('2d'),account=accountClient();
 let workshop=null,decks=null,training=true;
 let attacks=physicalCatalog(),pet=null,arena,keys=new Set(),images=new Map(),refs={},effects={},effectImages=new Map(),last=0,accumulator=0,loadGeneration=0;
@@ -84,7 +84,7 @@ try{refs=await (await fetch('references.json')).json();for(const url of new Set(
 
 $('accountDialog').addEventListener('close',()=>{$('pin').value='';});$('bankDialog').addEventListener('close',()=>{$('teacherPassword').value='';});
 
-function drawCollision(box){ctx.beginPath();if(box.shape==='ellipse')ctx.ellipse(box.x+box.w/2,box.y+box.h/2,box.w/2,box.h/2,0,0,Math.PI*2);else{const points=shapePoints(box);ctx.moveTo(points[0].x,points[0].y);for(const p of points.slice(1))ctx.lineTo(p.x,p.y);ctx.closePath();}ctx.fill();ctx.globalAlpha=.65;ctx.strokeStyle=ctx.fillStyle;ctx.stroke();}
+function drawCollision(box){ctx.beginPath();if(box.shape==='ellipse')ctx.ellipse(box.x+box.w/2,box.y+box.h/2,box.w/2,box.h/2,(box.rotation||0)*Math.PI/180,0,Math.PI*2);else{const points=shapePoints(box);ctx.moveTo(points[0].x,points[0].y);for(const p of points.slice(1))ctx.lineTo(p.x,p.y);ctx.closePath();}ctx.fill();ctx.globalAlpha=.65;ctx.strokeStyle=ctx.fillStyle;ctx.stroke();}
 $('directSet').onchange=()=>{arena.set=Number($('directSet').value);renderSlots();canvas.focus();};
 $('stepFrame').onclick=()=>{if(!training)return;pause();arena.paused=false;arena.tick();arena.paused=true;showOverlay();render();};
 for(const id of ['blockKey','dodgeKey'])for(const key of ['F','V','B','G','R','T','Y','H','J','K','L'])$(id).add(new Option(key,key));
