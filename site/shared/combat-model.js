@@ -1,3 +1,4 @@
+import {validateThrow} from './throw-rules.js';
 import {validateProjectileFlight} from './projectile-flight.js?v=20261109-flight';
 import {validateMeleeClash} from './melee-clashes.js?v=20261109-melee-clashes';
 import {validateHitPropertyLinks} from './hit-property-links.js?v=20261109-hit-links';
@@ -48,7 +49,7 @@ const fail=s=>{throw Error(s);};
 function num(o,key,min,max,integer=false){const v=o[key];if(typeof v!=='number'||!Number.isFinite(v)||v<min||v>max||(integer&&!Number.isInteger(v)))fail(`${key} must be ${integer?'a whole number ':''}between ${min} and ${max}.`);}
 export function validateAttack(a,ids){
  if(!a||typeof a!=='object')fail('Invalid attack.');
- validateProjectileFlight(a);validateMeleeClash(a);validateHitSequence(a);validateAnchorBindings(a);validateHurtboxes(a);validateHitPropertyLinks(a);
+ validateThrow(a);validateProjectileFlight(a);validateMeleeClash(a);validateHitSequence(a);validateAnchorBindings(a);validateHurtboxes(a);validateHitPropertyLinks(a);
  validateMovementCancels(a.movementCancels);
  validateContactFeedback(a.contactFeedback);validateComboScaling(a.comboScaling);validateCounterHit(a.counterHit);validateHitstunScaling(a.hitstunScaling);validateBounces(a.bounces);
  if(a.bounces&&(a.hitEvents||!['damage','push'].includes(a.payload)))fail('Bounce settings require ordinary damage/push attacks; use per-hit bounces for sequences.');
@@ -102,7 +103,7 @@ export function magnitude(a,s){if(['push','block','dodge'].includes(a.payload))r
 export function worldBox(a,t,s,facing=1){const tm=timing(a,s),path=pathSample(a,t),travel=a.motionPath?.length?0:a.delivery==='projectile'?Math.max(0,t-Math.round((a.projectileStart??a.startup)*statsFor(s).timing))*a.projectileSpeed:0;const anchorFrame=a.delivery==='projectile'?Math.round((a.projectileStart??a.startup)*statsFor(s).timing):t,anchor=a.box.anchor?animationAnchorAt(a,a.box.anchor,anchorFrame,tm,facing):null;return {x:(facing===1?a.box.x+travel+path.x:-a.box.x-a.box.w-travel-path.x)+(anchor?.x||0),y:a.box.y+path.y+(anchor?.y||0),w:a.box.w,h:a.box.h,shape:a.box.shape||'rectangle',facing,...(a.box.rotation!==undefined?{rotation:a.box.rotation*facing}:{})};}
 export const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 export function simulate(a,attacker,target,options={}){
- validateRecoveryFrame(options.recoveryFrame);validateAttack(a);if(a.projectileSplit||a.projectileFlight)return simulateSplitPreview(a,attacker,target,options);if(a.hitEvents)return simulateSequence(a,attacker,target,options);const av=statsFor(attacker),tv=statsFor(target),tm=timing(a,attacker),facing=options.facing===-1?-1:1;
+ validateRecoveryFrame(options.recoveryFrame);validateAttack(a);if(a.throw||a.projectileSplit||a.projectileFlight)return simulateSplitPreview(a,attacker,target,options);if(a.hitEvents)return simulateSequence(a,attacker,target,options);const av=statsFor(attacker),tv=statsFor(target),tm=timing(a,attacker),facing=options.facing===-1?-1:1;
  const distance=options.distance??100,side=options.targetSide===-1?-1:1;
  let self={hp:Math.round(av.maxHP*(options.selfHP??.6)),maxHP:av.maxHP,energy:Math.round(av.maxEnergy*(options.energy??1)),shield:0,shieldUntil:0,x:0,stun:0,y:0};
  let other={hp:Math.round(tv.maxHP*(options.targetHP??.7)),maxHP:tv.maxHP,energy:tv.maxEnergy,shield:0,shieldUntil:0,x:side*distance,stun:0,y:-(options.targetHeight??0)};
