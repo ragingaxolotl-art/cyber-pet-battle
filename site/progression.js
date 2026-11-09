@@ -43,3 +43,13 @@ export class ProfileStore{
  open(petId){this.key='cyber-pet-battle-profile-v1:'+encodeURIComponent(petId);this.raw=this.storage.getItem(this.key);const p=this.raw?validateProfile(JSON.parse(this.raw)):freshProfile(petId);if(p.petId!==petId)throw Error('This profile belongs to another pet.');return p;}
  save(profile){profile=validateProfile(profile);if(this.storage.getItem(this.key)!==this.raw)throw Error('This pet changed in another tab. Reopen its profile before saving.');const raw=JSON.stringify(profile);this.storage.setItem(this.key,raw);this.raw=raw;return profile;}
 }
+
+// Ready starter skills are permanent zero-cost grants, like learned skills.
+export function grantStarters(profile,tree){
+ const next=structuredClone(profile),owned=new Set(next.purchases.map(p=>p.nodeId));
+ for(const id of tree.starterSkills||[]){const node=tree.nodes.find(n=>n.id===id);if(node?.state==='ready'&&node.attack&&!owned.has(id)){next.purchases.push({nodeId:id,attackId:node.attack.id,cost:0,attack:structuredClone(node.attack),starter:true});owned.add(id);}}
+ return validateProfile(next);
+}
+export function refreshLearnedAttacks(profile,tree){
+ const next=structuredClone(profile);for(const purchase of next.purchases){const node=tree.nodes.find(n=>n.id===purchase.nodeId);if(node?.state==='ready'&&node.attack){const old=purchase.attackId;purchase.attackId=node.attack.id;purchase.attack=structuredClone(node.attack);for(const set of next.sets)set.slots=set.slots.map(id=>id===old?node.attack.id:id);}}return validateProfile(next);
+}
