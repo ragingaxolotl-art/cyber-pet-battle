@@ -1,4 +1,4 @@
-import {attackDiagnostics} from './shared/attack-diagnostics.js?v=20261109-area-art';
+import {attackDiagnostics} from './shared/attack-diagnostics.js?v=20261109-compatibility-audit-release';
 // Text-only rendering keeps imported attack names and notes out of HTML parsing.
 export function attackChecks(attack,{expanded=false}={}) {
  const details=document.createElement('details');details.className='attack-checks';details.open=expanded;
