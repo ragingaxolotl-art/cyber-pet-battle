@@ -1,3 +1,4 @@
+import {validateCatalog} from '../site/catalog.js';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {freshAttack,validateAttack,validateDesign} from '../site/shared/combat-model.js';import {attacksVersion} from '../site/shared/attack-format.js';import {emptyBank,saveToBank,encodeBank,decodeBank,validateBank} from '../site/shared/attack-bank.js';
 test('throws roundtrip as format31 and older containers refuse it',()=>{
@@ -11,3 +12,5 @@ test('throw-only immunity requires format31 even without a grab attack',()=>{
  const bank=saveToBank(emptyBank(),a,validateAttack);assert.deepEqual(validateBank(decodeBank(encodeBank(bank)),validateAttack),bank);assert.throws(()=>validateBank({...bank,version:30},validateAttack),/version 31/);
  assert.throws(()=>validateAttack({...a,defenseWindows:[{...a.defenseWindows[0],kind:'armor',hits:1}]}),/invulnerability/);
 });
+
+test('Arena catalog imports format31 and refuses mislabeled throw projects',()=>{const a={...freshAttack(),throw:{holdFrames:18,holdX:30,holdHeight:20,target:'grounded'}},p={format:'cyber-pet-combat-design',version:31,attacks:[a]};assert.deepEqual(validateCatalog(p),[a]);assert.throws(()=>validateCatalog({...p,version:30}),/version 31/);});

@@ -1,4 +1,4 @@
-import {throwRejection,resolveGrabAttempts,createThrowHold,heldPosition,throwHoldPhase} from './throw-rules.js';
+import {throwRejection,resolveGrabAttempts,createThrowHold,heldPosition,throwHoldPhase} from './throw-rules.js?v=20261109-throw-release';
 import {contactDeadline} from './contact-timing.js';
 export class ThrowController{
  constructor(arena){this.arena=arena;this.holds=[];}
