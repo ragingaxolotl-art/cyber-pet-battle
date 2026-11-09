@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {freshProfile,grantStarters,purchaseReason,buySkill,refreshLearnedAttacks,allowedAttackIds} from '../site/progression.js';import {freshAttack} from '../site/shared/combat-model.js';
+test('ready starters are free, satisfy prerequisites, equip normally, and are not regranted',()=>{
+ const a=freshAttack(),b=freshAttack();const tree={starterSkills:['start','draft'],nodes:[{id:'start',state:'ready',requires:[],attack:a},{id:'draft',state:'draft',requires:[],attack:freshAttack()},{id:'next',state:'ready',requires:['start'],requirement:'all',cost:1,attack:b}]};let p=freshProfile('demo');p.maxTrainingXP=100;p=grantStarters(p,tree);assert.equal(p.purchases.length,1);assert.equal(p.purchases[0].cost,0);assert.ok(allowedAttackIds(p,[]).has(a.id));assert.equal(purchaseReason(p,tree.nodes[2],tree),'');assert.equal(grantStarters(p,tree).purchases.length,1);p=buySkill(p,tree.nodes[2],tree);assert.equal(p.purchases.length,2);
+});
+test('reviewed updates preserve paid points and remap slots; removed skills remain learned',()=>{
+ const a=freshAttack(),b=freshAttack();let p=freshProfile('demo');p.maxTrainingXP=100;p.purchases=[{nodeId:'n',attackId:a.id,cost:1,attack:a}];p.sets[0].slots[0]=a.id;const updated=refreshLearnedAttacks(p,{nodes:[{id:'n',state:'ready',attack:b}]});assert.equal(updated.purchases[0].cost,1);assert.equal(updated.sets[0].slots[0],b.id);assert.equal(p.sets[0].slots[0],a.id);assert.deepEqual(refreshLearnedAttacks(p,{nodes:[]}),p);
+});

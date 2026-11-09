@@ -36,7 +36,7 @@ export function environment(htmlPath,root){
  globalThis.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)};
  globalThis.Option=class extends Node{constructor(text,value){super('option');this.textContent=text;this.value=value;}};
  globalThis.Image=class{constructor(){this.complete=false;this.naturalWidth=128;this.naturalHeight=128;this.width=128;this.height=128;}set src(v){this.url=v;queueMicrotask(()=>{this.complete=true;this.onload?.();});}addEventListener(t,f){if(t==='load')queueMicrotask(f);}};
- globalThis.indexedDB={open(){throw Error('IndexedDB unavailable in this test');}};
+ globalThis.indexedDB=undefined;
  globalThis.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};globalThis.confirm=()=>true;
  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{}});
  globalThis.fetch=async url=>{try{const relative=String(url).split('?')[0];if(relative.startsWith('http'))return new Response('{}',{status:401});return new Response(fs.readFileSync(path.join(root,relative)),{status:200});}catch{return new Response('{}',{status:404});}};
