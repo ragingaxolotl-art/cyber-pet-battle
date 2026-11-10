@@ -11,7 +11,7 @@ import {drawImpactArea} from './shared/impact-area-view.js?v=20261108-explosion'
 import {installTouchControls} from './touch-controls.js?v=20261108-air-recovery';
 import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261109-slow-motion-release';
 import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261109-melee-clashes';
-import {installMatchup} from './matchup.js?v=20261110-arena-navigation';
+import {installMatchup} from './matchup.js?v=20261110-arena-startup';
 import {attackChecks} from './attack-checks.js?v=20261109-final-ui-release';
 import {installHonours} from './honours-ui.js?v=20261108-movement-cancels';
 import {artworkDirection} from './shared/display.js?v=20261108-movement-cancels';
@@ -92,7 +92,7 @@ installPresentationControls({root:document.querySelector('.arena-footer'),audio:
 reset();requestAnimationFrame(loop);
 try{workshop=await installWorkshop({cloud:account,getPet:()=>pet,pause,status,testAttack:a=>{$('moveTestChecks').replaceChildren(attackChecks(a,{expanded:true}));$('moveTestChecks').hidden=false;training=true;$('arenaMode').value='training';arena=new Arena(fighter(pet?.name||'Practice fighter',pet?petStats(pet):defaultStats(),pet),fighter('Training dummy',pet?petStats(pet):defaultStats()),[a],{training:true,decks:[{id:'preview',name:'Move test · '+a.name,slots:[a,...Array(KEYS.length-1).fill(null)]}]});arena.fighters[1].x=arena.fighters[0].x+100;renderSlots();start();},changed:data=>{attacks=data.attacks;decks=data.decks;reset();loadEffects(attacks).catch(()=>status('Some attack effects could not load.'));}});$('mapAttacks').disabled=false;$('skillTrees').disabled=false;}catch(e){status('Skill trees could not load: '+e.message);}finally{initializing=false;showOverlay();}
 
-try{refs=await (await fetch('references.json')).json();for(const url of new Set(['assets/arena.png',...Object.values(refs).map(r=>r.url)])){const image=await loadImage(url);if(image)images.set(url,image);}}catch{status('Some practice artwork could not load. Reload to try again.');}
+
 
 $('accountDialog').addEventListener('close',()=>{$('pin').value='';});$('bankDialog').addEventListener('close',()=>{$('teacherPassword').value='';});
 
@@ -111,3 +111,7 @@ $('navMoves').onclick=()=>$('mapAttacks').click();$('navPet').onclick=()=>$('con
 
 const matchup=installMatchup({getAttacks:()=>attacks,pause});
 try{const transfer=consumeComparisonTransfer(location.hash);if(transfer)matchup.openStudioTest(transfer);}catch(error){status(error.message);}
+
+// Optional artwork must not delay comparison, navigation or input handlers.
+async function loadPracticeArtwork(){try{refs=await (await fetch('references.json')).json();for(const url of new Set(['assets/arena.png',...Object.values(refs).map(r=>r.url)])){const image=await loadImage(url);if(image)images.set(url,image);}}catch{status('Some practice artwork could not load. Reload to try again.');}}
+void loadPracticeArtwork();

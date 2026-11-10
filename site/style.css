@@ -76,7 +76,7 @@
 @media(pointer:coarse),(max-width:650px){.touch-controls{display:block}}
 
 /* Optional comparison help keeps setup fields and replay visible together. */
-.context-help-button{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:26px;min-width:26px;min-height:26px;padding:0;margin-left:6px;border:1px solid var(--line);border-radius:4px}
+.context-help-button{font:700 14px/1 sans-serif;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:26px;min-width:26px;min-height:26px;padding:0;margin-left:6px;border:1px solid var(--line);border-radius:4px}
 .context-help-button::before{content:'i';font-weight:800}
 .context-help-button:focus-visible{outline:3px solid #f3cf75;outline-offset:3px}
 .context-help-dialog{width:min(540px,calc(100vw - 32px));max-height:80dvh;overflow:auto;box-sizing:border-box}
