@@ -19,7 +19,7 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack,cl
  const effectIndex=await (await fetch('effects.json')).json(),effectIds=new Set(Object.keys(effectIndex));
  let tree=checkPlayableTree(await (await fetch('starter-trees.json')).json(),effectIds),effectImages=new Map();
  try{const saved=treeStore.getItem(TREE_STORAGE);if(saved)tree=checkPlayableTree(JSON.parse(saved),effectIds);}catch(e){status('Saved tree could not load: '+e.message);}
- let profile,credit,branch=0,selectedSet=null,blocked=false,selectedKey=0,deletedSet=null,deletedDraft=null;const drafts=new LoadoutDrafts();
+ let profile,credit,branch=0,selectedSet=null,blocked=false,selectedKey=0,deletedSet=null,deletedDraft=null,profileIssue='';const retryProfileButtons=[];const drafts=new LoadoutDrafts();
  const draftKey=()=> 'cyber-pet-loadout-drafts:'+profile.petId;
  function registry(){const lookup=new Map(tree.nodes.filter(n=>n.attack).map(n=>[n.attack.id,n.attack]));for(const purchase of profile?.purchases||[])if(purchase.attack)lookup.set(purchase.attack.id,purchase.attack);for(const attack of physical)lookup.set(attack.id,attack);return [...lookup.values()];}
  function decks(){const lookup=new Map(registry().map(a=>[a.id,a])),owned=allowedAttackIds(profile,physical);return [{id:'physical',name:'Physical',slots:physical},...profile.sets.map(s=>({id:s.id,name:s.name,slots:s.slots.map(id=>owned.has(id)?lookup.get(id)||null:null)}))];}
@@ -28,14 +28,24 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack,cl
  function training(){const pet=getPet();if(pet)return pet.training||{levels:pet.skills};return {levels:Object.fromEntries(['strength','speed','stamina','intelligence','charisma','focus'].map(k=>[k,20]))};}
  let profileGeneration=0;
  async function openProfile(){
-  const generation=++profileGeneration,petId=getPet()?.id||'practice-demo',trainingData=training();blocked=true;invalidateCloud();
+  const generation=++profileGeneration,petId=getPet()?.id||'practice-demo',trainingData=training();blocked=true;profileIssue='';invalidateCloud();for(const button of retryProfileButtons)button.disabled=true;
+  let available=profile?.petId===petId?structuredClone(profile):null;
   try{
    await treeStore.refresh();if(generation!==profileGeneration)return;
-   const repository=new ProfileDatabase(treeStore),result=syncCredit(repository.open(petId),trainingData),next=grantStarters(result.profile,tree);
+   const repository=new ProfileDatabase(treeStore);available=repository.open(petId);
+   const result=syncCredit(available,trainingData),next=grantStarters(result.profile,tree);
    await repository.save(next);if(generation!==profileGeneration)return;
    store=repository;profile=next;credit=result.credit;blocked=false;
-  }catch(error){if(generation!==profileGeneration)return;profile=freshProfile(petId);credit=trainingCredit(trainingData);status('Cannot save this battle profile: '+error.message);}
+  }catch(error){
+   if(generation!==profileGeneration)return;profile=available||freshProfile(petId);credit=trainingCredit(trainingData);
+   const reason=error?.name==='QuotaExceededError'?'Browser storage is full.':error?.name==='SecurityError'?'The browser is blocking storage.':error.message;
+   profileIssue='Battle profile changes cannot be saved. '+reason+' Existing saved data is preserved. Use Retry profile storage after fixing storage.';
+   status('Cannot save this battle profile: '+profileIssue);
+  }
   selectedSet=profile.sets[0]?.id;drafts.load(localStorage,draftKey(),profile.sets);deletedSet=null;notify();cloudButtons(false);
+  $('exportBattleProfile').disabled=blocked&&!available;
+  for(const button of retryProfileButtons){button.hidden=!blocked;button.disabled=false;}
+  return {saved:!blocked,message:profileIssue};
  }
 
  function paintEffect(canvas,node){const effect=effectIndex[node.effectId];if(!effect)return;let image=effectImages.get(effect.id);if(!image){image=new Image();effectImages.set(effect.id,image);image.src=effect.sheet;}const draw=()=>{if(!image.naturalWidth)return;const [w,h]=effect.canvas,frame=Math.max(0,(effect.impact||1)-1),scale=Math.min(canvas.width/w,canvas.height/h);const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,(frame%effect.columns)*w,Math.floor(frame/effect.columns)*h,w,h,(canvas.width-w*scale)/2,(canvas.height-h*scale)/2,w*scale,h*scale);};if(image.complete)draw();else image.addEventListener('load',draw,{once:true});}
@@ -51,7 +61,7 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack,cl
    card.append(canvas,name,description,prerequisites,button,note);$('treeSkills').append(card);
   }
  }
- function openTree(){pause();renderTree();$('treeStatus').textContent='Progress and named sets are saved for this pet in this browser. Export a battle profile to keep a portable copy.';$('skillsDialog').showModal();}
+ function openTree(){pause();renderTree();$('treeStatus').textContent=blocked?profileIssue:'Progress and named sets are saved for this pet in this browser. Export a battle profile to keep a portable copy.';$('skillsDialog').showModal();}
 
  function committed(){return profile.sets.find(s=>s.id===selectedSet);}
  function persistDraft(){try{drafts.save(localStorage,draftKey());}catch{ $('mappingStatus').textContent='Draft recovery unavailable. Save the set before leaving.';}}
@@ -82,7 +92,7 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack,cl
   if(!root.children.length)root.append(el('p','No learned attacks match. Change the filter or learn a move in Skill trees.'));
  }
  $('moveSearch').oninput=renderPicker;$('moveFilter').onchange=renderPicker;$('setNameInput').oninput=captureDraft;
- $('mapAttacks').onclick=()=>{pause();renderSetList();$('mappingStatus').textContent='Select a key, choose a move, then Save set. Drafts survive closing and switching sets.';$('mappingDialog').showModal();};
+ $('mapAttacks').onclick=()=>{pause();renderSetList();$('mappingStatus').textContent=blocked?profileIssue:'Select a key, choose a move, then Save set. Drafts survive closing and switching sets.';$('mappingDialog').showModal();};
  $('closeMapping').onclick=()=>$('mappingDialog').close();$('closeSkills').onclick=()=>$('skillsDialog').close();$('skillTrees').onclick=openTree;
  $('setList').onchange=()=>{selectedSet=$('setList').value;renderMapping();};
  async function addSet(copy=false){try{if(profile.sets.length>=12)throw Error('You can keep up to 12 custom sets.');let n=1;while(profile.sets.some(s=>s.name==='Set '+n))n++;const original=copy&&committed()?drafts.read(committed()):null;const set={id:'set_'+crypto.randomUUID(),name:'Set '+n,slots:original?.slots||Array(KEYS.length).fill(null)};await transact(p=>saveSet(p,set,allowedAttackIds(p,physical)));selectedSet=set.id;renderSetList();}catch(e){$('mappingStatus').textContent=e.message;}}
@@ -119,6 +129,16 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack,cl
  $('studioTree').onclick=async()=>{try{await treeStore.refresh();await useCollection(savedTreeChoices(treeStore));$('treeStatus').textContent='Studio trees loaded. Choose Data set / Tree above.';}catch(e){$('treeStatus').textContent=e.message;}};
  $('openTree').textContent='Open tree or data set';$('openTree').onclick=()=>$('treeFile').click();$('treeFile').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;try{if(file.size>32*1024*1024)throw Error('Choose a tree or data set under 32 MiB.');await useCollection(treeChoices(await readImportJson(file,'tree or data set'),t=>checkPlayableTree(t,effectIds)));}catch(err){$('treeStatus').textContent=err.message;}};
  const update=el('button','Review learned attack updates');$('skillsDialog').querySelector('.profile-actions').append(update);update.onclick=()=>{const dialog=el('dialog'),title=el('h2','Update learned attacks'),note=el('p','This applies Ready definitions from the current tree to matching learned skills. Points paid and other learned skills remain unchanged. Loadout assignments follow updated identities.'),list=el('ul'),apply=el('button','Apply reviewed updates'),cancel=el('button','Cancel');let count=0;for(const purchase of profile.purchases){const node=tree.nodes.find(n=>n.id===purchase.nodeId);if(node?.state==='ready'&&node.attack&&JSON.stringify(node.attack)!==JSON.stringify(purchase.attack)){list.append(el('li',node.name));count++;}}apply.disabled=!count;dialog.append(title,note,list,apply,cancel);document.body.append(dialog);cancel.onclick=()=>{dialog.close();dialog.remove();};apply.onclick=async()=>{try{await transact(p=>refreshLearnedAttacks(p,tree));dialog.close();dialog.remove();renderTree();status('Learned attacks updated; points and loadouts preserved.');}catch(e){note.textContent=e.message;}};dialog.showModal();};
+ for(const [dialogId,closeId] of [['skillsDialog','closeSkills'],['mappingDialog','closeMapping']]){
+  const retry=el('button','Retry profile storage');retry.hidden=true;retryProfileButtons.push(retry);$(dialogId).querySelector('.profile-actions').append(retry);
+  retry.onclick=async()=>{
+   const result=await openProfile();if(!result)return;
+   const message=result.saved?'Battle profile storage restored. Saved skills and loadouts are available.':result.message;
+   if($('skillsDialog').open){renderTree();$('treeStatus').textContent=message;}
+   if($('mappingDialog').open){renderSetList();$('mappingStatus').textContent=message;}
+   status(message);if(result.saved)$(closeId).focus();
+  };
+ }
  const cloudStatus=el('p');cloudStatus.setAttribute('role','status');$('skillsDialog').append(cloudStatus);
  let cloudRevision=null,cloudPet=null,cloudOperation=0,cloudBusy=false,cloudReview=null;
  const loadCloud=el('button','Load website battle progress'),saveCloud=el('button','Save battle progress to website'),loadLessons=el('button','Load classroom trees');
