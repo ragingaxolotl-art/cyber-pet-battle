@@ -1,11 +1,11 @@
-import {normalizeMatchupScenario,validateMatchupStats} from './matchup-scenario.js?v=20261110-arena-shared-preview';
+import {normalizeMatchupScenario,validateMatchupStats} from './matchup-scenario.js?v=20261110-status-preview-arena';
 import {explainFollowupRejection} from './followup-diagnostics.js?v=20261110-followup-audit-r2';
 import {addContextHelp} from './context-help.js?v=20261110-arena-navigation';
 import {traceHitbox} from './shared/hitbox-view.js?v=20261109-rotation';
 import {impactAreaBox} from './shared/projectile-area.js?v=20261109-area-art';
 import {drawImpactArea} from './shared/impact-area-view.js?v=20261108-explosion';
-import {Arena,fighter} from './engine.js?v=20261110-arena-shared-preview';
-import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261110-arena-shared-preview';
+import {Arena,fighter} from './engine.js?v=20261110-status-preview-arena';
+import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261110-status-preview-arena';
 // Isolated, deterministic comparison: no AI, saves, rewards, or pet-art restrictions.
 export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,energyA=100,energyB=100,placement='center',actionB='attack',followupA=null,followupFrame=12,movementA=null,recoveryBFrame=null,availableAttacks=[]}={}) {
  validateMatchupStats(statsA);validateMatchupStats(statsB);

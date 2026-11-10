@@ -1,4 +1,4 @@
-import {validateProfile,freshProfile} from './progression.js?v=20261110-arena-shared-preview';
+import {validateProfile,freshProfile} from './progression.js?v=20261110-status-preview-arena';
 // Database transactions preserve the original localStorage profile as a fallback.
 export class ProfileDatabase {
  constructor(storage){this.storage=storage;this.key=null;this.raw=null;}

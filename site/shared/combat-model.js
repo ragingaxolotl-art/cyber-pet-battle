@@ -9,7 +9,7 @@ import {validateHurtboxes} from './hurtboxes.js?v=20261109-hurtboxes';
 import {animationAnchorAt,validateAnchorBindings} from './animation-anchors.js?v=20261109-hurtboxes';
 import {guardContactRule,applyGuardRecovery,validateGuardInteraction} from './guard-interaction.js?v=20261109-guard';
 import {validateProjectileSplit} from './projectile-split.js?v=20261109-flight';
-import {simulateSplitPreview} from './split-preview.js?v=20261110-arena-shared-preview';
+import {simulateSplitPreview} from './split-preview.js?v=20261110-status-preview-arena';
 import {validateProjectileArea,createImpactArea,claimAreaHit,impactAreaBox,impactAreaView,impactAreaAnchor} from './projectile-area.js?v=20261109-area-art';
 import {validateProjectileContact,consumesProjectile,CONTACT_END_REASON} from './projectile-contact.js?v=20261108-contact-final';
 import {createSteeringState,advanceSteering,validateProjectileSteering} from './projectile-steering.js?v=20261108-steering';
@@ -35,7 +35,7 @@ import {statusDuration,statusMultiplier} from './status-rules.js?v=20261108-move
 import {pathSample} from './attack-motion.js?v=20261108-movement-cancels';
 import {HITBOX_SHAPES,shapeHitsRectangle,validateHitboxRotation} from './hitbox-shapes.js?v=20261109-rotation';
 import {validateHitSequence,advancePulseReaction} from './hit-sequence.js?v=20261109-momentum-release';
-import {simulateSequence} from './sequence-preview.js?v=20261110-arena-shared-preview';
+import {simulateSequence} from './sequence-preview.js?v=20261110-status-preview-arena';
 // Proposed classroom playtest rules. All timing is in 60 Hz simulation frames.
 export const BALANCE={id:'classroom-playtest-v1',baseHP:100,hpPerStamina:2,baseEnergy:50,energyPerStamina:1,maxSpeedReduction:.15,maxFocusCostReduction:.2,baseGuardReduction:.35,maxFocusGuardBonus:.2,maxCharismaShieldBonus:.2,maxFocusStatusReduction:.25,statCap:99};
 export const STATS=['strength','speed','stamina','intelligence','charisma','focus'];
@@ -120,6 +120,8 @@ export function simulate(a,attacker,target,options={}){
  const cast=self.energy>=cost;if(cast)self.energy-=cost;else events.push({frame:0,text:'Not enough energy — attack did not start.'});
  function event(frame,text){events.push({frame,text});}
  function heal(who,n){const old=who.hp;who.hp=Math.min(who.maxHP,who.hp+n);return who.hp-old;}
+ // Existing burn/poison already affect health in Arena, even while shielded.
+ function statusDamage(who,n){const damage=Math.min(who.hp,n);who.hp-=damage;return damage;}
  function startReaction(who,f){
   const reaction=juggleLegacyReaction(who,scaledHitReaction(a,combos.priorHits('self','target')));if(!reaction)return false;
   who.pulseMotion=null;
@@ -214,7 +216,7 @@ export function simulate(a,attacker,target,options={}){
    event(f,`Impact area ${guarded?'blocked':'hit'}: ${damage} damage.`);
   }
   for(const s of statuses)if(f>=s.next&&f<=s.end){
-   if(['burn','poison','regen'].includes(s.kind)){const n=s.kind==='regen'?heal(s.who,s.power):hurt(s.who,s.power);event(f,`${s.kind} tick: ${n} ${s.kind==='regen'?'healing':'damage'}.`);}s.next+=a.statusInterval;
+   if(['burn','poison','regen'].includes(s.kind)){const n=s.kind==='regen'?heal(s.who,s.power):statusDamage(s.who,s.power);event(f,`${s.kind} tick: ${n} ${s.kind==='regen'?'healing':'damage'}.`);}s.next+=a.statusInterval;
   }
   if(options.recoveryFrame!==undefined&&options.recoveryFrame!==null&&f===options.recoveryFrame){
    other.statuses=statuses.filter(s=>s.who===other).map(s=>({type:s.kind,until:s.end}));
