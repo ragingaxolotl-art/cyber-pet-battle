@@ -42,7 +42,7 @@ test('invalid later tree rejects the entire dataset before replacing any saved r
 });
 test('queued tree imports grant starters from the latest in-memory profile without dropping an earlier saved set',async()=>{
  const {env,workshop,makeBundle,load}=await setup();await load(makeBundle('Original audit tree'));
- const queue=[];navigator.locks={request:(_name,callback)=>new Promise((resolve,reject)=>queue.push(async()=>{try{resolve(await callback());}catch(error){reject(error);}}))};
+ const queue=[];navigator.locks={request:(_name,callback)=>_name==='cyber-pet-tree-storage-legacy'?callback():new Promise((resolve,reject)=>queue.push(async()=>{try{resolve(await callback());}catch(error){reject(error);}}))};
  const add=env.ids.get('newSet').onclick();
  const importing=load(makeBundle('Queued audit tree'));await new Promise(resolve=>setImmediate(resolve));
  assert.equal(queue.length,2);await queue.shift()();await add;assert.equal(workshop.profile().sets.length,2);
