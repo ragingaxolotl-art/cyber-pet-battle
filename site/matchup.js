@@ -1,11 +1,11 @@
-import {normalizeMatchupScenario,validateMatchupStats} from './matchup-scenario.js?v=20261110-energy-preview-arena';
+import {normalizeMatchupScenario,validateMatchupStats} from './matchup-scenario.js?v=20261110-defense-report-arena';
 import {explainFollowupRejection} from './followup-diagnostics.js?v=20261110-followup-audit-r2';
 import {addContextHelp} from './context-help.js?v=20261110-arena-navigation';
 import {traceHitbox} from './shared/hitbox-view.js?v=20261109-rotation';
 import {impactAreaBox} from './shared/projectile-area.js?v=20261109-area-art';
 import {drawImpactArea} from './shared/impact-area-view.js?v=20261108-explosion';
-import {Arena,fighter} from './engine.js?v=20261110-energy-preview-arena';
-import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261110-energy-preview-arena';
+import {Arena,fighter} from './engine.js?v=20261110-defense-report-arena';
+import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261110-defense-report-arena';
 // Isolated, deterministic comparison: no AI, saves, rewards, or pet-art restrictions.
 export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,energyA=100,energyB=100,placement='center',actionB='attack',followupA=null,followupFrame=12,movementA=null,recoveryBFrame=null,availableAttacks=[]}={}) {
  validateMatchupStats(statsA);validateMatchupStats(statsB);
@@ -22,7 +22,7 @@ export function compareAttacks(first,second,{distance=50,offset=0,frames=600,sta
  const pool=new Map();for(const a of [...availableAttacks,...moves,...(followup?[followup]:[])]){validateAttack(a);pool.set(a.id,structuredClone(a));}
  const actors=[fighter('A',statsA),fighter('B',statsB)],arena=new Arena(...actors,[...pool.values()]);actors[0].x=480-distance/2;actors[1].x=480+distance/2;if(placement==='left'){actors[0].x=35;actors[1].x=35+distance;}if(placement==='right'){actors[0].x=925-distance;actors[1].x=925;}actors[0].energy=actors[0].maxEnergy*energyA/100;actors[1].energy=actors[1].maxEnergy*energyB/100;actors[0].y=-heightA;actors[1].y=-heightB;arena.ai=false;arena.paused=false;
  const comboSnapshot=()=>arena.combos.snapshot().map(({attacker,target,...values})=>({...values,attacker:attacker===actors[0]?'A':'B',target:target===actors[0]?'A':'B'}));
- const starts=[Math.max(0,-offset),Math.max(0,offset)],rows=[],replay=[],counterHits=[],areaContacts=[],throws=[],meleeClashes=[],projectileClashes=[],projectileDefenses=[],automaticCasts=[],automaticFailures=[],failureReasons=new WeakMap(),casts=[null,null],started=[false,false],startAttempted=[false,false];let movementResult=movementA?{attempted:false,started:false,reason:'Test ended before the movement attempt.'}:null;let recoveryResult=recoveryBFrame===null?null:{attempted:false,recovered:false,reason:'Test ended before the recovery attempt.'};let simultaneous=false,followupCast=null,followupResult=followup?{attempted:false,started:false,cancelled:false,reason:'Test ended before the follow-up attempt.'}:null;
+ const starts=[Math.max(0,-offset),Math.max(0,offset)],rows=[],replay=[],counterHits=[],avoidedContacts=[],areaContacts=[],throws=[],meleeClashes=[],projectileClashes=[],projectileDefenses=[],automaticCasts=[],automaticFailures=[],failureReasons=new WeakMap(),casts=[null,null],started=[false,false],startAttempted=[false,false];let movementResult=movementA?{attempted:false,started:false,reason:'Test ended before the movement attempt.'}:null;let recoveryResult=recoveryBFrame===null?null:{attempted:false,recovered:false,reason:'Test ended before the recovery attempt.'};let simultaneous=false,followupCast=null,followupResult=followup?{attempted:false,started:false,cancelled:false,reason:'Test ended before the follow-up attempt.'}:null;
  for(let step=0;step<frames&&!arena.winner;step++) {
   for(let i=0;i<2;i++)if(!startAttempted[i]&&arena.hitstopRemaining===0&&arena.frame===starts[i]){startAttempted[i]=true;const reason=arena.reason(actors[i],moves[i]);started[i]=arena.attack(actors[i],moves[i]);casts[i]=actors[i].cast;rows.push({frame:step,actor:i===0?'A':'B',event:started[i]?'Started '+moves[i].name:'Could not start: '+reason});}
   // Run after this frame's contacts, using the same age as the authored cast window.
@@ -32,6 +32,10 @@ export function compareAttacks(first,second,{distance=50,offset=0,frames=600,sta
   const priorDefenseCharges=active.map(cast=>new Map(cast?.defenseState));
   arena.tick();
   if(arena.frame!==previousCombatFrame){
+   for(const contact of arena.lastAvoidedContacts){
+    const record={...contact,frame:step,combatFrame:contact.combatFrame-1,owner:contact.owner===0?'A':'B',target:contact.target===0?'A':'B'};avoidedContacts.push(record);
+    rows.push({frame:step,actor:record.target,event:`${contact.outcome==='invulnerable'?'Invulnerable':'Dodged'}: ${contact.name} · ${contact.kind==='overlap'?'overlap':'contact'} ignored; no damage or hit reaction`});
+   }
    for(const contact of arena.contactFeedback)if(contact.outcome==='armor')rows.push({frame:step,actor:contact.target===actors[0]?'A':'B',event:`Armored contact: ${contact.attack.name} · ${contact.damage??0} HP damage; hit reaction suppressed`});
    active.forEach((cast,index)=>{for(const window of cast?.a.defenseWindows||[]){
     const used=cast.defenseState.get(window.id)||0,prior=priorDefenseCharges[index].get(window.id)||0;
@@ -84,7 +88,7 @@ export function compareAttacks(first,second,{distance=50,offset=0,frames=600,sta
   }
  }
  const damage=actors.map(f=>f.maxHP-f.hp),outcome=simultaneous?'Trade: both took damage on the same frame':damage.every(n=>n>0)?'Both fighters took damage':damage[1]>0?'A dealt damage':damage[0]>0?'B dealt damage':meleeClashes.length?(meleeClashes.some(c=>c.outcome==='priority')?'Melee priority resolved; no damage dealt':'Melee clash: both attacks stopped'):'No damage dealt';
- return {recovery:recoveryResult,throws,meleeClashes,areaContacts,counterHits,combos:comboSnapshot(),outcome,movement:movementResult,damage,replay,projectileClashes,projectileDefenses,started,automaticFailures,automaticFollowups:automaticCasts.map(({actor,frame,cast})=>({actor,frame,attackId:cast.a.id,name:cast.a.name,contacts:cast.hits,depth:cast.automaticDepth})),contacts:casts.map(c=>c?.hits||0),followup:followupResult?{...followupResult,contacts:followupCast?.hits||0}:null,rows,elapsed:arena.frame,presentationElapsed:arena.presentationFrame,winner:arena.winner,remainingAreas:arena.areas.filter(a=>arena.frame<a.end).length,remainingProjectiles:arena.projectiles.entries.length,unfinished:arena.areas.some(a=>arena.frame<a.end)||arena.hitstopRemaining>0||arena.projectiles.entries.length>0||actors.some(f=>f.dashUntil>arena.frame||f.dodgeUntil>arena.frame||f.y<0||f.cast||f.statuses.length||f.legacyMotion||f.pulseMotion)};
+ return {recovery:recoveryResult,avoidedContacts,throws,meleeClashes,areaContacts,counterHits,combos:comboSnapshot(),outcome,movement:movementResult,damage,replay,projectileClashes,projectileDefenses,started,automaticFailures,automaticFollowups:automaticCasts.map(({actor,frame,cast})=>({actor,frame,attackId:cast.a.id,name:cast.a.name,contacts:cast.hits,depth:cast.automaticDepth})),contacts:casts.map(c=>c?.hits||0),followup:followupResult?{...followupResult,contacts:followupCast?.hits||0}:null,rows,elapsed:arena.frame,presentationElapsed:arena.presentationFrame,winner:arena.winner,remainingAreas:arena.areas.filter(a=>arena.frame<a.end).length,remainingProjectiles:arena.projectiles.entries.length,unfinished:arena.areas.some(a=>arena.frame<a.end)||arena.hitstopRemaining>0||arena.projectiles.entries.length>0||actors.some(f=>f.dashUntil>arena.frame||f.dodgeUntil>arena.frame||f.y<0||f.cast||f.statuses.length||f.legacyMotion||f.pulseMotion)};
 }
 export function installMatchup({getAttacks:sourceAttacks,pause}) {
  const $=id=>document.getElementById(id);

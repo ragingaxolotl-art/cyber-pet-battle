@@ -1,4 +1,4 @@
-import {validateProfile,freshProfile} from './progression.js?v=20261110-energy-preview-arena';
+import {validateProfile,freshProfile} from './progression.js?v=20261110-defense-report-arena';
 // Database transactions preserve the original localStorage profile as a fallback.
 export class ProfileDatabase {
  constructor(storage){this.storage=storage;this.key=null;this.raw=null;}

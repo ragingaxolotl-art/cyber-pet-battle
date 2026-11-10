@@ -1,5 +1,5 @@
 import {attacksVersion} from './shared/attack-format.js?v=20261109-slow-motion-release';
-import {freshAttack,validateAttack} from './shared/combat-model.js?v=20261110-energy-preview-arena';
+import {freshAttack,validateAttack} from './shared/combat-model.js?v=20261110-defense-report-arena';
 import {validateTree} from './shared/skill-tree-model.js?v=20261110-arena-shared-preview';
 export const STUDIO_TREE_KEY='cyber-pet-attack-skill-tree-v1';
 export function checkPlayableTree(tree,effectIds){

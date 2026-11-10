@@ -1,4 +1,4 @@
-import {defaultStats, STATS} from './shared/combat-model.js?v=20261110-energy-preview-arena';
+import {defaultStats, STATS} from './shared/combat-model.js?v=20261110-defense-report-arena';
 
 const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 
