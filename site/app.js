@@ -9,7 +9,7 @@ import {traceHitbox} from './shared/hitbox-view.js';
 import {impactAreaBox} from './shared/projectile-area.js?v=20261109-area-art';
 import {drawImpactArea} from './shared/impact-area-view.js?v=20261108-explosion';
 import {installTouchControls} from './touch-controls.js?v=20261108-air-recovery';
-import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261110-defense-report-arena';
+import {consumeComparisonTransfer} from './shared/comparison-transfer.js?v=20261110-automatic-transfer-recovery';
 import {activeGroupBoxes} from './shared/hitbox-groups.js?v=20261109-melee-clashes';
 import {installMatchup} from './matchup.js?v=20261110-defense-report-arena';
 import {attackChecks} from './attack-checks.js?v=20261110-arena-shared-preview';
