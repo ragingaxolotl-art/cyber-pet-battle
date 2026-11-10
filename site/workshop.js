@@ -88,9 +88,19 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack,cl
   libraryPicker.replaceChildren(...(index<0?[new Option(tree.name||'Current tree','current')]:[]),...collection.map((item,i)=>new Option(item.name,String(i))));
   libraryPicker.value=index<0?'current':String(index);
  }
- async function useTree(candidate){candidate=checkPlayableTree(structuredClone(candidate),effectIds);const granted=grantStarters(profile,candidate);await transact(()=>granted,storage=>storage.setItem(TREE_STORAGE,JSON.stringify(candidate)));tree=candidate;branch=0;fillLibrary();notify();renderTree();const message='Tree loaded. Ready starter skills are available; existing purchases and loadouts are retained.';$('treeStatus').textContent=message;status(message);}
+ async function useTree(candidate,items){
+  candidate=checkPlayableTree(structuredClone(candidate),effectIds);
+  // Derive grants inside the profile lock; earlier queued edits must survive.
+  // Commit the library, active tree and profile together before repainting.
+  await transact(p=>grantStarters(p,candidate),storage=>{
+   storage.setItem(TREE_STORAGE,JSON.stringify(candidate));
+   if(items)storage.setItem(TREE_LIBRARY_KEY,JSON.stringify(items));
+  });
+  tree=candidate;if(items)collection=items;branch=0;fillLibrary();notify();renderTree();
+  const message='Tree loaded. Ready starter skills are available; existing purchases and loadouts are retained.';$('treeStatus').textContent=message;status(message);
+ }
  libraryPicker.onchange=async()=>{try{if(libraryPicker.value!=='current')await useTree(collection[Number(libraryPicker.value)].tree);}catch(e){fillLibrary();$('treeStatus').textContent=e.message;}};fillLibrary();
- async function useCollection(items){if(!items.length)throw Error('No saved trees found. Save a Studio tree or import a downloaded data set.');for(const item of items)checkPlayableTree(item.tree,effectIds);await treeStore.transaction(storage=>storage.setItem(TREE_LIBRARY_KEY,JSON.stringify(items)));collection=items;fillLibrary();await useTree(items[0].tree);libraryPicker.value='0';}
+ async function useCollection(items){if(!items.length)throw Error('No saved trees found. Save a Studio tree or import a downloaded data set.');items=structuredClone(items);for(const item of items)checkPlayableTree(item.tree,effectIds);await useTree(items[0].tree,items);libraryPicker.value='0';}
  $('studioTree').onclick=async()=>{try{await treeStore.refresh();await useCollection(savedTreeChoices(treeStore));$('treeStatus').textContent='Studio trees loaded. Choose Data set / Tree above.';}catch(e){$('treeStatus').textContent=e.message;}};
  $('openTree').textContent='Open tree or data set';$('openTree').onclick=()=>$('treeFile').click();$('treeFile').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;try{if(file.size>32*1024*1024)throw Error('Choose a tree or data set under 32 MiB.');await useCollection(treeChoices(JSON.parse(await file.text()),t=>checkPlayableTree(t,effectIds)));}catch(err){$('treeStatus').textContent=err.message;}};
  const update=el('button','Review learned attack updates');$('skillsDialog').querySelector('.profile-actions').append(update);update.onclick=()=>{const dialog=el('dialog'),title=el('h2','Update learned attacks'),note=el('p','This applies Ready definitions from the current tree to matching learned skills. Points paid and other learned skills remain unchanged. Loadout assignments follow updated identities.'),list=el('ul'),apply=el('button','Apply reviewed updates'),cancel=el('button','Cancel');let count=0;for(const purchase of profile.purchases){const node=tree.nodes.find(n=>n.id===purchase.nodeId);if(node?.state==='ready'&&node.attack&&JSON.stringify(node.attack)!==JSON.stringify(purchase.attack)){list.append(el('li',node.name));count++;}}apply.disabled=!count;dialog.append(title,note,list,apply,cancel);document.body.append(dialog);cancel.onclick=()=>{dialog.close();dialog.remove();};apply.onclick=async()=>{try{await transact(p=>refreshLearnedAttacks(p,tree));dialog.close();dialog.remove();renderTree();status('Learned attacks updated; points and loadouts preserved.');}catch(e){note.textContent=e.message;}};dialog.showModal();};
