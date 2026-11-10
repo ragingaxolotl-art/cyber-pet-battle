@@ -1,4 +1,4 @@
-import {attackDiagnostics} from './shared/attack-diagnostics.js?v=20261109-final-ui-release';
+import {attackDiagnostics} from './shared/attack-diagnostics.js?v=20261110-arena-shared-preview';
 // Keep long guidance out of narrow mapper cards. Imported text is never HTML.
 export function attackChecks(attack) {
  const button=document.createElement('button');button.type='button';button.className='attack-checks';button.textContent='Compatibility checks';button.setAttribute('aria-haspopup','dialog');

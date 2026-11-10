@@ -1,10 +1,10 @@
-import {normalizeMatchupScenario,validateMatchupStats} from './matchup-scenario.js?v=20261110-scenario-recovery';
+import {normalizeMatchupScenario,validateMatchupStats} from './matchup-scenario.js?v=20261110-arena-shared-preview';
 import {addContextHelp} from './context-help.js?v=20261110-arena-navigation';
 import {traceHitbox} from './shared/hitbox-view.js?v=20261109-rotation';
 import {impactAreaBox} from './shared/projectile-area.js?v=20261109-area-art';
 import {drawImpactArea} from './shared/impact-area-view.js?v=20261108-explosion';
-import {Arena,fighter} from './engine.js?v=20261109-slow-motion-release';
-import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261109-slow-motion-release';
+import {Arena,fighter} from './engine.js?v=20261110-arena-shared-preview';
+import {defaultStats,validateAttack,STATS,freshAttack} from './shared/combat-model.js?v=20261110-arena-shared-preview';
 // Isolated, deterministic comparison: no AI, saves, rewards, or pet-art restrictions.
 export function compareAttacks(first,second,{distance=50,offset=0,frames=600,statsA=defaultStats(),statsB=defaultStats(),heightA=0,heightB=0,energyA=100,energyB=100,placement='center',actionB='attack',followupA=null,followupFrame=12,movementA=null,recoveryBFrame=null,availableAttacks=[]}={}) {
  validateMatchupStats(statsA);validateMatchupStats(statsB);
@@ -25,7 +25,18 @@ export function compareAttacks(first,second,{distance=50,offset=0,frames=600,sta
  for(let step=0;step<frames&&!arena.winner;step++) {
   for(let i=0;i<2;i++)if(!startAttempted[i]&&arena.hitstopRemaining===0&&arena.frame===starts[i]){startAttempted[i]=true;const reason=arena.reason(actors[i],moves[i]);started[i]=arena.attack(actors[i],moves[i]);casts[i]=actors[i].cast;rows.push({frame:step,actor:i===0?'A':'B',event:started[i]?'Started '+moves[i].name:'Could not start: '+reason});}
   // Run after this frame's contacts, using the same age as the authored cast window.
-  const hp=actors.map(f=>f.hp),active=actors.map(f=>f.cast),previousCombatFrame=arena.frame;arena.tick();
+  const hp=actors.map(f=>f.hp),active=actors.map(f=>f.cast),previousCombatFrame=arena.frame;
+  // A parry spends its cast-local charge without ordinary damage feedback.
+  // Compare the actual charge change, including casts interrupted later this tick.
+  const priorDefenseCharges=active.map(cast=>new Map(cast?.defenseState));
+  arena.tick();
+  if(arena.frame!==previousCombatFrame){
+   for(const contact of arena.contactFeedback)if(contact.outcome==='armor')rows.push({frame:step,actor:contact.target===actors[0]?'A':'B',event:`Armored contact: ${contact.attack.name} · ${contact.damage??0} HP damage; hit reaction suppressed`});
+   active.forEach((cast,index)=>{for(const window of cast?.a.defenseWindows||[]){
+    const used=cast.defenseState.get(window.id)||0,prior=priorDefenseCharges[index].get(window.id)||0;
+    if(window.kind==='parry'&&used>prior)rows.push({frame:step,actor:index===0?'A':'B',event:`Parried incoming attack${used-prior>1?' ×'+(used-prior):''} · ${window.hits-used} defense charges left`});
+   }});
+  }
   if(arena.frame!==previousCombatFrame)actors.forEach((f,i)=>{if(f.reactionBounceFrame===arena.frame)rows.push({frame:step,actor:i===0?'A':'B',event:(f.reactionBounceKind==='wall'?'Wall':'Floor')+' bounce; no additional damage'});});
   const frameCounters=arena.frame===previousCombatFrame?[]:arena.contactFeedback.filter(c=>c.counterHit).map(c=>({frame:step,combatFrame:arena.frame-1,actor:c.attacker===actors[0]?'A':'B',target:c.target===actors[0]?'A':'B',attack:c.attack.name,damage:c.damage}));
   if(arena.frame!==previousCombatFrame)for(const c of arena.contactFeedback){if(c.guardInteraction?.mode&&['hit','block'].includes(c.outcome)&&c.target.hp>0)rows.push({frame:step,actor:c.attacker===actors[0]?'A':'B',event:`Guard ${c.guardInteraction.mode}: ${c.attack.name} interrupts guard; recovery at least ${c.guardInteraction.recoveryFrames} frames`});}
