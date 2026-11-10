@@ -26,7 +26,18 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack,cl
  function notify(){changed({attacks:registry(),decks:decks()});$('skillBalance').textContent=balance(profile)+' skill points';}
  async function transact(update,extra){if(blocked)throw Error('Profile storage is unavailable. Your saved data has not been replaced.');const generation=profileGeneration,repository=store;const commit=async()=>{if(generation!==profileGeneration)throw Error('The selected pet changed. Try again.');const next=update(structuredClone(profile));await repository.save(next,extra);if(generation!==profileGeneration)throw Error('Saved the previous pet’s progress. Reopen the current pet to continue.');profile=next;notify();};if(navigator.locks)await navigator.locks.request('battle-profile:'+profile.petId,commit);else await commit();}
  function training(){const pet=getPet();if(pet)return pet.training||{levels:pet.skills};return {levels:Object.fromEntries(['strength','speed','stamina','intelligence','charisma','focus'].map(k=>[k,20]))};}
- let profileGeneration=0;async function openProfile(){const generation=++profileGeneration,petId=getPet()?.id||'practice-demo',trainingData=training();blocked=true;await treeStore.refresh();if(generation!==profileGeneration)return;const repository=new ProfileDatabase(treeStore);try{const result=syncCredit(repository.open(petId),trainingData),next=grantStarters(result.profile,tree);await repository.save(next);if(generation!==profileGeneration)return;store=repository;profile=next;credit=result.credit;blocked=false;}catch(e){if(generation!==profileGeneration)return;profile=freshProfile(petId);credit=trainingCredit(trainingData);status('Cannot save this battle profile: '+e.message);}selectedSet=profile.sets[0]?.id;drafts.load(localStorage,draftKey(),profile.sets);deletedSet=null;notify();}
+ let profileGeneration=0;
+ async function openProfile(){
+  const generation=++profileGeneration,petId=getPet()?.id||'practice-demo',trainingData=training();blocked=true;invalidateCloud();
+  try{
+   await treeStore.refresh();if(generation!==profileGeneration)return;
+   const repository=new ProfileDatabase(treeStore),result=syncCredit(repository.open(petId),trainingData),next=grantStarters(result.profile,tree);
+   await repository.save(next);if(generation!==profileGeneration)return;
+   store=repository;profile=next;credit=result.credit;blocked=false;
+  }catch(error){if(generation!==profileGeneration)return;profile=freshProfile(petId);credit=trainingCredit(trainingData);status('Cannot save this battle profile: '+error.message);}
+  selectedSet=profile.sets[0]?.id;drafts.load(localStorage,draftKey(),profile.sets);deletedSet=null;notify();cloudButtons(false);
+ }
+
  function paintEffect(canvas,node){const effect=effectIndex[node.effectId];if(!effect)return;let image=effectImages.get(effect.id);if(!image){image=new Image();effectImages.set(effect.id,image);image.src=effect.sheet;}const draw=()=>{if(!image.naturalWidth)return;const [w,h]=effect.canvas,frame=Math.max(0,(effect.impact||1)-1),scale=Math.min(canvas.width/w,canvas.height/h);const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,(frame%effect.columns)*w,Math.floor(frame/effect.columns)*h,w,h,(canvas.width-w*scale)/2,(canvas.height-h*scale)/2,w*scale,h*scale);};if(image.complete)draw();else image.addEventListener('load',draw,{once:true});}
  function renderTree(){
   const branches=[...new Set(tree.nodes.map(n=>n.branch))];branch=Math.max(0,Math.min(branch,branches.length-1));const current=branches[branch]||'No skills';$('treeTitle').textContent=current[0]?.toUpperCase()+current.slice(1)+' branch';$('treePosition').textContent=(branch+1)+' / '+branches.length;
@@ -108,12 +119,61 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack,cl
  $('studioTree').onclick=async()=>{try{await treeStore.refresh();await useCollection(savedTreeChoices(treeStore));$('treeStatus').textContent='Studio trees loaded. Choose Data set / Tree above.';}catch(e){$('treeStatus').textContent=e.message;}};
  $('openTree').textContent='Open tree or data set';$('openTree').onclick=()=>$('treeFile').click();$('treeFile').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;try{if(file.size>32*1024*1024)throw Error('Choose a tree or data set under 32 MiB.');await useCollection(treeChoices(await readImportJson(file,'tree or data set'),t=>checkPlayableTree(t,effectIds)));}catch(err){$('treeStatus').textContent=err.message;}};
  const update=el('button','Review learned attack updates');$('skillsDialog').querySelector('.profile-actions').append(update);update.onclick=()=>{const dialog=el('dialog'),title=el('h2','Update learned attacks'),note=el('p','This applies Ready definitions from the current tree to matching learned skills. Points paid and other learned skills remain unchanged. Loadout assignments follow updated identities.'),list=el('ul'),apply=el('button','Apply reviewed updates'),cancel=el('button','Cancel');let count=0;for(const purchase of profile.purchases){const node=tree.nodes.find(n=>n.id===purchase.nodeId);if(node?.state==='ready'&&node.attack&&JSON.stringify(node.attack)!==JSON.stringify(purchase.attack)){list.append(el('li',node.name));count++;}}apply.disabled=!count;dialog.append(title,note,list,apply,cancel);document.body.append(dialog);cancel.onclick=()=>{dialog.close();dialog.remove();};apply.onclick=async()=>{try{await transact(p=>refreshLearnedAttacks(p,tree));dialog.close();dialog.remove();renderTree();status('Learned attacks updated; points and loadouts preserved.');}catch(e){note.textContent=e.message;}};dialog.showModal();};
- const cloudStatus=el('p');cloudStatus.setAttribute('role','status');$('skillsDialog').append(cloudStatus);let cloudRevision=null,cloudPet=null;
- async function cloudRead(){if(!cloud)throw Error('Account connection is unavailable.');const petId=profile.petId;if(petId==='practice-demo')throw Error('Connect your own pet before syncing progress.');const value=await cloud.readBattleProfile(petId);if(profile.petId!==petId)throw Error('The selected pet changed. Try again for the current pet.');return value;}
- const loadCloud=el('button','Load website battle progress'),saveCloud=el('button','Save battle progress to website'),loadLessons=el('button','Load classroom trees');$('skillsDialog').querySelector('.profile-actions').append(loadCloud,saveCloud,loadLessons);
- loadCloud.onclick=async()=>{loadCloud.disabled=true;cloudRevision=null;try{const value=await cloudRead();if(!value.profile){cloudRevision=value.revision;cloudPet=profile.petId;cloudStatus.textContent='No website battle progress yet. Your local progress is ready to save.';return;}const incoming=validateProfile(value.profile);if(incoming.petId!==profile.petId||incoming.maxTrainingXP>profile.maxTrainingXP)throw Error('Load this pet’s latest website backup first to verify its training XP.');const dialog=el('dialog'),note=el('p','Load website battle progress? This replaces this browser’s learned skills and loadouts for this pet. Download the local battle profile first if you want to keep both.'),apply=el('button','Load website version'),cancel=el('button','Keep local version');dialog.append(note,apply,cancel);document.body.append(dialog);dialog.addEventListener('cancel',()=>{cloudRevision=null;dialog.remove();});cancel.onclick=()=>{dialog.close();dialog.remove();cloudRevision=null;};apply.onclick=async()=>{try{if(profile.petId!==incoming.petId)throw Error('Pet changed. Reopen website progress.');await transact(p=>grantStarters({...incoming,maxTrainingXP:p.maxTrainingXP},tree));dialog.close();dialog.remove();cloudRevision=value.revision;cloudPet=incoming.petId;renderTree();cloudStatus.textContent='Website battle progress loaded.';}catch(e){note.textContent=e.message;}};dialog.showModal();}catch(e){cloudStatus.textContent=e.message;}finally{loadCloud.disabled=false;}};
- saveCloud.onclick=async()=>{saveCloud.disabled=true;try{const petId=profile.petId;if(cloudPet!==petId||cloudRevision===null){const value=await cloudRead();if(value.profile&&JSON.stringify(value.profile)!==JSON.stringify(profile)){cloudRevision=null;throw Error('Website progress already exists. Load and review it before saving your local version.');}cloudRevision=value.revision;cloudPet=petId;}const result=await cloud.saveBattleProfile(structuredClone(profile),cloudRevision);if(profile.petId!==petId)throw Error('Saved the previous pet’s progress. Select it again to continue.');cloudRevision=result.revision;cloudStatus.textContent='Saved battle progress to your website account · revision '+cloudRevision;}catch(e){cloudRevision=null;cloudStatus.textContent=e.message;}finally{saveCloud.disabled=false;}};
- loadLessons.onclick=async()=>{try{const result=await cloud.readTrees(),items=result.items.flatMap(item=>treeChoices(item.release,t=>checkPlayableTree(t,effectIds)));await useCollection(items);cloudStatus.textContent='Classroom trees loaded. Choose a data set and tree above.';}catch(e){cloudStatus.textContent=e.message;}};
+ const cloudStatus=el('p');cloudStatus.setAttribute('role','status');$('skillsDialog').append(cloudStatus);
+ let cloudRevision=null,cloudPet=null,cloudOperation=0,cloudBusy=false,cloudReview=null;
+ const loadCloud=el('button','Load website battle progress'),saveCloud=el('button','Save battle progress to website'),loadLessons=el('button','Load classroom trees');
+ $('skillsDialog').querySelector('.profile-actions').append(loadCloud,saveCloud,loadLessons);
+ function cloudButtons(busy){cloudBusy=busy;for(const button of [loadCloud,saveCloud,loadLessons])button.disabled=busy||blocked;}
+ function invalidateCloud(){
+  cloudOperation++;cloudRevision=null;cloudPet=null;cloudStatus.textContent='';
+  if(cloudReview){cloudReview.close();cloudReview.remove();cloudReview=null;}cloudButtons(false);
+ }
+ $('skillsDialog').addEventListener('close',invalidateCloud);
+ function cloudContext(){return {operation:cloudOperation,profile:profileGeneration,petId:profile.petId};}
+ function cloudCurrent(context){return context.operation===cloudOperation&&context.profile===profileGeneration&&context.petId===profile.petId&&!blocked;}
+ function requireCloud(context){if(!cloudCurrent(context))throw Error('The selected pet or window changed. Reopen Skill trees and try again.');}
+ async function cloudRead(context){
+  requireCloud(context);if(!cloud)throw Error('Account connection is unavailable.');
+  if(context.petId==='practice-demo')throw Error('Connect your own pet before syncing progress.');
+  const value=await cloud.readBattleProfile(context.petId);requireCloud(context);return value;
+ }
+ async function cloudAction(label,action){
+  if(cloudBusy||blocked)return;const context=cloudContext();cloudButtons(true);cloudStatus.textContent=label;
+  try{await action(context);}catch(error){if(cloudCurrent(context)){cloudRevision=null;cloudStatus.textContent=error.message;}}
+  finally{if(cloudCurrent(context))cloudButtons(false);}
+ }
+ loadCloud.onclick=()=>cloudAction('Loading website battle progress…',async context=>{
+  cloudRevision=null;const value=await cloudRead(context);
+  if(!value.profile){cloudRevision=value.revision;cloudPet=context.petId;cloudStatus.textContent='No website battle progress yet. Your local progress is ready to save.';return;}
+  const incoming=validateProfile(value.profile);
+  if(incoming.petId!==context.petId||incoming.maxTrainingXP>profile.maxTrainingXP)throw Error('Load this pet’s latest website backup first to verify its training XP.');
+  const dialog=el('dialog'),note=el('p','Load website battle progress? This replaces this browser’s learned skills and loadouts for this pet. Download the local battle profile first if you want to keep both.'),apply=el('button','Load website version'),cancel=el('button','Keep local version');
+  dialog.append(note,apply,cancel);document.body.append(dialog);cloudReview=dialog;
+  function dismiss(){const active=cloudCurrent(context);if(active)invalidateCloud();else{dialog.close();dialog.remove();}if(active)loadCloud.focus();}
+  dialog.addEventListener('cancel',dismiss);cancel.onclick=dismiss;
+  apply.onclick=async()=>{
+   apply.disabled=true;cancel.disabled=true;
+   try{requireCloud(context);await transact(p=>grantStarters({...incoming,maxTrainingXP:p.maxTrainingXP},tree));requireCloud(context);cloudReview=null;dialog.close();dialog.remove();cloudRevision=value.revision;cloudPet=context.petId;renderTree();cloudStatus.textContent='Website battle progress loaded.';loadCloud.focus();}
+   catch(error){if(cloudCurrent(context))note.textContent=error.message;}
+   finally{apply.disabled=false;cancel.disabled=false;}
+  };
+  dialog.showModal();
+ });
+ saveCloud.onclick=()=>cloudAction('Saving battle progress…',async context=>{
+  if(cloudPet!==context.petId||cloudRevision===null){
+   const value=await cloudRead(context);
+   if(value.profile&&JSON.stringify(value.profile)!==JSON.stringify(profile))throw Error('Website progress already exists. Load and review it before saving your local version.');
+   cloudRevision=value.revision;cloudPet=context.petId;
+  }
+  requireCloud(context);const result=await cloud.saveBattleProfile(structuredClone(profile),cloudRevision);requireCloud(context);
+  cloudRevision=result.revision;cloudStatus.textContent='Saved battle progress to your website account · revision '+cloudRevision;
+ });
+ loadLessons.onclick=()=>cloudAction('Loading classroom trees…',async context=>{
+  if(!cloud)throw Error('Account connection is unavailable.');
+  const result=await cloud.readTrees();requireCloud(context);
+  const items=result.items.flatMap(item=>treeChoices(item.release,t=>checkPlayableTree(t,effectIds)));await useCollection(items);requireCloud(context);
+  cloudStatus.textContent='Classroom trees loaded. Choose a data set and tree above.';
+ });
  $('exportBattleProfile').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({format:'cyber-pet-battle-profile',profile},null,2)],{type:'application/json'})),a=el('a');a.href=url;a.download='cyber-pet-battle-profile.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  $('importBattleProfile').onclick=()=>$('battleProfileFile').click();$('battleProfileFile').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;try{if(file.size>2*1024*1024)throw Error('Battle profile is too large.');const data=await readImportJson(file,'battle profile');if(data?.format!=='cyber-pet-battle-profile')throw Error('Choose a battle profile.');validateProfile(data.profile);if(data.profile.petId!==profile.petId)throw Error('Load the matching pet before opening its battle profile.');if(data.profile.maxTrainingXP>profile.maxTrainingXP)throw Error('Load the pet’s latest training backup before importing this profile.');await transact(p=>({...data.profile,maxTrainingXP:p.maxTrainingXP}));renderTree();$('treeStatus').textContent='Battle profile restored.';}catch(err){$('treeStatus').textContent=err.message;}};
  await openProfile();
