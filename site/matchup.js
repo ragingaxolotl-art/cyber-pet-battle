@@ -1,4 +1,5 @@
 import {normalizeMatchupScenario,validateMatchupStats} from './matchup-scenario.js?v=20261110-arena-shared-preview';
+import {explainFollowupRejection} from './followup-diagnostics.js?v=20261110-followup-audit-r2';
 import {addContextHelp} from './context-help.js?v=20261110-arena-navigation';
 import {traceHitbox} from './shared/hitbox-view.js?v=20261109-rotation';
 import {impactAreaBox} from './shared/projectile-area.js?v=20261109-area-art';
@@ -57,7 +58,7 @@ export function compareAttacks(first,second,{distance=50,offset=0,frames=600,sta
    rows.push({frame:step,actor:'A',event:reason?'Movement cancel rejected: '+reason:'Movement cancel: '+movementA.action});
   }
   if(followup&&!followupResult.attempted&&arena.hitstopRemaining===0&&arena.frame-1===starts[0]+followupFrame){
-   const previous=actors[0].cast,reason=arena.reason(actors[0],followup),accepted=arena.attack(actors[0],followup);
+   const previous=actors[0].cast,reason=explainFollowupRejection(arena.reason(actors[0],followup),previous,followup,previous?arena.frame-previous.start:0),accepted=arena.attack(actors[0],followup);
    followupCast=accepted?actors[0].cast:null;
    followupResult={attempted:true,started:accepted,cancelled:accepted&&previous===casts[0]&&!!previous,reason:accepted?'':reason||(arena.winner?'Match ended.':'Attack unavailable.')};
    rows.push({frame:step,actor:'A',event:accepted?(followupResult.cancelled?'Cancelled into ':'Started without cancelling: ')+followup.name:'Follow-up rejected: '+followupResult.reason});
