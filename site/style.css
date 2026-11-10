@@ -74,3 +74,20 @@
 
 .touch-controls{display:none;padding:12px}.touch-controls p{font-size:12px;margin:0 0 8px}.touch-buttons{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.touch-buttons button{min-height:48px;padding:8px 4px;touch-action:none;user-select:none}.touch-buttons button[aria-pressed=true]{background:#c4f46c;color:#112333}
 @media(pointer:coarse),(max-width:650px){.touch-controls{display:block}}
+
+/* Optional comparison help keeps setup fields and replay visible together. */
+.context-help-button{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:26px;min-width:26px;min-height:26px;padding:0;margin-left:6px;border:1px solid var(--line);border-radius:4px}
+.context-help-button::before{content:'i';font-weight:800}
+.context-help-button:focus-visible{outline:3px solid #f3cf75;outline-offset:3px}
+.context-help-dialog{width:min(540px,calc(100vw - 32px));max-height:80dvh;overflow:auto;box-sizing:border-box}
+.context-help-dialog p{line-height:1.6;white-space:normal}
+.matchup-controls>p[hidden],#matchupRulesHelp[hidden]{display:none}
+
+.matchup-controls>#matchupMovementControls{grid-column:1/-1;min-width:0}
+#matchupMovementControls fieldset{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0;margin:0;padding:10px}
+#matchupMovementControls label{display:flex;flex-direction:column;gap:6px;min-width:0;margin:0}
+#matchupMovementControls input{margin-top:0}
+#matchupStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+#matchupStats label{display:grid;grid-template-columns:minmax(0,1fr) 6ch;gap:6px;align-items:center;min-width:0;margin:0;overflow-wrap:anywhere}
+#matchupStats input{margin:0;padding:8px 4px}
+@media(max-width:520px){#matchupMovementControls fieldset{grid-template-columns:1fr}}

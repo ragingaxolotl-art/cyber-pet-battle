@@ -49,7 +49,7 @@ export async function installWorkshop({getPet,pause,changed,status,testAttack,cl
    const label=el('label'),key=el('button',KEYS[i]),select=el('select');key.type='button';key.setAttribute('aria-pressed',String(i===selectedKey));key.onclick=()=>{selectedKey=i;renderMapping();};
    select.setAttribute('aria-label','Attack for '+KEYS[i]);select.add(new Option('Empty',''));
    for(const a of attacks.filter(a=>owned.has(a.id))){const problem=availability(getPet(),a),option=new Option(a.name+(problem?' · artwork needed':''),a.id);option.disabled=!!problem;select.add(option);}
-   const saved=set?.slots[i];if(saved&&!attacks.some(a=>a.id===saved)){const option=new Option('Unavailable attack (kept)',saved);option.disabled=true;select.add(option);}select.value=saved||'';select.disabled=!set;select.onchange=()=>{captureDraft();selectedKey=i;renderMapping();};label.append(key,select);$('mappingKeys').append(label);
+   const saved=set?.slots[i],assigned=attacks.find(a=>a.id===saved);key.setAttribute('aria-label',KEYS[i]+': '+(assigned?.name||(saved?'Unavailable attack':'Empty slot')));if(saved&&!attacks.some(a=>a.id===saved)){const option=new Option('Unavailable attack (kept)',saved);option.disabled=true;select.add(option);}select.value=saved||'';select.disabled=!set;select.onchange=()=>{captureDraft();selectedKey=i;renderMapping();};label.append(key,select);$('mappingKeys').append(label);
   }
   for(const id of ['saveMapping','deleteSet','duplicateSet','discardMapping','clearSlot','swapSlots'])$(id).disabled=!set||blocked;
   $('undoSetDelete').disabled=!deletedSet||blocked;$('undoMapping').disabled=!drafts.undo.length;
